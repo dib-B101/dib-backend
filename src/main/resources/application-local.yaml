@@ -1,0 +1,20 @@
+# 로컬 개발 — docker compose up -d 로 띄운 컨테이너를 바라본다
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/auction
+    username: auction
+    password: localdev
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  kafka:
+    bootstrap-servers: localhost:9092
+
+jwt:
+  secret: local-dev-secret-key-must-be-at-least-256-bits-long-padding-1234
+  access-token-validity-seconds: 1800
+
+logging:
+  level:
+    com.b101.dib: DEBUG

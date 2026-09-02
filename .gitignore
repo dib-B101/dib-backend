@@ -31,3 +31,11 @@ temp/
 .cache/
 .coverage
 coverage/
+
+# local overrides
+.env
+
+# build artifacts / IDE
+build/
+.gradle/
+*.iml
