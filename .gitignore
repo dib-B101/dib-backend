@@ -35,7 +35,8 @@ coverage/
 # local overrides
 .env
 
-# build artifacts / IDE
+# Build artifacts / Gradle state / IDE
 build/
 .gradle/
+*.class
 *.iml
