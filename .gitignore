@@ -11,9 +11,19 @@
 *.log
 logs/
 
+# Build artifacts / Gradle cache
+build/
+.gradle/
+out/
+
 # IDE
 .idea/
 .vscode/
+*.iml
+.project
+.classpath
+.settings/
+.factorypath
 *.swp
 *.swo
 
@@ -31,11 +41,3 @@ temp/
 .cache/
 .coverage
 coverage/
-
-# local overrides
-.env
-
-# build artifacts / IDE
-build/
-.gradle/
-*.iml

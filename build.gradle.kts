@@ -38,8 +38,7 @@ dependencies {
     testAnnotationProcessor("org.projectlombok:lombok")
 
     // MyBatis
-    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5")
-
+    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.0")
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")

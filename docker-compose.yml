@@ -9,16 +9,16 @@ services:
     image: pgvector/pgvector:pg18          # PostgreSQL 18 + pgvector (RDS 18.4와 정합)
     container_name: dib-postgres
     environment:
-      POSTGRES_DB: auction
-      POSTGRES_USER: auction
-      POSTGRES_PASSWORD: localdev
+      POSTGRES_DB: dib
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U auction -d auction"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dib"]
       interval: 5s
       timeout: 3s
       retries: 10

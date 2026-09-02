@@ -1,9 +1,10 @@
 # 로컬 개발 — docker compose up -d 로 띄운 컨테이너를 바라본다
+# (DB: dib / postgres / 1234 — docker-compose.yml 과 반드시 일치)
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/auction
-    username: auction
-    password: localdev
+    url: jdbc:postgresql://localhost:5432/dib
+    username: postgres
+    password: 1234
   data:
     redis:
       host: localhost
