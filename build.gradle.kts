@@ -59,7 +59,8 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
 
     // Flyway — 스키마의 유일한 관리 주체 (로컬/배포 동일 스키마 재현)
-    implementation("org.flywaydb:flyway-core")
+    // Spring Boot 4 부터는 flyway-core 만으로는 자동설정이 안 붙는다 → starter 필수
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-database-postgresql")
 
     // Testcontainers — PostgreSQL/Kafka 통합 테스트

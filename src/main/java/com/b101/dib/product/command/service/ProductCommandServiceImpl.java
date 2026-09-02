@@ -27,7 +27,6 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 .marketPrice(request.getMarketPrice())
                 .thumbnailUrl(request.getThumbnailUrl())
                 .status(request.getStatus())
-                .embedding(null)
                 .createdAt(LocalDateTime.now())
                 .build();
         productCommandRepository.save(product);

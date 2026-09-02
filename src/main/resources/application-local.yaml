@@ -11,6 +11,8 @@ spring:
       port: 6379
   kafka:
     bootstrap-servers: localhost:9092
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed   # 로컬에서만 더미데이터(V900) 같이 적용
 
 jwt:
   secret: local-dev-secret-key-must-be-at-least-256-bits-long-padding-1234
