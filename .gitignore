@@ -31,3 +31,6 @@ temp/
 .cache/
 .coverage
 coverage/
+
+# local overrides
+.env
