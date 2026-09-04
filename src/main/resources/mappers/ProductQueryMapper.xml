@@ -26,23 +26,36 @@
     </resultMap>
 
     <select id="findAll" resultMap="ProductQueryMap">
-        SELECT
-            p.product_id,
-            p.member_id,
-            p.category_id,
-            p.title,
-            p.description,
-            p.condition,
-            p.model_name,
-            p.release_year,
-            p.market_price,
-            p.thumbnail_url,
-            p.status,
-            p.created_at,
-            p.updated_at,
-            p.deleted_at
-        FROM product p
-        ORDER BY p.created_at DESC
-    </select>
+	    SELECT
+	        p.product_id, p.member_id, p.category_id, p.title, p.description, p.condition,
+	        p.model_name, p.release_year, p.market_price, p.thumbnail_url, p.status,
+	        p.created_at, p.updated_at, p.deleted_at
+	    FROM product p
+	    <where>
+	        p.deleted_at IS NULL
+	        <if test="cond.status != null">
+	            AND p.status = #{cond.status}::product_status
+	        </if>
+	        <if test="cond.categoryId != null">
+	            AND p.category_id = #{cond.categoryId}
+	        </if>
+	        <if test="cond.minPrice != null">
+	            AND p.market_price <![CDATA[ >= ]]> #{cond.minPrice}
+	        </if>
+	        <if test="cond.maxPrice != null">
+	            AND p.market_price <![CDATA[ <= ]]> #{cond.maxPrice}
+	        </if>
+	    </where>
+	    ORDER BY p.created_at DESC
+	</select>
 
+	<select id="findById" resultMap="ProductQueryMap">
+    SELECT
+        p.product_id, p.member_id, p.category_id, p.title, p.description, p.condition,
+        p.model_name, p.release_year, p.market_price, p.thumbnail_url, p.status,
+        p.created_at, p.updated_at, p.deleted_at
+    FROM product p
+    WHERE p.product_id = #{productId}
+      AND p.deleted_at IS NULL
+	</select>
 </mapper>
