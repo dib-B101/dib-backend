@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,6 +43,12 @@ public class Member {
     @Column(nullable = false, length = 50)
     private String name;
 
+    // DB 컬럼이 PostgreSQL 네이티브 ENUM(gender) 이라 NAMED_ENUM 으로 바인딩해야 INSERT 가 통과한다
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(nullable = false)
+    private Gender gender;
+
     @Column(nullable = false)
     private LocalDate birthDate;
 
@@ -48,11 +56,13 @@ public class Member {
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(nullable = false)
     private MemberStatus status;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(nullable = false)
     private MemberRole role;
 
     @Column(nullable = false)
