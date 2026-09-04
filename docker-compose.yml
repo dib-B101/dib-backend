@@ -4,6 +4,10 @@
 #   완전 초기화: docker compose down -v   (스키마는 Flyway가 재생성)
 # Spring Boot는 IDE에서 프로필 local 로 직접 실행 (localhost 바라봄)
 # ─────────────────────────────────────────────────────────────
+# 프로젝트 이름 고정 — 미지정 시 Compose가 폴더명("backend")을 쓰기 때문에
+# 다른 프로젝트의 backend 폴더와 컨테이너·볼륨 namespace가 합쳐진다
+name: dib
+
 services:
   postgres:
     image: pgvector/pgvector:pg18          # PostgreSQL 18 + pgvector (RDS 18.4와 정합)
