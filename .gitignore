@@ -14,6 +14,7 @@ logs/
 # Build artifacts / Gradle cache
 build/
 .gradle/
+*.class
 out/
 bin/
 
