@@ -64,6 +64,8 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
 
     // Testcontainers — PostgreSQL/Kafka 통합 테스트
+    // Spring Boot 4 BOM 은 Testcontainers 버전을 관리하지 않으므로 BOM 을 직접 가져온다
+    testImplementation(platform("org.testcontainers:testcontainers-bom:1.21.3"))
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
@@ -71,6 +73,9 @@ dependencies {
 
     // Redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
+    // Swagger UI — http://localhost:8080/swagger-ui.html (springdoc 3.x = Spring Boot 4 대응)
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")
 }
 
 tasks.withType<Test> {
