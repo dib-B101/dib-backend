@@ -1,4 +1,4 @@
-package com.b101.dib.common.error;
+package com.b101.dib.common.exception;
 
 public record ErrorResponse(
         String code,
