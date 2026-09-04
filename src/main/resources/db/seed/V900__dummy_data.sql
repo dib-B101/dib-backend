@@ -30,10 +30,10 @@ INSERT INTO address (member_id, number, address, name, api_address_id) VALUES
 (2, '06236', '서울특별시 강남구 테헤란로 152', '회사', 'API-ADDR-003');
 
 -- 6. 경매 (Auction)
-INSERT INTO auction (member_id, product_id, category_id, auction_type, start_price, current_price, bid_unit, bid_unit_policy, reserve_price, start_at, original_end_at, end_at, status) VALUES
-(1, 1, 1, 'ENGLISH', 500000, 520000, 10000, 'FIXED', 700000, NOW() - INTERVAL '1 day', NOW() + INTERVAL '2 days', NOW() + INTERVAL '2 days', 'ACTIVE'),
-(2, 2, 2, 'ENGLISH', 20000, 20000, 1000, 'FIXED', 30000, NOW() - INTERVAL '5 hours', NOW() + INTERVAL '1 day', NOW() + INTERVAL '1 day', 'ACTIVE'),
-(1, 3, 3, 'ENGLISH', 40000, 60000, 2000, 'STEP', NULL, NOW() - INTERVAL '5 days', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day', 'SOLD');
+INSERT INTO auction (member_id, product_id, category_id, auction_type, start_price, current_price, bid_unit, reserve_price, start_at, original_end_at, end_at, status) VALUES
+(1, 1, 1, 'ENGLISH', 500000, 520000, 10000, 700000, NOW() - INTERVAL '1 day', NOW() + INTERVAL '2 days', NOW() + INTERVAL '2 days', 'ACTIVE'),
+(2, 2, 2, 'ENGLISH', 20000, 20000, 1000, 30000, NOW() - INTERVAL '5 hours', NOW() + INTERVAL '1 day', NOW() + INTERVAL '1 day', 'ACTIVE'),
+(1, 3, 3, 'ENGLISH', 40000, 60000, 2000, NULL, NOW() - INTERVAL '5 days', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day', 'SOLD');
 
 -- 7. 입찰 (Bid)
 INSERT INTO bid (auction_id, member_id, amount) VALUES
