@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.b101.dib.product.query.dto.ProductDetailDto;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -28,7 +29,7 @@ public class ProductQueryController {
     private final ProductQueryService productQueryService;
 
     @GetMapping
-    public ResponseEntity<Map> findAll(@ModelAttribute ProductSearchCondition cond,      // ?status=..&size=.. 를 객체로
+    public ResponseEntity<Map> findAll(@ModelAttribute ProductSearchCondition cond,
                                        @RequestParam(name = "cursor", required = false) String cursor){
         if (cond.getMinPrice() != null && cond.getMaxPrice() != null
                 && cond.getMinPrice() > cond.getMaxPrice()) {
@@ -43,7 +44,7 @@ public class ProductQueryController {
     
     @GetMapping("/{productId}")
     public ResponseEntity<Map> findById(@PathVariable("productId") Long productId){
-        ProductQueryDto dto = productQueryService.findById(productId);
+    	ProductDetailDto dto = productQueryService.findById(productId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 상세 조회 성공");
         map.put("data", dto);

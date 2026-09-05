@@ -1,5 +1,6 @@
 package com.b101.dib.product.query.mapper;
 
+import com.b101.dib.product.query.dto.ProductDetailDto;
 import com.b101.dib.product.query.dto.ProductQueryDto;
 import com.b101.dib.product.query.dto.ProductSearchCondition;
 
@@ -13,5 +14,5 @@ import java.util.Optional;
 @Mapper
 public interface ProductQueryMapper {
 	List<ProductQueryDto> findAll(@Param("cond") ProductSearchCondition cond);
-    Optional<ProductQueryDto> findById(@Param("productId") Long productId);
+	Optional<ProductDetailDto> findById(@Param("productId") Long productId);
 }

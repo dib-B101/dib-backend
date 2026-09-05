@@ -55,13 +55,52 @@
 	    LIMIT #{cond.limit}
 	</select>
 
-	<select id="findById" resultMap="ProductQueryMap">
-    SELECT
-        p.product_id, p.member_id, p.category_id, p.title, p.description, p.condition,
-        p.model_name, p.release_year, p.market_price, p.thumbnail_url, p.status,
-        p.created_at, p.updated_at, p.deleted_at
-    FROM product p
-    WHERE p.product_id = #{productId}
-      AND p.deleted_at IS NULL
+	<resultMap id="ProductDetailMap" type="com.b101.dib.product.query.dto.ProductDetailDto">
+	    <id     property="productId"    column="product_id"/>      <!-- <id> 가 "같은 상품" 판단 기준 -->
+	    <result property="title"        column="title"/>
+	    <result property="description"  column="description"/>
+	    <result property="condition"    column="condition"/>
+	    <result property="modelName"    column="model_name"/>
+	    <result property="releaseYear"  column="release_year"/>
+	    <result property="marketPrice"  column="market_price"/>
+	    <result property="thumbnailUrl" column="thumbnail_url"/>
+	    <result property="status"       column="status"/>
+	    <result property="createdAt"    column="created_at"/>
+	    <result property="updatedAt"    column="updated_at"/>
+	
+	    <!-- 1:1 → association (DTO 안의 category 객체를 채운다) -->
+	    <association property="category" javaType="com.b101.dib.product.query.dto.ProductDetailDto$CategorySummary">
+	        <result property="categoryId" column="category_id"/>
+	        <result property="name"       column="category_name"/>
+	    </association>
+	
+	    <association property="seller" javaType="com.b101.dib.product.query.dto.ProductDetailDto$SellerSummary">
+	        <result property="memberId" column="member_id"/>
+	        <result property="nickname" column="seller_nickname"/>
+	        <result property="score"    column="seller_score"/>
+	    </association>
+	
+	    <!-- 1:N → collection (DTO 안의 images 리스트를 채운다).
+	         이미지 3장이면 SQL 결과는 3행이지만 <id> 기준으로 1개 객체 + images 3개로 접힌다 -->
+	    <collection property="images" ofType="com.b101.dib.product.query.dto.ProductDetailDto$ImageItem">
+	        <result property="imageUrl" column="image_url"/>
+	        <result property="type"     column="image_type"/>
+	    </collection>
+	</resultMap>
+
+	<select id="findById" resultMap="ProductDetailMap">
+	    SELECT
+	        p.product_id, p.title, p.description, p.condition, p.model_name, p.release_year,
+	        p.market_price, p.thumbnail_url, p.status, p.created_at, p.updated_at,
+	        c.category_id,  c.name       AS category_name,
+	        m.member_id,    m.nickname   AS seller_nickname,  m.score AS seller_score,
+	        pi.image_url,   pi.type::text AS image_type
+	    FROM product p
+	    JOIN category c            ON c.category_id = p.category_id
+	    JOIN member   m            ON m.member_id   = p.member_id
+	    LEFT JOIN product_image pi ON pi.product_id = p.product_id
+	    WHERE p.product_id = #{productId}
+	      AND p.deleted_at IS NULL
+	    ORDER BY pi.product_image_id
 	</select>
 </mapper>
