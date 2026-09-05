@@ -33,6 +33,7 @@
 	    FROM product p
 	    <where>
 	        p.deleted_at IS NULL
+	        AND p.status <![CDATA[ <> ]]> 'HIDDEN'::product_status
 	        <if test="cond.status != null">
 	            AND p.status = #{cond.status}::product_status
 	        </if>
@@ -45,8 +46,13 @@
 	        <if test="cond.maxPrice != null">
 	            AND p.market_price <![CDATA[ <= ]]> #{cond.maxPrice}
 	        </if>
+	        <!-- 커서: "마지막으로 본 것보다 더 오래된 것" -->
+	        <if test="cond.cursorCreatedAt != null and cond.cursorProductId != null">
+	            AND (p.created_at, p.product_id) <![CDATA[ < ]]> (#{cond.cursorCreatedAt}, #{cond.cursorProductId})
+	        </if>
 	    </where>
-	    ORDER BY p.created_at DESC
+	    ORDER BY p.created_at DESC, p.product_id DESC
+	    LIMIT #{cond.limit}
 	</select>
 
 	<select id="findById" resultMap="ProductQueryMap">
