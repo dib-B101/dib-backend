@@ -1,6 +1,8 @@
 # 로컬 개발 — docker compose up -d 로 띄운 컨테이너를 바라본다
 # (DB: dib / postgres / 1234 — docker-compose.yml 과 반드시 일치)
 spring:
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     url: jdbc:postgresql://localhost:5432/dib
     username: postgres
@@ -13,6 +15,7 @@ spring:
     bootstrap-servers: localhost:9092
   flyway:
     locations: classpath:db/migration,classpath:db/seed   # 로컬에서만 더미데이터(V900) 같이 적용
+    baseline-on-migrate: true
 
 jwt:
   secret: local-dev-secret-key-must-be-at-least-256-bits-long-padding-1234
@@ -21,3 +24,8 @@ jwt:
 logging:
   level:
     com.b101.dib: DEBUG
+
+livekit:
+  url: ${LIVEKIT_URL}
+  api-key: ${LIVEKIT_API_KEY}
+  api-secret: ${LIVEKIT_API_SECRET}

@@ -10,6 +10,14 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+	@ExceptionHandler(BusinessException.class)
+	public ResponseEntity<Map<String, Object>> handleBusiness(BusinessException e) {
+		HashMap<String, Object> map = new HashMap<>();
+		map.put("code", e.getErrorCode().name());
+		map.put("message", e.getErrorCode().getMessage());
+		return ResponseEntity.status(e.getErrorCode().getStatus()).body(map);
+	}
+
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException e) {
 	    String detail = e.getBindingResult().getFieldErrors().stream()
