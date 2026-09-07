@@ -24,7 +24,7 @@ public class ProductQueryController {
     private final ProductQueryService productQueryService;
 
     @GetMapping
-    public ResponseEntity<Map> findAll(@ModelAttribute ProductSearchCondition cond){
+    public ResponseEntity<Map> findAll(@ModelAttribute ProductSearchCondition cond) {
         List<ProductQueryDto> dtoList = productQueryService.findAll(cond);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 전체 조회 성공");
@@ -33,14 +33,13 @@ public class ProductQueryController {
                 .status(HttpStatus.OK)
                 .body(map);
     }
-    
+
     @GetMapping("/{productId}")
-    public ResponseEntity<Map> findById(@PathVariable("productId") Long productId){
+    public ResponseEntity<Map> findById(@PathVariable("productId") Long productId) {
         ProductQueryDto dto = productQueryService.findById(productId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 상세 조회 성공");
         map.put("data", dto);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
-
 }
