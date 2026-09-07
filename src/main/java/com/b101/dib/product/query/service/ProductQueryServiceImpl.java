@@ -4,7 +4,6 @@ import com.b101.dib.product.query.dto.CursorPage;
 import com.b101.dib.product.query.dto.ProductDetailDto;
 import com.b101.dib.product.query.dto.ProductQueryDto;
 import com.b101.dib.product.query.dto.ProductSearchCondition;
-import com.b101.dib.product.query.dto.ProductStatus;
 import com.b101.dib.product.query.mapper.ProductQueryMapper;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -46,12 +45,8 @@ public class ProductQueryServiceImpl implements ProductQueryService {
 
     @Override
     public ProductDetailDto findById(Long productId) {
-        ProductDetailDto dto = productQueryMapper.findById(productId)
+        return productQueryMapper.findById(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
-        if (dto.getStatus() == ProductStatus.HIDDEN) {
-            throw new BusinessException(ErrorCode.PRODUCT_HIDDEN);
-        }
-        return dto;
     }
     
     private String encodeCursor(LocalDateTime createdAt, Long productId) {

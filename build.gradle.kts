@@ -76,6 +76,11 @@ dependencies {
 
     // Swagger UI — http://localhost:8080/swagger-ui.html (springdoc 3.x = Spring Boot 4 대응)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")
+
+    // LiveKit Server SDK
+    implementation("io.livekit:livekit-server:0.15.1")
+
+
 }
 
 tasks.withType<Test> {

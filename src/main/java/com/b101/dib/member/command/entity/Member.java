@@ -80,8 +80,8 @@ public class Member {
     @Column(name = "deleted_at", nullable = true)
     private LocalDateTime deletedAt;
 
-    @Column(name = "suspended_until", nullable = true)
-    private LocalDateTime suspendedUntil;
+    @Column(name = "suspended_at", nullable = true)
+    private LocalDateTime suspendedAt;
 
     @Column(nullable = true, length = 100)
     private String bankName;

@@ -33,7 +33,6 @@
 	    FROM product p
 	    <where>
 	        p.deleted_at IS NULL
-	        AND p.status <![CDATA[ <> ]]> 'HIDDEN'::product_status
 	        <if test="cond.status != null">
 	            AND p.status = #{cond.status}::product_status
 	        </if>

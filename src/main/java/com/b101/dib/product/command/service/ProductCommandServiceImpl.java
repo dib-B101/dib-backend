@@ -32,7 +32,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 .releaseYear(request.getReleaseYear())
                 .marketPrice(request.getMarketPrice())
                 .thumbnailUrl(request.getThumbnailUrl())
-                .status(ProductStatus.DRAFT)
+                .status(ProductStatus.REGISTERED)
                 .createdAt(LocalDateTime.now())
                 .build();
         productCommandRepository.save(product);
@@ -79,12 +79,11 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         if (!product.getMemberId().equals(memberId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
-        if (product.getStatus() != ProductStatus.DRAFT) {
+        if (product.getStatus() == ProductStatus.SOLD) {
             throw new BusinessException(ErrorCode.PRODUCT_NOT_DELETABLE);
         }
 
         product.setDeletedAt(LocalDateTime.now());
-        product.setStatus(ProductStatus.HIDDEN);
     }
 
 }
