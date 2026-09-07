@@ -13,6 +13,9 @@ spring:
     bootstrap-servers: localhost:9092
   flyway:
     locations: classpath:db/migration,classpath:db/seed   # 로컬에서만 더미데이터(V900) 같이 적용
+    # 시드가 V900이라 뒤에 추가되는 스키마 마이그레이션(V3, V4...)은 항상 순서를 거스른다.
+    # prod는 db/seed를 안 읽어 V900이 없으므로 이 설정이 필요 없다 — 로컬 전용.
+    out-of-order: true
 
 jwt:
   secret: local-dev-secret-key-must-be-at-least-256-bits-long-padding-1234
