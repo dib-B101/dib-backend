@@ -40,14 +40,14 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     }
 
     @Override
-    public void update(Long productId, UpdateRequest request) {
+    public void update(Long memberId, Long productId, UpdateRequest request) {
         Product product = productCommandRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
         if (product.getDeletedAt() != null) {
             throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
         }
-        if (request.getTitle() != null) {
-            product.setTitle(request.getTitle());
+        if (!product.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
         }
         if(request.getTitle() != null){
             product.setTitle(request.getTitle());
@@ -66,9 +66,6 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         }
         if(request.getMarketPrice() != null){
             product.setMarketPrice(request.getMarketPrice());
-        }
-        if(request.getStatus() != null){
-            product.setStatus(request.getStatus());
         }
     }
     

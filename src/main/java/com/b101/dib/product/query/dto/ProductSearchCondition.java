@@ -13,7 +13,7 @@ public class ProductSearchCondition {
     private Long minPrice;
     private Long maxPrice;
 
-    private Integer size = 20;   // 기본 20개
+    private Integer size = 20;
     private LocalDateTime cursorCreatedAt;
     private Long cursorProductId;
 

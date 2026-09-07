@@ -22,7 +22,7 @@ public class ProductCommandController {
 
     @PostMapping
     public ResponseEntity<Map> create(@RequestHeader("X-Member-Id") Long memberId,
-            @Valid @RequestBody CreateRequest createRequest){// TODO: JWT 붙으면 토큰에서 꺼낸다
+            @Valid @RequestBody CreateRequest createRequest){
     	Long productId = productCommandService.create(memberId, createRequest);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 등록 성공");
@@ -33,9 +33,10 @@ public class ProductCommandController {
     }
 
     @PatchMapping("/{productId}")
-    public ResponseEntity<Map> update(@PathVariable("productId") Long productId,
+    public ResponseEntity<Map> update(@RequestHeader("X-Member-Id") Long memberId,
+                                      @PathVariable("productId") Long productId,
                                       @RequestBody UpdateRequest request){
-        productCommandService.update(productId, request);
+        productCommandService.update(memberId, productId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 정보 수정 성공");
         map.put("productId", productId);

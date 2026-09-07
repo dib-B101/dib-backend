@@ -28,16 +28,16 @@ public class ProductQueryServiceImpl implements ProductQueryService {
 
     @Override
     public CursorPage<ProductQueryDto> findAll(ProductSearchCondition cond, String cursor) {
-        decodeCursor(cond, cursor);                                   // ① 커서 문자열 → cond 에 풀어 넣기
+        decodeCursor(cond, cursor);
 
-        List<ProductQueryDto> rows = productQueryMapper.findAll(cond); // ② size+1 개 조회
+        List<ProductQueryDto> rows = productQueryMapper.findAll(cond);
 
         int size = Math.min(cond.getSize(), 50);
-        boolean hasNext = rows.size() > size;                          // ③ 1개 더 왔으면 다음 페이지 있음
+        boolean hasNext = rows.size() > size;
         List<ProductQueryDto> items = hasNext ? rows.subList(0, size) : rows;
 
         String nextCursor = null;
-        if (hasNext) {                                                 // ④ 마지막 항목으로 다음 커서 만들기
+        if (hasNext) {
             ProductQueryDto last = items.get(items.size() - 1);
             nextCursor = encodeCursor(last.getCreatedAt(), last.getProductId());
         }
@@ -48,7 +48,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     public ProductDetailDto findById(Long productId) {
         ProductDetailDto dto = productQueryMapper.findById(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
-        if (dto.getStatus() == ProductStatus.HIDDEN) {          // 숨김 상품은 없는 것처럼
+        if (dto.getStatus() == ProductStatus.HIDDEN) {
             throw new BusinessException(ErrorCode.PRODUCT_HIDDEN);
         }
         return dto;
@@ -60,7 +60,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     }
     
     private void decodeCursor(ProductSearchCondition cond, String cursor) {
-        if (cursor == null || cursor.isBlank()) return;               // 첫 페이지
+        if (cursor == null || cursor.isBlank()) return;
         try {
             String raw = new String(Base64.getUrlDecoder().decode(cursor), StandardCharsets.UTF_8);
             String[] parts = raw.split("\\|");

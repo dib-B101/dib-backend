@@ -7,6 +7,6 @@ public interface ProductCommandService {
 
     Long create(Long memberId, CreateRequest createRequest);
 
-    void update(Long productId, UpdateRequest request);
+    void update(Long memberId, Long productId, UpdateRequest request);
     void delete(Long memberId, Long productId); 
 }
