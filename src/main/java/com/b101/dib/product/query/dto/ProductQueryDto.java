@@ -1,6 +1,6 @@
 package com.b101.dib.product.query.dto;
 
-import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@Builder
+@NoArgsConstructor      // MyBatis 가 빈 객체를 만들고 setter 로 채운다
 public class ProductQueryDto {
     private Long productId;
     private Long memberId;
