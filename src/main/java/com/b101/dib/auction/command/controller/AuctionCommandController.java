@@ -6,25 +6,52 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.Map;
 
-@RestController @RequiredArgsConstructor
+@RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/auctions")
 public class AuctionCommandController {
+	
     private final AuctionCommandService auctionCommandService;
+    
     @PostMapping
-    public ResponseEntity<Map<String, Object>> create(@RequestHeader("X-Member-Id") Long memberId, @Valid @RequestBody CreateAuctionRequest request) {
-        Long id = auctionCommandService.create(memberId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "경매 생성 성공", "auctionId", id));
+    public ResponseEntity<Map<String, Object>> create(@RequestBody CreateAuctionRequest request) {
+    	Long myId = 1L;
+        Long auctionId = auctionCommandService.create(myId, request);
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("message", "경매 생성 성공");
+        map.put("auctionId", auctionId);
+        return ResponseEntity
+        		.status(HttpStatus.CREATED)
+        		.body(map);
     }
+    
     @PatchMapping("/{auctionId}")
-    public ResponseEntity<Map<String, Object>> update(@RequestHeader("X-Member-Id") Long memberId, @PathVariable Long auctionId, @Valid @RequestBody UpdateAuctionRequest request) {
-        auctionCommandService.update(memberId, auctionId, request);
-        return ResponseEntity.ok(Map.of("message", "경매 수정 성공", "auctionId", auctionId));
+    public ResponseEntity<Map<String, Object>> update(
+    		@PathVariable("auctionId") Long auctionId,
+    		@RequestBody UpdateAuctionRequest request
+    		) {
+    	Long myId = 1L;
+        auctionCommandService.update(myId, auctionId, request);
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("message", "경매 수정 성공");
+        map.put("auctionId", auctionId);
+        return ResponseEntity
+        		.status(HttpStatus.OK)
+        		.body(map);
     }
+    
     @DeleteMapping("/{auctionId}")
-    public ResponseEntity<Void> delete(@RequestHeader("X-Member-Id") Long memberId, @PathVariable Long auctionId) {
-        auctionCommandService.delete(memberId, auctionId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Map<String, Object>> delete(
+    		@PathVariable("auctionId") Long auctionId
+    		) {
+    	Long myId = 1L;
+        auctionCommandService.delete(myId, auctionId);
+        return ResponseEntity
+        		.status(HttpStatus.NO_CONTENT)
+        		.body(null);
     }
 }

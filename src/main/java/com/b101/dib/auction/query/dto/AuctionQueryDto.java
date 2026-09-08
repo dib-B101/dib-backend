@@ -3,6 +3,9 @@ package com.b101.dib.auction.query.dto;
 import lombok.*;
 import java.time.LocalDateTime;
 
+import com.b101.dib.auction.domain.AuctionStatus;
+import com.b101.dib.auction.domain.AuctionType;
+
 @Getter @Setter @Builder
 public class AuctionQueryDto {
     private Long auctionId;
