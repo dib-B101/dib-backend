@@ -23,14 +23,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException e) {
 
+        ErrorCode errorCode = e.getBindingResult().getFieldErrors().stream()
+                .anyMatch(fieldError -> "email".equals(fieldError.getField()))
+                ? ErrorCode.INVALID_EMAIL
+                : ErrorCode.INVALID_INPUT;
+
         String detail = e.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(f -> f.getField() + ": " + f.getDefaultMessage())
-                .orElse(ErrorCode.INVALID_INPUT.getMessage());
+                .orElse(errorCode.getMessage());
 
-        return ResponseEntity.status(ErrorCode.INVALID_INPUT.getStatus())
+        return ResponseEntity.status(errorCode.getStatus())
                 .body(new ErrorResponse(
-                        ErrorCode.INVALID_INPUT.name(),
+                        errorCode.name(),
                         detail
                 ));
     }
