@@ -1,17 +1,82 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="com.b101.dib.auction.query.mapper.AuctionQueryMapper">
-    <resultMap id="AuctionQueryMap" type="com.b101.dib.auction.query.dto.AuctionQueryDto">
-        <id property="auctionId" column="auction_id"/>
-        <result property="memberId" column="member_id"/><result property="productId" column="product_id"/><result property="categoryId" column="category_id"/>
-        <result property="startPrice" column="start_price"/><result property="currentPrice" column="current_price"/><result property="auctionTime" column="auction_time"/>
-        <result property="startedAt" column="started_at"/><result property="endedAt" column="ended_at"/><result property="status" column="status"/>
-        <result property="bidCount" column="bid_count"/><result property="bidderCount" column="bidder_count"/><result property="viewCount" column="view_count"/>
-        <result property="bookmarkCount" column="bookmark_count"/><result property="topBidId" column="top_bid_id"/><result property="extensionCount" column="extension_count"/>
-        <result property="depositAmount" column="deposit_amount"/><result property="createdAt" column="created_at"/><result property="updatedAt" column="updated_at"/><result property="liveBroadcastId" column="live_broadcast_id"/>
-    </resultMap>
-    <sql id="auctionColumns">auction_id, member_id, product_id, category_id, start_price, current_price, auction_time, started_at, ended_at, status, bid_count, bidder_count, view_count, bookmark_count, top_bid_id, extension_count, deposit_amount, created_at, updated_at, live_broadcast_id</sql>
-    <select id="findAll" resultMap="AuctionQueryMap">SELECT <include refid="auctionColumns"/> FROM auction WHERE deleted_at IS NULL ORDER BY created_at DESC</select>
-    <select id="findBySellerId" resultMap="AuctionQueryMap">SELECT <include refid="auctionColumns"/> FROM auction WHERE member_id = #{sellerId} AND deleted_at IS NULL ORDER BY created_at DESC</select>
-    <select id="findActive" resultMap="AuctionQueryMap">SELECT <include refid="auctionColumns"/> FROM auction WHERE deleted_at IS NULL AND status = 'ACTIVE'::auction_status AND started_at &lt;= CURRENT_TIMESTAMP AND (ended_at IS NULL OR ended_at &gt; CURRENT_TIMESTAMP) ORDER BY ended_at ASC NULLS LAST, created_at DESC</select>
+
+	<resultMap id="AuctionQueryMap"
+		type="com.b101.dib.auction.query.dto.AuctionQueryDto">
+
+		<id property="auctionId" column="auction_id" />
+		<result property="productId" column="product_id" />
+		<result property="startPrice" column="start_price" />
+		<result property="currentPrice" column="current_price" />
+		<result property="auctionTime" column="auction_time" />
+		<result property="startedAt" column="started_at" />
+		<result property="endedAt" column="ended_at" />
+		<result property="status" column="status" />
+		<result property="bidCount" column="bid_count" />
+		<result property="bidderCount" column="bidder_count" />
+		<result property="viewCount" column="view_count" />
+		<result property="bookmarkCount" column="bookmark_count" />
+		<result property="topBidId" column="top_bid_id" />
+		<result property="extensionCount" column="extension_count" />
+		<result property="depositAmount" column="deposit_amount" />
+		<result property="createdAt" column="created_at" />
+		<result property="updatedAt" column="updated_at" />
+		<result property="liveBroadcastId" column="live_broadcast_id" />
+
+	</resultMap>
+
+	<select id="findAll" resultMap="AuctionQueryMap">
+		SELECT
+			a.auction_id,
+			a.product_id,
+			a.start_price,
+			a.current_price,
+			a.auction_time,
+			a.started_at,
+			a.ended_at,
+			a.status,
+			a.bid_count,
+			a.bidder_count,
+			a.view_count,
+			a.bookmark_count,
+			a.top_bid_id,
+			a.extension_count,
+			a.deposit_amount,
+			a.created_at,
+			a.updated_at,
+			a.live_broadcast_id
+		FROM auction a
+		ORDER BY created_at DESC
+	</select>
+	
+	<select id="findBySellerId" resultMap="AuctionQueryMap">
+		SELECT
+			a.auction_id,
+			a.member_id,
+			a.product_id,
+			a.category_id,
+			a.start_price,
+			a.current_price,
+			a.auction_time,
+			a.started_at,
+			a.ended_at,
+			a.status,
+			a.bid_count,
+			a.bidder_count,
+			a.view_count,
+			a.bookmark_count,
+			a.top_bid_id,
+			a.extension_count,
+			a.deposit_amount,
+			a.created_at,
+			a.updated_at,
+			a.live_broadcast_id
+		FROM auction a
+		JOIN product p ON p.product_id = a.product_id
+		WHERE p.member_id = ${sellerId}
+		ORDER BY created_at DESC	
+	</select>
+	
 </mapper>

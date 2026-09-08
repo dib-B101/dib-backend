@@ -7,6 +7,9 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.b101.dib.product.domain.ProductCondition;
+import com.b101.dib.product.domain.ProductStatus;
+
 @Getter
 @Setter                
 @NoArgsConstructor
@@ -22,27 +25,11 @@ public class ProductDetailDto {
     private ProductStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    private Long categoryId;
+    private String categoryName;
+    
+    private Long memberId;
+    private String nickname;
 
-    private CategorySummary category;
-    private SellerSummary seller;
-    private List<ImageItem> images;
-
-    @Getter @Setter @NoArgsConstructor
-    public static class CategorySummary {
-        private Long categoryId;
-        private String name;
-    }
-
-    @Getter @Setter @NoArgsConstructor
-    public static class SellerSummary {
-        private Long memberId;
-        private String nickname;
-        private Double score;
-    }
-
-    @Getter @Setter @NoArgsConstructor
-    public static class ImageItem {
-        private String imageUrl;
-        private String type;
-    }
 }

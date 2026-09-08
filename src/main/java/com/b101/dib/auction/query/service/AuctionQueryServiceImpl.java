@@ -8,11 +8,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AuctionQueryServiceImpl implements AuctionQueryService {
-    private final AuctionMapper auctionQueryMapper;
-    public List<AuctionQueryDto> findAll() { return auctionQueryMapper.findAll(); }
-    public List<AuctionQueryDto> findBySellerId(Long sellerId) { return auctionQueryMapper.findBySellerId(sellerId); }
-    public List<AuctionQueryDto> findActive() { return auctionQueryMapper.findActive(); }
+	private final AuctionMapper auctionQueryMapper;
+
+	public List<AuctionQueryDto> findAll() {
+		return auctionQueryMapper.findAll();
+	}
+
+	public List<AuctionQueryDto> findBySellerId(Long sellerId) {
+		return auctionQueryMapper.findBySellerId(sellerId);
+	}
+
+	public List<AuctionQueryDto> findActive() {
+		return auctionQueryMapper.findActive();
+	}
 }

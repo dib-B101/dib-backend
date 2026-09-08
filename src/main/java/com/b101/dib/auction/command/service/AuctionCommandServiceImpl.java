@@ -5,8 +5,8 @@ import com.b101.dib.auction.domain.Auction;
 import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.common.exception.*;
-import com.b101.dib.product.command.entity.Product;
 import com.b101.dib.product.command.repository.ProductCommandRepository;
+import com.b101.dib.product.domain.Product;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
