@@ -88,11 +88,11 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
     private String createVerificationId(PhoneVerificationPurpose purpose, String phoneHash) {
         String payload = purpose.name() + ":" + phoneHash + ":" + UUID.randomUUID();
         String encodedPayload = Base64.getUrlEncoder().withoutPadding()
-                .encodeToString(payload.getBytes(StandardCharsets.UTF_8)); // BASE64 URL-safe 인코딩
-        return encodedPayload + "." + hmac("verification:" + encodedPayload); // base(정보).hmac(base(정보))
+                .encodeToString(payload.getBytes(StandardCharsets.UTF_8)); // Base64 URL-safe 인코딩
+        return encodedPayload + "." + hmac("verification:" + encodedPayload); // base64(정보).hmac(base64(정보))
     }
 
-    // HMAC-SHA256 해시 생성
+    // HMAC-SHA256 값 생성
     private String hmac(String value) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
