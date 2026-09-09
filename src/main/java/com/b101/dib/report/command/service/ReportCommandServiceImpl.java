@@ -11,6 +11,7 @@ import com.b101.dib.product.repository.ProductRepository;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.report.command.dto.CreateOrderReportRequest;
 import com.b101.dib.report.command.dto.CreateReportRequest;
+import com.b101.dib.report.command.dto.ProcessReportRequest;
 import com.b101.dib.report.domain.Report;
 import com.b101.dib.report.domain.ReportStatus;
 import com.b101.dib.report.domain.ReportType;
@@ -110,5 +111,18 @@ public class ReportCommandServiceImpl implements ReportCommandService {
                 .createdAt(LocalDateTime.now())
                 .build();
         return reportRepository.save(report).getReportId();
+    }
+    
+    @Override
+    public LocalDateTime process(Long reportId, ProcessReportRequest request) {
+        if (request.getStatus() == ReportStatus.PENDING) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT);
+        }
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REPORT_NOT_FOUND));
+        LocalDateTime now = LocalDateTime.now();
+        report.setStatus(request.getStatus());
+        report.setProcessedAt(now);
+        return now;
     }
 }
