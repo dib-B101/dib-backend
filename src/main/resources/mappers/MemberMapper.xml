@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.b101.dib.member.repository.MemberMapper">
+
+    <resultMap id="AdminMemberQueryMap"
+        type="com.b101.dib.member.query.dto.AdminMemberQueryDto">
+        <id property="memberId" column="member_id" />
+        <result property="email" column="email" />
+        <result property="nickname" column="nickname" />
+        <result property="name" column="name" />
+        <result property="status" column="status" />
+        <result property="role" column="role" />
+        <result property="score" column="score" />
+        <result property="warningCount" column="warning_count" />
+        <result property="suspendedAt" column="suspended_at" />
+        <result property="createdAt" column="created_at" />
+        <result property="deletedAt" column="deleted_at" />
+    </resultMap>
+
+    <select id="findAll" resultMap="AdminMemberQueryMap">
+        SELECT
+            m.member_id,
+            m.email,
+            m.nickname,
+            m.name,
+            m.status,
+            m.role,
+            m.score,
+            m.warning_count,
+            m.suspended_at,
+            m.created_at,
+            m.deleted_at
+        FROM member m
+        <where>
+            <if test="q != null and q != ''">
+                AND (m.nickname ILIKE '%' || #{q} || '%' OR m.email ILIKE '%' || #{q} || '%')
+            </if>
+            <if test="status != null">
+                AND m.status = #{status}::member_status
+            </if>
+            <if test="warningCount != null">
+                AND m.warning_count <![CDATA[ >= ]]> #{warningCount}
+            </if>
+        </where>
+        ORDER BY m.member_id
+    </select>
+</mapper>

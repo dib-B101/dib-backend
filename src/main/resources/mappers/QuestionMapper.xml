@@ -51,4 +51,35 @@
         FROM question q
         WHERE q.question_id = #{questionId}
     </select>
+    
+        <resultMap id="AdminQuestionQueryMap"
+        type="com.b101.dib.question.query.dto.AdminQuestionQueryDto">
+        <id property="questionId" column="question_id" />
+        <result property="memberId" column="member_id" />
+        <result property="memberNickname" column="member_nickname" />
+        <result property="title" column="title" />
+        <result property="createdAt" column="created_at" />
+        <result property="answeredAt" column="answered_at" />
+    </resultMap>
+
+    <select id="findAll" resultMap="AdminQuestionQueryMap">
+        SELECT
+            q.question_id,
+            q.member_id,
+            m.nickname AS member_nickname,
+            q.title,
+            q.created_at,
+            q.answered_at
+        FROM question q
+        JOIN member m ON m.member_id = q.member_id
+        <where>
+            <if test="answered != null and answered">
+                q.answered_at IS NOT NULL
+            </if>
+            <if test="answered != null and !answered">
+                q.answered_at IS NULL
+            </if>
+        </where>
+        ORDER BY q.answered_at NULLS FIRST, q.created_at DESC
+    </select>
 </mapper>

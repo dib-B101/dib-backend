@@ -1,5 +1,6 @@
 package com.b101.dib.product.command.service;
 import com.b101.dib.product.command.dto.CreateRequest;
+import com.b101.dib.product.command.dto.ModerateProductRequest;
 import com.b101.dib.product.command.dto.UpdateRequest;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
@@ -140,4 +141,22 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         return product;
     }
 
+
+    @Override
+    public Product moderate(Long productId, ModerateProductRequest request) {
+        if (request.getStatus() != ProductStatus.REGISTERED && request.getStatus() != ProductStatus.REJECTED) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT);
+        }
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+        if (product.getDeletedAt() != null) {
+            throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
+        }
+        if (product.getStatus() != ProductStatus.PENDING) {
+            throw new BusinessException(ErrorCode.PRODUCT_MODERATION_NOT_ALLOWED);
+        }
+        product.setStatus(request.getStatus());
+        product.setUpdatedAt(LocalDateTime.now());
+        return product;
+    }
 }
