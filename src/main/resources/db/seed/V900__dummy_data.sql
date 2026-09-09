@@ -113,10 +113,10 @@ INSERT INTO question (member_id, title, content, answer, answered_at) VALUES
 (1, '불량 사용자 신고 방법', '허위 매물을 올리는 사용자가 있습니다.', '신고 버튼을 이용해주시면 감사하겠습니다.', NOW());
 
 -- 15. 신고 (Report)
-INSERT INTO report (member_id, content, type, auction_id, order_id, status) VALUES
-(2, '이미지 도용이 의심됩니다.', 'AUCTION', 1, NULL, 'PENDING'),
-(1, '거래 중 욕설을 하네요.', 'CHATTING', NULL, 1, 'ACCEPTED'),
-(3, '허위 송장을 입력했습니다.', 'ORDER', NULL, 1, 'REFUNDED');
+INSERT INTO report (member_id, content, type, auction_id, order_id, report_target_id, status) VALUES
+(2, '이미지 도용이 의심됩니다.', 'AUCTION', 1, NULL, NULL, 'PENDING'),
+(1, '거래 중 욕설을 하네요.', 'CHATTING', NULL, 1, NULL, 'ACCEPTED'),
+(3, '허위 송장을 입력했습니다.', 'ORDER', NULL, 1, NULL, 'REFUNDED');
 
 -- 16. 사용자 이벤트 (Member Event)
 INSERT INTO member_event (member_id, event_type, metadata, auction_id, product_id, category_id) VALUES

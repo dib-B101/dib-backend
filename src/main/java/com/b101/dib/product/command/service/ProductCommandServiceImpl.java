@@ -4,14 +4,18 @@ import com.b101.dib.product.command.dto.UpdateRequest;
 import com.b101.dib.product.command.repository.ProductCommandRepository;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
+import com.b101.dib.productImage.domain.ProductImage;
+import com.b101.dib.productImage.repository.ProductImageRepository;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -19,11 +23,16 @@ import java.time.LocalDateTime;
 public class ProductCommandServiceImpl implements ProductCommandService {
 
     private final ProductCommandRepository productCommandRepository;
+    private final ProductImageRepository productImageRepository;
     
     @Override
-    public Long create(Long memberId, CreateRequest request) {
+    public Long create(Long myId, CreateRequest request, List<MultipartFile> images) {
+    	if(images != null && images.size() > 10) {
+    		throw new BusinessException(ErrorCode.TOO_MUCH_IMAGES);
+    	}
+    	String thumbnailUrl = "thumbnail-url";
         Product product = Product.builder()
-                .memberId(memberId)
+                .memberId(myId)
                 .categoryId(request.getCategoryId())
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -31,11 +40,25 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 .modelName(request.getModelName())
                 .releaseYear(request.getReleaseYear())
                 .marketPrice(request.getMarketPrice())
-                .thumbnailUrl(request.getThumbnailUrl())
+                .thumbnailUrl(thumbnailUrl)
                 .status(ProductStatus.REGISTERED)
                 .createdAt(LocalDateTime.now())
                 .build();
         productCommandRepository.save(product);
+        
+        // 이미지들을 업로드한다.
+        // S3 서비스로 구현할 예정
+        for(int i=0; i<images.size(); i++) {
+        	MultipartFile image = images.get(i);
+        	Long productId = product.getProductId();
+    		String imageUrl = image.toString();
+    		Integer sequence = i+1;
+    		ProductImage productImage = ProductImage.builder().productId(productId)
+    				.imageUrl(imageUrl)
+    				.sequence(sequence)
+    				.build();
+    		productImageRepository.save(productImage);
+    	}
         return product.getProductId();
     }
 

@@ -7,11 +7,14 @@ import com.b101.dib.product.command.service.ProductCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Member;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -20,23 +23,31 @@ import java.util.Map;
 public class ProductCommandController {
     private final ProductCommandService productCommandService;
 
-    @PostMapping
-    public ResponseEntity<Map> create(@RequestHeader("X-Member-Id") Long memberId,
-            @Valid @RequestBody CreateRequest createRequest){
-    	Long productId = productCommandService.create(memberId, createRequest);
-        HashMap<String, Object> map = new HashMap<>();
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> create(
+            @Valid @RequestPart("request") CreateRequest createRequest,
+
+            @RequestPart(value = "images", required = false)
+            List<MultipartFile> images
+    ) {
+    	Long myId = 1L;
+        Long productId = productCommandService.create(myId, createRequest, images);
+
+        Map<String, Object> map = new HashMap<>();
         map.put("message", "상품 등록 성공");
         map.put("productId", productId);
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(map);
     }
 
     @PatchMapping("/{productId}")
-    public ResponseEntity<Map> update(@RequestHeader("X-Member-Id") Long memberId,
-                                      @PathVariable("productId") Long productId,
-                                      @RequestBody UpdateRequest request){
-        productCommandService.update(memberId, productId, request);
+    public ResponseEntity<Map> update(
+          @PathVariable("productId") Long productId,
+          @RequestBody UpdateRequest request){
+    	Long myId = 1L;
+        productCommandService.update(myId, productId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 정보 수정 성공");
         map.put("productId", productId);
@@ -46,9 +57,10 @@ public class ProductCommandController {
     }
     
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> delete(@RequestHeader("X-Member-Id") Long memberId,
-                                       @PathVariable("productId") Long productId){
-        productCommandService.delete(memberId, productId);
+    public ResponseEntity<Void> delete(
+    		@PathVariable("productId") Long productId){
+    	Long myId = 1L;
+        productCommandService.delete(myId, productId);
         return ResponseEntity.noContent().build();
     }
 }
