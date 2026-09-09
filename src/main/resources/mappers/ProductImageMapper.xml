@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.b101.dib.productImage.repository.ProductImageMapper">
+
+	<resultMap id="ProductImageQueryMap"
+		type="com.b101.dib.productImage.query.dto.ProductImageQueryDto">
+
+		<id property="productImageId" column="product_image_id" />
+		<result property="productId" column="product_id" />
+		<result property="iamgeUrl" column="iamge_url" />
+		<result property="sequence" column="sequence" />
+		
+	</resultMap>
+
+	<select id="findByProductId" resultMap="ProductImageQueryMap">
+		SELECT
+			pi.product_image_id,
+			pi.product_id,
+			pi.image_url,
+			pi.sequence
+		FROM product_image pi
+		WHERE pi.product_id = ${productId}
+		ORDER BY pi.sequence ASC
+	</select>
+
+</mapper>

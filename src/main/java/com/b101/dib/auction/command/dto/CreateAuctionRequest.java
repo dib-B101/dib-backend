@@ -3,10 +3,6 @@ package com.b101.dib.auction.command.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
-import com.b101.dib.auction.domain.AuctionType;
-
 @Getter
 @Builder
 @NoArgsConstructor

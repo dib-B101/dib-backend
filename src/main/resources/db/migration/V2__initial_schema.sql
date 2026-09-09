@@ -1,7 +1,6 @@
 -- 팀 초기 스키마 (dib-orchestration/docs/Initial Schema.sql 기준)
 -- Flyway가 관리하므로 원본의 DROP/CREATE SCHEMA, CREATE EXTENSION(V1에서 처리)은 제외
 
-
 -- VECTOR 타입을 사용하기 위한 확장 모듈 (필요시 주석 해제)
 CREATE EXTENSION IF NOT EXISTS vector;
 
@@ -213,6 +212,7 @@ CREATE TABLE report (
     type REPORT_TYPE NOT NULL,
     auction_id BIGINT, CONSTRAINT fk_report_auction FOREIGN KEY (auction_id) REFERENCES auction (auction_id),
     order_id BIGINT, CONSTRAINT fk_report_order FOREIGN KEY (order_id) REFERENCES "order" (order_id),
+	report_target_id BIGINT, CONSTRAINT fk_report_report_target FOREIGN KEY (report_target_id) REFERENCES member(member_id),
     status REPORT_STATUS NOT NULL DEFAULT 'PENDING',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     processed_at TIMESTAMP
