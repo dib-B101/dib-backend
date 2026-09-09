@@ -1,6 +1,6 @@
 package com.b101.dib.product.command.dto;
 
-import com.b101.dib.product.query.dto.ProductCondition;
+import com.b101.dib.product.domain.ProductCondition;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

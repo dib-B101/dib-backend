@@ -6,6 +6,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+import com.b101.dib.product.domain.ProductCondition;
+import com.b101.dib.product.domain.ProductStatus;
+
 @Getter
 @Setter
 @NoArgsConstructor

@@ -4,10 +4,16 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
-@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UpdateAuctionRequest {
-    @PositiveOrZero private Long startPrice;
-    @Positive private Long bidIncrement;
-    @Future private LocalDateTime startAt;
-    @Future private LocalDateTime endAt;
+    
+    private Long startPrice;
+    
+    private Integer auctionTime;
+    
+    private Long liveBroadcastId;
+    
 }

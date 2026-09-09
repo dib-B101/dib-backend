@@ -2,9 +2,7 @@ package com.b101.dib.product.query.controller;
 
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
-import com.b101.dib.product.query.dto.CursorPage;
 import com.b101.dib.product.query.dto.ProductQueryDto;
-import com.b101.dib.product.query.dto.ProductSearchCondition;
 import com.b101.dib.product.query.service.ProductQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,16 +27,11 @@ public class ProductQueryController {
     private final ProductQueryService productQueryService;
 
     @GetMapping
-    public ResponseEntity<Map> findAll(@ModelAttribute ProductSearchCondition cond,
-                                       @RequestParam(name = "cursor", required = false) String cursor){
-        if (cond.getMinPrice() != null && cond.getMaxPrice() != null
-                && cond.getMinPrice() > cond.getMaxPrice()) {
-            throw new BusinessException(ErrorCode.INVALID_FILTER);
-        }
-        CursorPage<ProductQueryDto> page = productQueryService.findAll(cond, cursor);
+    public ResponseEntity<Map<String, Object>> findAll(){
+        List<ProductQueryDto> dtoList = productQueryService.findAll();
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 목록 조회 성공");
-        map.put("data", page);
+        map.put("data", dtoList);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
     

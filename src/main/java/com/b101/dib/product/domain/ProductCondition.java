@@ -1,4 +1,4 @@
-package com.b101.dib.product.query.dto;
+package com.b101.dib.product.domain;
 
 public enum ProductCondition {
     GOOD,

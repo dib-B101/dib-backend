@@ -1,9 +1,9 @@
 package com.b101.dib.product.command.service;
 import com.b101.dib.product.command.dto.CreateRequest;
 import com.b101.dib.product.command.dto.UpdateRequest;
-import com.b101.dib.product.command.entity.Product;
 import com.b101.dib.product.command.repository.ProductCommandRepository;
-import com.b101.dib.product.query.dto.ProductStatus;
+import com.b101.dib.product.domain.Product;
+import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
 

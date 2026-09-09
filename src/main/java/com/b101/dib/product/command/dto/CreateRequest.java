@@ -1,7 +1,7 @@
 package com.b101.dib.product.command.dto;
 
-import com.b101.dib.product.query.dto.ProductCondition;
-import com.b101.dib.product.query.dto.ProductStatus;
+import com.b101.dib.product.domain.ProductCondition;
+import com.b101.dib.product.domain.ProductStatus;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

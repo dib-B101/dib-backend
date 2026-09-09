@@ -1,11 +1,11 @@
 package com.b101.dib.product.query.service;
 
-import com.b101.dib.product.query.dto.CursorPage;
+import java.util.List;
+
 import com.b101.dib.product.query.dto.ProductDetailDto;
 import com.b101.dib.product.query.dto.ProductQueryDto;
-import com.b101.dib.product.query.dto.ProductSearchCondition;
 
 public interface ProductQueryService {
-	CursorPage<ProductQueryDto> findAll(ProductSearchCondition cond, String cursor);
+	List<ProductQueryDto> findAll();
 	ProductDetailDto findById(Long productId);
 }

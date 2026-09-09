@@ -1,105 +1,93 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.b101.dib.product.query.mapper.ProductQueryMapper">
+<mapper namespace="com.b101.dib.product.repository.ProductMapper">
 
-    <resultMap id="ProductQueryMap"
-               type="com.b101.dib.product.query.dto.ProductQueryDto">
+	<resultMap id="ProductQueryMap"
+		type="com.b101.dib.product.query.dto.ProductQueryDto">
 
-        <id property="productId" column="product_id"/>
-        <result property="memberId" column="member_id"/>
-        <result property="categoryId" column="category_id"/>
-        <result property="title" column="title"/>
-        <result property="description" column="description"/>
-        <result property="condition" column="condition"/>
-        <result property="modelName" column="model_name"/>
-        <result property="releaseYear" column="release_year"/>
-        <result property="marketPrice" column="market_price"/>
-        <result property="thumbnailUrl" column="thumbnail_url"/>
-        <result property="status" column="status"/>
-        <result property="createdAt" column="created_at"/>
-        <result property="updatedAt" column="updated_at"/>
-        <result property="deletedAt" column="deleted_at"/>
+		<id property="productId" column="product_id" />
+		<result property="memberId" column="member_id" />
+		<result property="categoryId" column="category_id" />
+		<result property="title" column="title" />
+		<result property="description" column="description" />
+		<result property="condition" column="condition" />
+		<result property="modelName" column="model_name" />
+		<result property="releaseYear" column="release_year" />
+		<result property="marketPrice" column="market_price" />
+		<result property="thumbnailUrl" column="thumbnail_url" />
+		<result property="status" column="status" />
+		<result property="createdAt" column="created_at" />
+		<result property="updatedAt" column="updated_at" />
+		<result property="deletedAt" column="deleted_at" />
 
-    </resultMap>
+	</resultMap>
 
-    <select id="findAll" resultMap="ProductQueryMap">
-	    SELECT
-	        p.product_id, p.member_id, p.category_id, p.title, p.description, p.condition,
-	        p.model_name, p.release_year, p.market_price, p.thumbnail_url, p.status,
-	        p.created_at, p.updated_at, p.deleted_at
-	    FROM product p
-	    <where>
-	        p.deleted_at IS NULL
-	        <if test="cond.status != null">
-	            AND p.status = #{cond.status}::product_status
-	        </if>
-	        <if test="cond.categoryId != null">
-	            AND p.category_id = #{cond.categoryId}
-	        </if>
-	        <if test="cond.minPrice != null">
-	            AND p.market_price <![CDATA[ >= ]]> #{cond.minPrice}
-	        </if>
-	        <if test="cond.maxPrice != null">
-	            AND p.market_price <![CDATA[ <= ]]> #{cond.maxPrice}
-	        </if>
-	        <!-- 커서: "마지막으로 본 것보다 더 오래된 것" -->
-	        <if test="cond.cursorCreatedAt != null and cond.cursorProductId != null">
-	            AND (p.created_at, p.product_id) <![CDATA[ < ]]> (#{cond.cursorCreatedAt}, #{cond.cursorProductId})
-	        </if>
-	    </where>
-	    ORDER BY p.created_at DESC, p.product_id DESC
-	    LIMIT #{cond.limit}
+	<select id="findAll" resultMap="ProductQueryMap">
+		SELECT
+			p.product_id,
+			p.member_id,
+			p.category_id,
+			p.title,
+			p.description,
+			p.condition,
+			p.model_name,
+			p.release_year,
+			p.market_price,
+			p.thumbnail_url,
+			p.status,
+			p.created_at,
+			p.updated_at,
+			p.deleted_at
+		FROM product p
+		WHERE p.deleted_at IS NULL
+		ORDER BY p.created_at DESC, p.product_id DESC
 	</select>
 
-	<resultMap id="ProductDetailMap" type="com.b101.dib.product.query.dto.ProductDetailDto">
-	    <id     property="productId"    column="product_id"/>      <!-- <id> 가 "같은 상품" 판단 기준 -->
-	    <result property="title"        column="title"/>
-	    <result property="description"  column="description"/>
-	    <result property="condition"    column="condition"/>
-	    <result property="modelName"    column="model_name"/>
-	    <result property="releaseYear"  column="release_year"/>
-	    <result property="marketPrice"  column="market_price"/>
-	    <result property="thumbnailUrl" column="thumbnail_url"/>
-	    <result property="status"       column="status"/>
-	    <result property="createdAt"    column="created_at"/>
-	    <result property="updatedAt"    column="updated_at"/>
-	
-	    <!-- 1:1 → association (DTO 안의 category 객체를 채운다) -->
-	    <association property="category" javaType="com.b101.dib.product.query.dto.ProductDetailDto$CategorySummary">
-	        <result property="categoryId" column="category_id"/>
-	        <result property="name"       column="category_name"/>
-	    </association>
-	
-	    <association property="seller" javaType="com.b101.dib.product.query.dto.ProductDetailDto$SellerSummary">
-	        <result property="memberId" column="member_id"/>
-	        <result property="nickname" column="seller_nickname"/>
-	        <result property="score"    column="seller_score"/>
-	    </association>
-	
-	    <!-- 1:N → collection (DTO 안의 images 리스트를 채운다).
-	         이미지 3장이면 SQL 결과는 3행이지만 <id> 기준으로 1개 객체 + images 3개로 접힌다 -->
-	    <collection property="images" ofType="com.b101.dib.product.query.dto.ProductDetailDto$ImageItem">
-	        <result property="imageUrl" column="image_url"/>
-	        <result property="type"     column="image_type"/>
-	    </collection>
+	<resultMap id="ProductDetailMap"
+		type="com.b101.dib.product.query.dto.ProductDetailDto">
+		<id property="productId" column="product_id" />      <!-- <id> 가 "같은 상품" 판단 기준 -->
+		<result property="title" column="title" />
+		<result property="description" column="description" />
+		<result property="condition" column="condition" />
+		<result property="modelName" column="model_name" />
+		<result property="releaseYear" column="release_year" />
+		<result property="marketPrice" column="market_price" />
+		<result property="thumbnailUrl" column="thumbnail_url" />
+		<result property="status" column="status" />
+		<result property="createdAt" column="created_at" />
+		<result property="updatedAt" column="updated_at" />
+		
+		<result property="categoryId" column="category_id" />
+		<result property="categoryName" column="category_name" />
+		<result property="memberId" column="member_id" />
+		<result property="nickname" column="nickname" />
 	</resultMap>
 
 	<select id="findById" resultMap="ProductDetailMap">
-	    SELECT
-	        p.product_id, p.title, p.description, p.condition, p.model_name, p.release_year,
-	        p.market_price, p.thumbnail_url, p.status, p.created_at, p.updated_at,
-	        c.category_id,  c.name       AS category_name,
-	        m.member_id,    m.nickname   AS seller_nickname,  m.score AS seller_score,
-	        pi.image_url,   pi.type::text AS image_type
-	    FROM product p
-	    JOIN category c            ON c.category_id = p.category_id
-	    JOIN member   m            ON m.member_id   = p.member_id
-	    LEFT JOIN product_image pi ON pi.product_id = p.product_id
-	    WHERE p.product_id = #{productId}
-	      AND p.deleted_at IS NULL
-	    ORDER BY pi.product_image_id
+		SELECT
+			p.product_id,
+			p.title,
+			p.description,
+			p.condition,
+			p.model_name,
+			p.release_year,
+			p.market_price,
+			p.thumbnail_url,
+			p.status,
+			p.created_at,
+			p.updated_at,
+			
+			c.category_id,
+			c.name AS category_name,
+			
+			m.member_id,
+			m.nickname
+		
+		FROM product p
+		JOIN category c ON c.category_id = p.category_id
+		JOIN member m ON m.member_id = p.member_id
+		WHERE p.product_id = #{productId}
+		AND p.deleted_at IS NULL
 	</select>
 </mapper>
