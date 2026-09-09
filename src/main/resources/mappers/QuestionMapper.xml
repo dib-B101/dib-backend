@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.b101.dib.question.repository.QuestionMapper">
+
+    <resultMap id="QuestionQueryMap"
+        type="com.b101.dib.question.query.dto.QuestionQueryDto">
+        <id property="questionId" column="question_id" />
+        <result property="title" column="title" />
+        <result property="createdAt" column="created_at" />
+        <result property="answeredAt" column="answered_at" />
+    </resultMap>
+
+    <select id="findByMemberId" resultMap="QuestionQueryMap">
+        SELECT
+            q.question_id,
+            q.title,
+            q.created_at,
+            q.answered_at
+        FROM question q
+        WHERE q.member_id = #{memberId}
+        <if test="answered != null and answered">
+            AND q.answered_at IS NOT NULL
+        </if>
+        <if test="answered != null and !answered">
+            AND q.answered_at IS NULL
+        </if>
+        ORDER BY q.created_at DESC, q.question_id DESC
+    </select>
+
+    <resultMap id="QuestionDetailMap"
+        type="com.b101.dib.question.query.dto.QuestionDetailDto">
+        <id property="questionId" column="question_id" />
+        <result property="memberId" column="member_id" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        <result property="createdAt" column="created_at" />
+        <result property="answer" column="answer" />
+        <result property="answeredAt" column="answered_at" />
+    </resultMap>
+
+    <select id="findById" resultMap="QuestionDetailMap">
+        SELECT
+            q.question_id,
+            q.member_id,
+            q.title,
+            q.content,
+            q.created_at,
+            q.answer,
+            q.answered_at
+        FROM question q
+        WHERE q.question_id = #{questionId}
+    </select>
+</mapper>
