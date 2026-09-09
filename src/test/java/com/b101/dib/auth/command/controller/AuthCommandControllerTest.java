@@ -3,6 +3,8 @@ package com.b101.dib.auth.command.controller;
 import java.time.OffsetDateTime;
 
 import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
+import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
+import com.b101.dib.auth.command.exception.InvalidVerificationCodeException;
 import com.b101.dib.auth.command.service.PhoneVerificationService;
 import com.b101.dib.common.config.SecurityConfig;
 import com.b101.dib.common.exception.BusinessException;
@@ -79,5 +81,80 @@ class AuthCommandControllerTest {
                 .andExpect(status().isTooManyRequests())
                 .andExpect(header().string("Retry-After", "45"))
                 .andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+    }
+
+    @Test
+    void confirmsPhoneVerificationCode() throws Exception {
+        given(phoneVerificationService.confirm(any(), any()))
+                .willReturn(new PhoneVerificationConfirmResponse(
+                        "verification-token",
+                        OffsetDateTime.parse("2026-09-08T18:10:00+09:00")
+                ));
+
+        mockMvc.perform(post("/api/v1/auth/phone-verifications/verification-id/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"code":"123456"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.verificationToken").value("verification-token"))
+                .andExpect(jsonPath("$.expiresAt").value("2026-09-08T18:10:00+09:00"));
+    }
+
+    @Test
+    void returnsRemainingAttemptsForInvalidCode() throws Exception {
+        given(phoneVerificationService.confirm(any(), any()))
+                .willThrow(new InvalidVerificationCodeException(3));
+
+        mockMvc.perform(post("/api/v1/auth/phone-verifications/verification-id/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"code":"000000"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_CODE"))
+                .andExpect(jsonPath("$.remainingAttempts").value(3));
+    }
+
+    @Test
+    void returnsGoneForExpiredVerification() throws Exception {
+        given(phoneVerificationService.confirm(any(), any()))
+                .willThrow(new BusinessException(ErrorCode.VERIFICATION_EXPIRED));
+
+        mockMvc.perform(post("/api/v1/auth/phone-verifications/verification-id/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"code":"123456"}
+                                """))
+                .andExpect(status().isGone())
+                .andExpect(jsonPath("$.code").value("VERIFICATION_EXPIRED"));
+    }
+
+    @Test
+    void returnsBadRequestForInvalidVerificationId() throws Exception {
+        given(phoneVerificationService.confirm(any(), any()))
+                .willThrow(new BusinessException(ErrorCode.INVALID_VERIFICATION_ID));
+
+        mockMvc.perform(post("/api/v1/auth/phone-verifications/tampered/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"code":"123456"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_VERIFICATION_ID"));
+    }
+
+    @Test
+    void returnsTooManyRequestsAfterAttemptLimit() throws Exception {
+        given(phoneVerificationService.confirm(any(), any()))
+                .willThrow(new BusinessException(ErrorCode.ATTEMPTS_EXCEEDED));
+
+        mockMvc.perform(post("/api/v1/auth/phone-verifications/verification-id/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"code":"000000"}
+                                """))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("ATTEMPTS_EXCEEDED"));
     }
 }

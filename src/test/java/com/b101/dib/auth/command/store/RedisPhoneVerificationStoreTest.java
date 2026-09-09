@@ -5,6 +5,9 @@ import java.time.Instant;
 
 import com.b101.dib.auth.command.config.PhoneVerificationProperties;
 import com.b101.dib.auth.command.dto.PhoneVerificationPurpose;
+import com.b101.dib.auth.command.exception.InvalidVerificationCodeException;
+import com.b101.dib.common.exception.BusinessException;
+import com.b101.dib.common.exception.ErrorCode;
 import com.b101.dib.common.exception.RateLimitExceededException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,15 +34,20 @@ class RedisPhoneVerificationStoreTest {
     private DefaultRedisScript<Long> requestScript;
     @Mock
     private DefaultRedisScript<Long> cancelScript;
+    @Mock
+    private DefaultRedisScript<Long> confirmScript;
 
     private RedisPhoneVerificationStore store;
 
     @BeforeEach
     void setUp() {
         PhoneVerificationProperties properties = new PhoneVerificationProperties(
-                Duration.ofMinutes(3), Duration.ofSeconds(60), Duration.ofHours(1), 5, "secret"
+                Duration.ofMinutes(3), Duration.ofMinutes(10), Duration.ofSeconds(60),
+                Duration.ofHours(1), 5, 5, "secret"
         );
-        store = new RedisPhoneVerificationStore(redisTemplate, properties, requestScript, cancelScript);
+        store = new RedisPhoneVerificationStore(
+                redisTemplate, properties, requestScript, cancelScript, confirmScript
+        );
     }
 
     @Test
@@ -99,5 +107,78 @@ class RedisPhoneVerificationStoreTest {
         ))
                 .isInstanceOfSatisfying(RateLimitExceededException.class,
                         exception -> assertThat(exception.getRetryAfterSeconds()).isEqualTo(120));
+    }
+
+    @Test
+    void confirmsOtpAndStoresVerificationTokenForTenMinutes() {
+        Instant confirmedAt = Instant.parse("2026-09-08T09:00:00Z");
+        given(redisTemplate.execute(eq(confirmScript), anyList(), any(Object[].class)))
+                .willReturn(0L);
+
+        PhoneVerificationConfirmation confirmation = store.confirm(
+                "verification-id",
+                PhoneVerificationPurpose.SIGN_UP,
+                "phone-hash",
+                "code-hash",
+                "token-hash",
+                confirmedAt
+        );
+
+        assertThat(confirmation.expiresAt()).isEqualTo(confirmedAt.plusSeconds(600));
+        verify(redisTemplate).execute(
+                eq(confirmScript),
+                eq(java.util.List.of(
+                        "auth:otp:SIGN_UP:phone-hash",
+                        "auth:verification:token-hash"
+                )),
+                eq("verification-id"),
+                eq("code-hash"),
+                eq("5"),
+                eq("SIGN_UP"),
+                eq("phone-hash"),
+                eq("1788858000"),
+                eq("600")
+        );
+    }
+
+    @Test
+    void returnsRemainingAttemptsForInvalidCode() {
+        given(redisTemplate.execute(eq(confirmScript), anyList(), any(Object[].class)))
+                .willReturn(3L);
+
+        assertThatThrownBy(() -> store.confirm(
+                "verification-id", PhoneVerificationPurpose.SIGN_UP, "phone-hash",
+                "code-hash", "token-hash", Instant.parse("2026-09-08T09:00:00Z")
+        ))
+                .isInstanceOfSatisfying(InvalidVerificationCodeException.class,
+                        exception -> assertThat(exception.getRemainingAttempts()).isEqualTo(3));
+    }
+
+    @Test
+    void rejectsExpiredVerification() {
+        given(redisTemplate.execute(eq(confirmScript), anyList(), any(Object[].class)))
+                .willReturn(-1L);
+
+        assertThatThrownBy(() -> store.confirm(
+                "verification-id", PhoneVerificationPurpose.SIGN_UP, "phone-hash",
+                "code-hash", "token-hash", Instant.parse("2026-09-08T09:00:00Z")
+        ))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.VERIFICATION_EXPIRED));
+    }
+
+    @Test
+    void rejectsVerificationAfterAttemptLimit() {
+        given(redisTemplate.execute(eq(confirmScript), anyList(), any(Object[].class)))
+                .willReturn(-2L);
+
+        assertThatThrownBy(() -> store.confirm(
+                "verification-id", PhoneVerificationPurpose.SIGN_UP, "phone-hash",
+                "code-hash", "token-hash", Instant.parse("2026-09-08T09:00:00Z")
+        ))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.ATTEMPTS_EXCEEDED));
     }
 }

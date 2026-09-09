@@ -40,9 +40,10 @@ public enum ErrorCode {
     // 본인 인증
     INVALID_PHONE(HttpStatus.BAD_REQUEST, "휴대전화번호 형식이 올바르지 않습니다."),
     RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "요청이 너무 많습니다."),
+    INVALID_VERIFICATION_ID(HttpStatus.BAD_REQUEST, "휴대전화 인증 요청 정보가 올바르지 않습니다."),
     INVALID_VERIFICATION(HttpStatus.BAD_REQUEST, "유효하지 않은 인증입니다."),
     INVALID_CODE(HttpStatus.BAD_REQUEST, "인증번호가 올바르지 않습니다."),
-    VERIFICATION_EXPIRED(HttpStatus.BAD_REQUEST, "인증번호가 만료되었습니다."),
+    VERIFICATION_EXPIRED(HttpStatus.GONE, "인증번호가 만료되었습니다."),
     ATTEMPTS_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "인증 시도 횟수를 초과했습니다."),
 
     // 계정 상태
