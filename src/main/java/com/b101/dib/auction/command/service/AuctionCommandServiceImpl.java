@@ -7,7 +7,6 @@ import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.common.exception.*;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
-import com.b101.dib.product.repository.ProductCommandRepository;
 import com.b101.dib.product.repository.ProductRepository;
 
 import jakarta.transaction.Transactional;

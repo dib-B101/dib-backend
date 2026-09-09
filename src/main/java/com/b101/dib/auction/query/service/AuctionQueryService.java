@@ -7,4 +7,5 @@ public interface AuctionQueryService {
     List<AuctionQueryDto> findAll();
     List<AuctionQueryDto> findBySellerId(Long sellerId);
     List<AuctionQueryDto> findActive();
+	AuctionQueryDto findById(Long auctionId);
 }
