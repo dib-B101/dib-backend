@@ -1,10 +1,14 @@
 package com.b101.dib.auction.command.service;
 import com.b101.dib.auction.command.dto.*;
+import com.b101.dib.auction.domain.Auction;
 public interface AuctionCommandService {
 	
-    Long create(Long myId, CreateAuctionRequest request);
+	Auction create(Long myId, CreateAuctionRequest request);
     
-    void update(Long myId, Long auctionId, UpdateAuctionRequest request);
+	Auction update(Long myId, Long auctionId, UpdateAuctionRequest request);
     
-    void delete(Long myId, Long auctionId);
+	Auction startAuction(Long myId, Long auctionId);
+
+	Auction delete(Long myId, Long auctionId);
+
 }

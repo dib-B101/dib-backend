@@ -1,9 +1,9 @@
 package com.b101.dib.product.command.service;
 import com.b101.dib.product.command.dto.CreateRequest;
 import com.b101.dib.product.command.dto.UpdateRequest;
-import com.b101.dib.product.command.repository.ProductCommandRepository;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
+import com.b101.dib.product.repository.ProductRepository;
 import com.b101.dib.productImage.domain.ProductImage;
 import com.b101.dib.productImage.repository.ProductImageRepository;
 import com.b101.dib.common.exception.BusinessException;
@@ -22,11 +22,11 @@ import java.util.List;
 @Transactional
 public class ProductCommandServiceImpl implements ProductCommandService {
 
-    private final ProductCommandRepository productCommandRepository;
+    private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     
     @Override
-    public Long create(Long myId, CreateRequest request, List<MultipartFile> images) {
+    public Product create(Long myId, CreateRequest request, List<MultipartFile> images) {
     	if(images != null && images.size() > 10) {
     		throw new BusinessException(ErrorCode.TOO_MUCH_IMAGES);
     	}
@@ -44,7 +44,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 .status(ProductStatus.PENDING)
                 .createdAt(LocalDateTime.now())
                 .build();
-        productCommandRepository.save(product);
+        productRepository.save(product);
         
         // 이미지들을 업로드한다.
         // S3 서비스로 구현할 예정
@@ -62,15 +62,14 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         
         // 상품 정보, 상품 이미지 AI 검수 요청을 Kafka를 통해 진행
         
-        return product.getProductId();
+        return product;
     }
 
     @Override
-    public void update(Long myId, Long productId, UpdateRequest request) {
-        Product product = productCommandRepository.findById(productId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+    public Product update(Long myId, Long productId, UpdateRequest request) {
+    	
+        Product product = checkProduct(myId, productId);
         
-        checkValidation(product, myId);
         boolean updated = false;
         if(request.getCategoryId() != null) {
         	product.setCategoryId(request.getCategoryId());
@@ -103,14 +102,14 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         if(updated) { 
         	product.setUpdatedAt(LocalDateTime.now());
         }
+        
+        return product;
     }
     
     @Override
-    public void delete(Long myId, Long productId) {
-        Product product = productCommandRepository.findById(productId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+    public Product delete(Long myId, Long productId) {
         
-        checkValidation(product, myId);
+        Product product = checkProduct(myId, productId);
 
         product.setUpdatedAt(LocalDateTime.now());
         product.setDeletedAt(LocalDateTime.now());
@@ -119,9 +118,12 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         for(ProductImage productImage : productImages) {
         	productImageRepository.delete(productImage);
         }
+        return product;
     }
     
-    private void checkValidation(Product product, Long myId) {
+    private Product checkProduct(Long myId, Long productId) {
+    	Product product = productRepository.findById(productId)
+    			.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
     	if (!product.getMemberId().equals(myId)) {
             throw new BusinessException(ErrorCode.NOT_MY_PRODUCT);
         }
@@ -134,6 +136,8 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         if (product.getDeletedAt() != null) {
         	throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
         }
+        
+        return product;
     }
 
 }

@@ -3,6 +3,7 @@ package com.b101.dib.product.command.controller;
 import com.b101.dib.product.command.dto.CreateRequest;
 import com.b101.dib.product.command.dto.UpdateRequest;
 import com.b101.dib.product.command.service.ProductCommandService;
+import com.b101.dib.product.domain.Product;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,11 +32,11 @@ public class ProductCommandController {
             List<MultipartFile> images
     ) {
     	Long myId = 1L;
-        Long productId = productCommandService.create(myId, createRequest, images);
+        Product product = productCommandService.create(myId, createRequest, images);
 
         Map<String, Object> map = new HashMap<>();
         map.put("message", "상품 등록 성공");
-        map.put("productId", productId);
+        map.put("product", product);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -47,10 +48,10 @@ public class ProductCommandController {
           @PathVariable("productId") Long productId,
           @RequestBody UpdateRequest request){
     	Long myId = 1L;
-        productCommandService.update(myId, productId, request);
+        Product product = productCommandService.update(myId, productId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 정보 수정 성공");
-        map.put("productId", productId);
+        map.put("product", product);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(map);
@@ -60,9 +61,10 @@ public class ProductCommandController {
     public ResponseEntity<Map<String, Object>> delete(
     		@PathVariable("productId") Long productId){
     	Long myId = 1L;
-        productCommandService.delete(myId, productId);
+        Product product = productCommandService.delete(myId, productId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 삭제 성공");
+        map.put("data", map);
         return ResponseEntity
         		.status(HttpStatus.NO_CONTENT)
         		.body(map);
