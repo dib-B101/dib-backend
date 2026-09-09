@@ -56,6 +56,13 @@ public enum ErrorCode {
     // 문의
     QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "문의를 찾을 수 없습니다"),
     
+    // 신고
+    SELF_REPORT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "본인 또는 본인 상품은 신고할 수 없습니다"),
+    DUPLICATE_REPORT(HttpStatus.CONFLICT, "이미 신고한 대상입니다"),
+
+    // 주문
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다"),
+
     // 회원
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
     private final HttpStatus status;
