@@ -90,7 +90,9 @@ INSERT INTO bid_deposit (member_id, auction_id, amount, status) VALUES
 
 -- 10. 주문/거래 (Order)
 INSERT INTO "order" (auction_id, seller_id, buyer_id, final_price, status, payment_due, address, tracking_number, chatting_session_id) VALUES
-(1, 1, 2, 60000, 'PAID', NOW() + INTERVAL '24 hours', '{"zip": "46241", "addr": "부산광역시 금정구"}', 'CJ-123456789', 'SESSION-001');
+(1, 1, 2, 60000, 'PAID', NOW() + INTERVAL '24 hours', '{"zip": "46241", "addr": "부산광역시 금정구"}', 'CJ-123456789', 'SESSION-001'),
+(1, 1, 2, 55000, 'DELIEVERED', NOW() - INTERVAL '3 days', '{"zip": "46241", "addr": "부산광역시 금정구"}', 'CJ-987654321', 'SESSION-002'),
+(1, 1, 2, 70000, 'PENDING', NOW() + INTERVAL '12 hours', NULL, NULL, 'SESSION-003');
 
 -- 11. 결제 (Payment)
 INSERT INTO payment (order_id, buyer_id, amount, type, refund_key, receipt_url) VALUES

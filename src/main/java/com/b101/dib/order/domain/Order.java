@@ -1,5 +1,7 @@
 package com.b101.dib.order.domain;
 
+import com.b101.dib.common.exception.BusinessException;
+import com.b101.dib.common.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -37,4 +39,23 @@ public class Order {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String chattingSessionId;
+
+    public boolean isBuyer(Long memberId) {
+        return buyerId.equals(memberId);
+    }
+
+    public boolean isParticipant(Long memberId) {
+        return buyerId.equals(memberId) || sellerId.equals(memberId);
+    }
+
+    public void confirm() {
+        if (status == OrderStatus.CONFIRMED) {
+            throw new BusinessException(ErrorCode.ALREADY_CONFIRMED);
+        }
+        if (status != OrderStatus.DELIEVERED) {
+            throw new BusinessException(ErrorCode.DELIVERY_NOT_COMPLETED);
+        }
+        this.status = OrderStatus.CONFIRMED;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
