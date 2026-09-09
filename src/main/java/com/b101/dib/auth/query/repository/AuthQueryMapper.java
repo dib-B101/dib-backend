@@ -1,4 +1,4 @@
-package com.b101.dib.auth.query.mapper;
+package com.b101.dib.auth.query.repository;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

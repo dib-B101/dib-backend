@@ -1,4 +1,4 @@
-package com.b101.dib.auth.command.config;
+package com.b101.dib.auth.config;
 
 import java.time.Duration;
 

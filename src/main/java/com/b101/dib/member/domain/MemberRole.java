@@ -1,4 +1,4 @@
-package com.b101.dib.member.command.entity;
+package com.b101.dib.member.domain;
 
 public enum MemberRole {
     USER,

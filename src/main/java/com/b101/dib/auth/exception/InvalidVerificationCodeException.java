@@ -1,4 +1,4 @@
-package com.b101.dib.auth.command.exception;
+package com.b101.dib.auth.exception;
 
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;

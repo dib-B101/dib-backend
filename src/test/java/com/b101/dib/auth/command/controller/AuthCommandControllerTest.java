@@ -4,7 +4,7 @@ import java.time.OffsetDateTime;
 
 import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
-import com.b101.dib.auth.command.exception.InvalidVerificationCodeException;
+import com.b101.dib.auth.exception.InvalidVerificationCodeException;
 import com.b101.dib.auth.command.service.PhoneVerificationService;
 import com.b101.dib.common.config.SecurityConfig;
 import com.b101.dib.common.exception.BusinessException;
