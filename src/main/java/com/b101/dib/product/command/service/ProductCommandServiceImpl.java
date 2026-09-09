@@ -1,9 +1,9 @@
 package com.b101.dib.product.command.service;
 import com.b101.dib.product.command.dto.CreateRequest;
 import com.b101.dib.product.command.dto.UpdateRequest;
-import com.b101.dib.product.command.repository.ProductCommandRepository;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
+import com.b101.dib.product.repository.ProductRepository;
 import com.b101.dib.productImage.domain.ProductImage;
 import com.b101.dib.productImage.repository.ProductImageRepository;
 import com.b101.dib.common.exception.BusinessException;
@@ -22,11 +22,11 @@ import java.util.List;
 @Transactional
 public class ProductCommandServiceImpl implements ProductCommandService {
 
-    private final ProductCommandRepository productCommandRepository;
+    private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     
     @Override
-    public Long create(Long myId, CreateRequest request, List<MultipartFile> images) {
+    public Product create(Long myId, CreateRequest request, List<MultipartFile> images) {
     	if(images != null && images.size() > 10) {
     		throw new BusinessException(ErrorCode.TOO_MUCH_IMAGES);
     	}
@@ -41,10 +41,10 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 .releaseYear(request.getReleaseYear())
                 .marketPrice(request.getMarketPrice())
                 .thumbnailUrl(thumbnailUrl)
-                .status(ProductStatus.REGISTERED)
+                .status(ProductStatus.PENDING)
                 .createdAt(LocalDateTime.now())
                 .build();
-        productCommandRepository.save(product);
+        productRepository.save(product);
         
         // 이미지들을 업로드한다.
         // S3 서비스로 구현할 예정
@@ -59,54 +59,85 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     				.build();
     		productImageRepository.save(productImage);
     	}
-        return product.getProductId();
+        
+        // 상품 정보, 상품 이미지 AI 검수 요청을 Kafka를 통해 진행
+        
+        return product;
     }
 
     @Override
-    public void update(Long memberId, Long productId, UpdateRequest request) {
-        Product product = productCommandRepository.findById(productId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
-        if (product.getDeletedAt() != null) {
-            throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
-        }
-        if (!product.getMemberId().equals(memberId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
+    public Product update(Long myId, Long productId, UpdateRequest request) {
+    	
+        Product product = checkProduct(myId, productId);
+        
+        boolean updated = false;
+        if(request.getCategoryId() != null) {
+        	product.setCategoryId(request.getCategoryId());
+        	updated = true;
         }
         if(request.getTitle() != null){
             product.setTitle(request.getTitle());
+            updated = true;
         }
         if(request.getDescription() != null){
             product.setDescription(request.getDescription());
+            updated = true;
         }
         if(request.getCondition() != null){
             product.setCondition(request.getCondition());
+            updated = true;
         }
         if(request.getModelName() != null){
             product.setModelName(request.getModelName());
+            updated = true;
         }
         if(request.getReleaseYear() != null){
             product.setReleaseYear(request.getReleaseYear());
+            updated = true;
         }
         if(request.getMarketPrice() != null){
             product.setMarketPrice(request.getMarketPrice());
+            updated = true;
         }
+        if(updated) { 
+        	product.setUpdatedAt(LocalDateTime.now());
+        }
+        
+        return product;
     }
     
     @Override
-    public void delete(Long memberId, Long productId) {
-        Product product = productCommandRepository.findById(productId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
-        if (product.getDeletedAt() != null) {
-            throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
-        }
-        if (!product.getMemberId().equals(memberId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
-        if (product.getStatus() == ProductStatus.SOLD) {
-            throw new BusinessException(ErrorCode.PRODUCT_NOT_DELETABLE);
-        }
+    public Product delete(Long myId, Long productId) {
+        
+        Product product = checkProduct(myId, productId);
 
+        product.setUpdatedAt(LocalDateTime.now());
         product.setDeletedAt(LocalDateTime.now());
+        
+        List<ProductImage> productImages = productImageRepository.findAllByProductId(productId);
+        for(ProductImage productImage : productImages) {
+        	productImageRepository.delete(productImage);
+        }
+        return product;
+    }
+    
+    private Product checkProduct(Long myId, Long productId) {
+    	Product product = productRepository.findById(productId)
+    			.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+    	if (!product.getMemberId().equals(myId)) {
+            throw new BusinessException(ErrorCode.NOT_MY_PRODUCT);
+        }
+        if(product.getStatus() == ProductStatus.ON_AUCTION) {
+        	throw new BusinessException(ErrorCode.PRODUCT_ON_AUCTION);
+        }
+        if(product.getStatus() == ProductStatus.SOLD) {
+        	throw new BusinessException(ErrorCode.PRODUCT_ALREADY_SOLD);
+        }
+        if (product.getDeletedAt() != null) {
+        	throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
+        }
+        
+        return product;
     }
 
 }

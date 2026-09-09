@@ -22,6 +22,12 @@ public class AuctionQueryController {
     public ResponseEntity<Map<String, Object>> findAll() {
         return ok("경매 전체 조회 성공", auctionQueryService.findAll());
     }
+    
+    @GetMapping("/{auctionId}")
+    public ResponseEntity<Map<String, Object>> findById(
+    		@PathVariable("auctionId") Long auctionId){
+    	return ok("경매 상세 조회 성공", auctionQueryService.findById(auctionId));
+    }
 
     @GetMapping("/sellers/{sellerId}")
     public ResponseEntity<Map<String, Object>> findBySellerId(@PathVariable Long sellerId) {
@@ -33,7 +39,7 @@ public class AuctionQueryController {
         return ok("진행 중 경매 조회 성공", auctionQueryService.findActive());
     }
 
-    private ResponseEntity<Map<String, Object>> ok(String message, List<AuctionQueryDto> data) {
+    private ResponseEntity<Map<String, Object>> ok(String message, Object data) {
     	HashMap<String, Object> map = new HashMap<>();
     	map.put("message", message);
     	map.put("data", data);

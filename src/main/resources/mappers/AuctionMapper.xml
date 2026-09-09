@@ -51,6 +51,30 @@
 		ORDER BY created_at DESC
 	</select>
 	
+	<select id="findById" resultMap="AuctionQueryMap">
+		SELECT
+			a.auction_id,
+			a.product_id,
+			a.start_price,
+			a.current_price,
+			a.auction_time,
+			a.started_at,
+			a.ended_at,
+			a.status,
+			a.bid_count,
+			a.bidder_count,
+			a.view_count,
+			a.bookmark_count,
+			a.top_bid_id,
+			a.extension_count,
+			a.created_at,
+			a.updated_at,
+			a.deleted_at,
+			a.live_broadcast_id
+		FROM auction a
+		WHERE a.auction_id = #{auctionId}
+	</select>
+	
 	<select id="findBySellerId" resultMap="AuctionQueryMap">
 		SELECT
 			a.auction_id,

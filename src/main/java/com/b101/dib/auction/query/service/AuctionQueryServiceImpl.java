@@ -2,6 +2,8 @@ package com.b101.dib.auction.query.service;
 
 import com.b101.dib.auction.query.dto.AuctionQueryDto;
 import com.b101.dib.auction.repository.AuctionMapper;
+import com.b101.dib.common.exception.BusinessException;
+import com.b101.dib.common.exception.ErrorCode;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,5 +26,14 @@ public class AuctionQueryServiceImpl implements AuctionQueryService {
 
 	public List<AuctionQueryDto> findActive() {
 		return auctionQueryMapper.findActive();
+	}
+
+	@Override
+	public AuctionQueryDto findById(Long auctionId) {
+		AuctionQueryDto dto = auctionQueryMapper.findById(auctionId);
+		if(dto == null) {
+			throw new BusinessException(ErrorCode.AUCTION_NOT_FOUND);
+		}
+		return dto;
 	}
 }

@@ -6,11 +6,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.b101.dib.product.command.dto.CreateRequest;
 import com.b101.dib.product.command.dto.UpdateRequest;
+import com.b101.dib.product.domain.Product;
 
 public interface ProductCommandService {
 
-    Long create(Long memberId, CreateRequest createRequest, List<MultipartFile> images);
+    Product create(Long memberId, CreateRequest createRequest, List<MultipartFile> images);
 
-    void update(Long memberId, Long productId, UpdateRequest request);
-    void delete(Long memberId, Long productId); 
+    Product update(Long myId, Long productId, UpdateRequest request);
+    Product delete(Long myId, Long productId); 
 }

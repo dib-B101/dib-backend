@@ -1,6 +1,10 @@
 package com.b101.dib.product.domain;
 
 public enum ProductStatus {
+	PENDING,
     REGISTERED,
-    SOLD
+    REJECTEED,
+    ON_AUCTION,
+    SOLD,
+    CANCELLED
 }

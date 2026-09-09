@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor  
 public class UpdateRequest {
+	private Long categoryId;
     private String title;
     private String description;
     private ProductCondition condition;
@@ -19,3 +20,4 @@ public class UpdateRequest {
     private Integer releaseYear;
     private Long marketPrice;
 }
+	
