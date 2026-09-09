@@ -114,6 +114,11 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 
         product.setUpdatedAt(LocalDateTime.now());
         product.setDeletedAt(LocalDateTime.now());
+        
+        List<ProductImage> productImages = productImageRepository.findAllByProductId(productId);
+        for(ProductImage productImage : productImages) {
+        	productImageRepository.delete(productImage);
+        }
     }
     
     private void checkValidation(Product product, Long myId) {
