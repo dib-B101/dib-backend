@@ -1,0 +1,114 @@
+package com.b101.dib.auth.command.service;
+
+import java.security.SecureRandom;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+
+import com.b101.dib.auth.command.config.PhoneVerificationProperties;
+import com.b101.dib.auth.command.dto.PhoneVerificationPurpose;
+import com.b101.dib.auth.command.dto.PhoneVerificationRequest;
+import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
+import com.b101.dib.auth.command.sms.SmsSender;
+import com.b101.dib.auth.command.store.PhoneVerificationReservation;
+import com.b101.dib.auth.command.store.PhoneVerificationStore;
+import com.b101.dib.common.exception.BusinessException;
+import com.b101.dib.common.exception.ErrorCode;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+
+@ExtendWith(MockitoExtension.class)
+class PhoneVerificationServiceImplTest {
+
+    private static final Instant NOW = Instant.parse("2026-09-08T09:00:00Z");
+
+    @Mock
+    private PhoneVerificationStore phoneVerificationStore;
+    @Mock
+    private SmsSender smsSender;
+    @Mock
+    private SecureRandom secureRandom;
+
+    private PhoneVerificationServiceImpl phoneVerificationService;
+
+    @BeforeEach
+    void setUp() {
+        PhoneVerificationProperties properties = new PhoneVerificationProperties(
+                Duration.ofMinutes(3), Duration.ofSeconds(60), Duration.ofHours(1), 5, "test-hmac-secret"
+        );
+        phoneVerificationService = new PhoneVerificationServiceImpl(
+                phoneVerificationStore,
+                smsSender,
+                properties,
+                secureRandom,
+                Clock.fixed(NOW, ZoneOffset.UTC)
+        );
+    }
+
+    @Test
+    void normalizesPhoneNumberAndRequestsVerification() {
+        given(secureRandom.nextInt(1_000_000)).willReturn(42);
+        given(phoneVerificationStore.reserve(anyString(), any(), anyString(), anyString(), any()))
+                .willReturn(new PhoneVerificationReservation(NOW.plusSeconds(180)));
+
+        PhoneVerificationResponse response = phoneVerificationService.request(
+                new PhoneVerificationRequest(" 010-1234-5678 ", PhoneVerificationPurpose.SIGN_UP)
+        );
+
+        verify(smsSender).send("01012345678", "[DIB] 인증번호는 000042입니다. 3분 이내에 입력해주세요.");
+        assertThat(response.expiresAt()).isEqualTo(OffsetDateTime.parse("2026-09-08T18:03:00+09:00"));
+        assertThat(response.retryAfterSeconds()).isEqualTo(60);
+        assertThat(response.verificationId()).contains(".");
+    }
+
+    @Test
+    void rejectsUnsupportedPhoneNumber() {
+        assertThatThrownBy(() -> phoneVerificationService.request(
+                new PhoneVerificationRequest("02-1234-5678", PhoneVerificationPurpose.SIGN_UP)
+        ))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_PHONE));
+
+        verifyNoInteractions(phoneVerificationStore, smsSender);
+    }
+
+    @Test
+    void rejectsMissingPurpose() {
+        assertThatThrownBy(() -> phoneVerificationService.request(
+                new PhoneVerificationRequest("01012345678", null)
+        ))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT));
+
+        verifyNoInteractions(phoneVerificationStore, smsSender);
+    }
+
+    @Test
+    void cancelsReservationWhenSmsDeliveryFails() {
+        given(secureRandom.nextInt(1_000_000)).willReturn(123456);
+        given(phoneVerificationStore.reserve(anyString(), any(), anyString(), anyString(), any()))
+                .willReturn(new PhoneVerificationReservation(NOW.plusSeconds(180)));
+        doThrow(new IllegalStateException("SMS failure"))
+                .when(smsSender).send(anyString(), anyString());
+
+        assertThatThrownBy(() -> phoneVerificationService.request(
+                new PhoneVerificationRequest("01012345678", PhoneVerificationPurpose.SIGN_UP)
+        )).isInstanceOf(IllegalStateException.class);
+
+        verify(phoneVerificationStore).cancel(anyString(), any(), anyString());
+    }
+}

@@ -8,6 +8,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimitExceeded(RateLimitExceededException e) {
+        ErrorCode errorCode = e.getErrorCode();
+
+        return ResponseEntity.status(errorCode.getStatus())
+                .header("Retry-After", String.valueOf(e.getRetryAfterSeconds()))
+                .body(new ErrorResponse(errorCode.name(), errorCode.getMessage()));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
 

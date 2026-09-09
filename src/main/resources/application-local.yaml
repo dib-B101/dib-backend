@@ -30,3 +30,7 @@ livekit:
   url: ${LIVEKIT_URL}
   api-key: ${LIVEKIT_API_KEY}
   api-secret: ${LIVEKIT_API_SECRET}
+
+auth:
+  phone-verification:
+    hmac-secret: ${PHONE_VERIFICATION_HMAC_SECRET:local-development-secret-change-me}
