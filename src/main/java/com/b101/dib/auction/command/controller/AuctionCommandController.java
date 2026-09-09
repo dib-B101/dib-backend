@@ -2,6 +2,8 @@ package com.b101.dib.auction.command.controller;
 
 import com.b101.dib.auction.command.dto.*;
 import com.b101.dib.auction.command.service.AuctionCommandService;
+import com.b101.dib.auction.domain.Auction;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -20,10 +22,10 @@ public class AuctionCommandController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> create(@RequestBody CreateAuctionRequest request) {
     	Long myId = 1L;
-        Long auctionId = auctionCommandService.create(myId, request);
+        Auction auction = auctionCommandService.create(myId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "경매 생성 성공");
-        map.put("auctionId", auctionId);
+        map.put("auction", auction);
         return ResponseEntity
         		.status(HttpStatus.CREATED)
         		.body(map);
@@ -35,10 +37,24 @@ public class AuctionCommandController {
     		@RequestBody UpdateAuctionRequest request
     		) {
     	Long myId = 1L;
-        auctionCommandService.update(myId, auctionId, request);
+        Auction auction = auctionCommandService.update(myId, auctionId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "경매 수정 성공");
-        map.put("auctionId", auctionId);
+        map.put("auction", auction);
+        return ResponseEntity
+        		.status(HttpStatus.OK)
+        		.body(map);
+    }
+    
+    @PatchMapping("/{auctionId}/start")
+    public ResponseEntity<Map<String, Object>> startAuction(
+    		@PathVariable("auctionId") Long auctionId
+    		){
+    	Long myId = 1L;
+    	Auction auction = auctionCommandService.startAuction(myId, auctionId);
+    	HashMap<String, Object> map = new HashMap<>();
+        map.put("message", "경매 시작");
+        map.put("auction", auction);
         return ResponseEntity
         		.status(HttpStatus.OK)
         		.body(map);
@@ -49,7 +65,10 @@ public class AuctionCommandController {
     		@PathVariable("auctionId") Long auctionId
     		) {
     	Long myId = 1L;
-        auctionCommandService.delete(myId, auctionId);
+        Auction auction = auctionCommandService.delete(myId, auctionId);
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("message", "경매 삭제 성공");
+        map.put("data", map);
         return ResponseEntity
         		.status(HttpStatus.NO_CONTENT)
         		.body(null);
