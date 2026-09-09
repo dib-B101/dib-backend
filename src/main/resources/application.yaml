@@ -45,7 +45,9 @@ springdoc:
 auth:
   phone-verification:
     otp-ttl: 3m
+    verification-ttl: 10m
     resend-delay: 60s
     rate-window: 1h
     max-requests-per-window: 5
+    max-attempts: 5
     hmac-secret: ${PHONE_VERIFICATION_HMAC_SECRET}

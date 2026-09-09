@@ -42,4 +42,13 @@ public class PhoneVerificationConfig {
         script.setResultType(Long.class);
         return script;
     }
+
+    @Bean
+    public DefaultRedisScript<Long> confirmPhoneVerificationScript() {
+        // 인증 확인 시 실행할 Redis Lua 스크립트 등록
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setLocation(new ClassPathResource("redis/confirm-phone-verification.lua"));
+        script.setResultType(Long.class);
+        return script;
+    }
 }

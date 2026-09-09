@@ -2,6 +2,7 @@ package com.b101.dib.auth.command.service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Clock;
@@ -15,10 +16,13 @@ import javax.crypto.spec.SecretKeySpec;
 
 import com.b101.dib.auth.command.config.PhoneVerificationProperties;
 import com.b101.dib.auth.command.dto.PhoneVerificationPurpose;
+import com.b101.dib.auth.command.dto.PhoneVerificationConfirmRequest;
+import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationRequest;
 import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
 import com.b101.dib.auth.command.sms.SmsSender;
 import com.b101.dib.auth.command.store.PhoneVerificationReservation;
+import com.b101.dib.auth.command.store.PhoneVerificationConfirmation;
 import com.b101.dib.auth.command.store.PhoneVerificationStore;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
@@ -63,6 +67,33 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
                 properties.resendDelay().toSeconds());
     }
 
+    @Override
+    public PhoneVerificationConfirmResponse confirm(
+            String verificationId,
+            PhoneVerificationConfirmRequest request
+    ) {
+        VerificationRequestIdentity identity = parseVerificationId(verificationId); // {purpose, phoneHash}
+        String code = request == null || request.code() == null ? "" : request.code();
+        String codeHash = hmac("otp:" + verificationId + ":" + code);
+        String verificationToken = createVerificationToken();
+        String verificationTokenHash = hmac("token:" + verificationToken);
+
+        // 인증 토큰을 Redis에 저장한다.
+        PhoneVerificationConfirmation confirmation = phoneVerificationStore.confirm(
+                verificationId,
+                identity.purpose(),
+                identity.phoneHash(),
+                codeHash,
+                verificationTokenHash,
+                clock.instant()
+        );
+
+        return new PhoneVerificationConfirmResponse(
+                verificationToken,
+                confirmation.expiresAt().atZone(KOREA_ZONE).toOffsetDateTime()
+        );
+    }
+
     // 휴대전화 번호 정규화 및 유효성 검사
     private String normalizePhoneNumber(String rawPhoneNumber) {
         if (rawPhoneNumber == null) {
@@ -92,6 +123,44 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         return encodedPayload + "." + hmac("verification:" + encodedPayload); // base64(정보).hmac(base64(정보))
     }
 
+    // 휴대전화 인증 요청 ID 파싱 및 검증
+    private VerificationRequestIdentity parseVerificationId(String verificationId) {
+        try {
+            String[] tokenParts = verificationId.split("\\.", -1);
+
+            // verificationId 디코딩 및 검증
+            if (tokenParts.length != 2 || !MessageDigest.isEqual(
+                    hmac("verification:" + tokenParts[0]).getBytes(StandardCharsets.UTF_8),
+                    tokenParts[1].getBytes(StandardCharsets.UTF_8)
+            )) {
+                throw new BusinessException(ErrorCode.INVALID_VERIFICATION_ID);
+            }
+
+            // payload 디코딩 및 검증
+            String payload = new String(
+                    Base64.getUrlDecoder().decode(tokenParts[0]),
+                    StandardCharsets.UTF_8
+            );
+            String[] payloadParts = payload.split(":", 3);
+            if (payloadParts.length != 3 || payloadParts[1].isBlank()) {
+                throw new BusinessException(ErrorCode.INVALID_VERIFICATION_ID);
+            }
+
+            PhoneVerificationPurpose purpose = PhoneVerificationPurpose.valueOf(payloadParts[0]);
+            UUID.fromString(payloadParts[2]); // UUID 형식 검증
+            return new VerificationRequestIdentity(purpose, payloadParts[1]);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new BusinessException(ErrorCode.INVALID_VERIFICATION_ID);
+        }
+    }
+
+    // 인증 토큰 생성
+    private String createVerificationToken() {
+        byte[] bytes = new byte[32];
+        secureRandom.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
     // HMAC-SHA256 값 생성
     private String hmac(String value) {
         try {
@@ -102,5 +171,11 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new IllegalStateException("휴대전화 인증 해시를 생성할 수 없습니다.", e);
         }
+    }
+
+    private record VerificationRequestIdentity(
+            PhoneVerificationPurpose purpose,
+            String phoneHash
+    ) {
     }
 }

@@ -1,5 +1,7 @@
 package com.b101.dib.common.exception;
 
+import com.b101.dib.auth.command.dto.VerificationCodeErrorResponse;
+import com.b101.dib.auth.command.exception.InvalidVerificationCodeException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -7,6 +9,20 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(InvalidVerificationCodeException.class)
+    public ResponseEntity<VerificationCodeErrorResponse> handleInvalidVerificationCode(
+            InvalidVerificationCodeException e
+    ) {
+        ErrorCode errorCode = e.getErrorCode();
+
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(new VerificationCodeErrorResponse(
+                        errorCode.name(),
+                        errorCode.getMessage(),
+                        e.getRemainingAttempts()
+                ));
+    }
 
     @ExceptionHandler(RateLimitExceededException.class)
     public ResponseEntity<ErrorResponse> handleRateLimitExceeded(RateLimitExceededException e) {
