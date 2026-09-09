@@ -1,8 +1,8 @@
-package com.b101.dib.auth.command.store;
+package com.b101.dib.auth.repository;
 
 import java.time.Instant;
 
-import com.b101.dib.auth.command.dto.PhoneVerificationPurpose;
+import com.b101.dib.auth.domain.PhoneVerificationPurpose;
 
 public interface PhoneVerificationStore {
 

@@ -1,4 +1,4 @@
-package com.b101.dib.auth.command.sms;
+package com.b101.dib.auth.sms;
 
 public interface SmsSender {
 

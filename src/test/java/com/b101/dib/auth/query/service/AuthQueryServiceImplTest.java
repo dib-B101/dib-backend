@@ -1,7 +1,7 @@
 package com.b101.dib.auth.query.service;
 
 import com.b101.dib.auth.query.dto.EmailAvailabilityResponse;
-import com.b101.dib.auth.query.mapper.AuthQueryMapper;
+import com.b101.dib.auth.query.repository.AuthQueryMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

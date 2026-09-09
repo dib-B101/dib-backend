@@ -1,4 +1,4 @@
-package com.b101.dib.auth.command.sms;
+package com.b101.dib.auth.sms;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;

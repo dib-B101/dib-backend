@@ -1,11 +1,11 @@
-package com.b101.dib.auth.command.store;
+package com.b101.dib.auth.repository;
 
 import java.time.Duration;
 import java.time.Instant;
 
-import com.b101.dib.auth.command.config.PhoneVerificationProperties;
-import com.b101.dib.auth.command.dto.PhoneVerificationPurpose;
-import com.b101.dib.auth.command.exception.InvalidVerificationCodeException;
+import com.b101.dib.auth.config.PhoneVerificationProperties;
+import com.b101.dib.auth.domain.PhoneVerificationPurpose;
+import com.b101.dib.auth.exception.InvalidVerificationCodeException;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
 import com.b101.dib.common.exception.RateLimitExceededException;

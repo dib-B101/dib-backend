@@ -1,4 +1,4 @@
-package com.b101.dib.auth.command.store;
+package com.b101.dib.auth.repository;
 
 import java.time.Instant;
 
