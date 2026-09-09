@@ -14,8 +14,10 @@ public enum ErrorCode {
 
     // 상품
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다"),
-    PRODUCT_NOT_DELETABLE(HttpStatus.CONFLICT, "판매 완료된 상품은 삭제할 수 없습니다"),
+    PRODUCT_ON_AUCTION(HttpStatus.BAD_REQUEST, "이미 경매가 진행 중인 상품입니다."),
+    PRODUCT_ALREADY_SOLD(HttpStatus.CONFLICT, "판매 완료된 상품은 삭제할 수 없습니다"),
     PRODUCT_ALREADY_DELETED(HttpStatus.NOT_FOUND, "이미 삭제된 상품입니다"),
+    NOT_MY_PRODUCT(HttpStatus.FORBIDDEN, "내가 등록한 상품이 아닙니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "카테고리를 찾을 수 없습니다"),
     INVALID_FILTER(HttpStatus.BAD_REQUEST, "필터 값이 올바르지 않습니다"),
     INVALID_CURSOR(HttpStatus.BAD_REQUEST, "커서 값이 올바르지 않습니다"),

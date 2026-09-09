@@ -43,7 +43,7 @@ public class ProductCommandController {
     }
 
     @PatchMapping("/{productId}")
-    public ResponseEntity<Map> update(
+    public ResponseEntity<Map<String, Object>> update(
           @PathVariable("productId") Long productId,
           @RequestBody UpdateRequest request){
     	Long myId = 1L;
@@ -57,10 +57,14 @@ public class ProductCommandController {
     }
     
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<Map<String, Object>> delete(
     		@PathVariable("productId") Long productId){
     	Long myId = 1L;
         productCommandService.delete(myId, productId);
-        return ResponseEntity.noContent().build();
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("message", "상품 삭제 성공");
+        return ResponseEntity
+        		.status(HttpStatus.NO_CONTENT)
+        		.body(map);
     }
 }

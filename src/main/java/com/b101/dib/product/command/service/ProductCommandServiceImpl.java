@@ -41,7 +41,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 .releaseYear(request.getReleaseYear())
                 .marketPrice(request.getMarketPrice())
                 .thumbnailUrl(thumbnailUrl)
-                .status(ProductStatus.REGISTERED)
+                .status(ProductStatus.PENDING)
                 .createdAt(LocalDateTime.now())
                 .build();
         productCommandRepository.save(product);
@@ -59,54 +59,76 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     				.build();
     		productImageRepository.save(productImage);
     	}
+        
+        // 상품 정보, 상품 이미지 AI 검수 요청을 Kafka를 통해 진행
+        
         return product.getProductId();
     }
 
     @Override
-    public void update(Long memberId, Long productId, UpdateRequest request) {
+    public void update(Long myId, Long productId, UpdateRequest request) {
         Product product = productCommandRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
-        if (product.getDeletedAt() != null) {
-            throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
-        }
-        if (!product.getMemberId().equals(memberId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
+        
+        checkValidation(product, myId);
+        boolean updated = false;
+        if(request.getCategoryId() != null) {
+        	product.setCategoryId(request.getCategoryId());
+        	updated = true;
         }
         if(request.getTitle() != null){
             product.setTitle(request.getTitle());
+            updated = true;
         }
         if(request.getDescription() != null){
             product.setDescription(request.getDescription());
+            updated = true;
         }
         if(request.getCondition() != null){
             product.setCondition(request.getCondition());
+            updated = true;
         }
         if(request.getModelName() != null){
             product.setModelName(request.getModelName());
+            updated = true;
         }
         if(request.getReleaseYear() != null){
             product.setReleaseYear(request.getReleaseYear());
+            updated = true;
         }
         if(request.getMarketPrice() != null){
             product.setMarketPrice(request.getMarketPrice());
+            updated = true;
+        }
+        if(updated) { 
+        	product.setUpdatedAt(LocalDateTime.now());
         }
     }
     
     @Override
-    public void delete(Long memberId, Long productId) {
+    public void delete(Long myId, Long productId) {
         Product product = productCommandRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
-        if (product.getDeletedAt() != null) {
-            throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
-        }
-        if (!product.getMemberId().equals(memberId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
-        if (product.getStatus() == ProductStatus.SOLD) {
-            throw new BusinessException(ErrorCode.PRODUCT_NOT_DELETABLE);
-        }
+        
+        checkValidation(product, myId);
 
+        product.setUpdatedAt(LocalDateTime.now());
         product.setDeletedAt(LocalDateTime.now());
+    }
+    
+    private void checkValidation(Product product, Long myId) {
+    	if (!product.getMemberId().equals(myId)) {
+            throw new BusinessException(ErrorCode.NOT_MY_PRODUCT);
+        }
+        if(product.getStatus() == ProductStatus.ON_AUCTION) {
+        	throw new BusinessException(ErrorCode.PRODUCT_ON_AUCTION);
+        }
+        if(product.getStatus() == ProductStatus.SOLD) {
+        	throw new BusinessException(ErrorCode.PRODUCT_ALREADY_SOLD);
+        }
+        if (product.getDeletedAt() != null) {
+        	throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
+        }
     }
 
 }
