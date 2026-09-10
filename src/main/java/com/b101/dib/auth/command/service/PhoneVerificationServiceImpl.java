@@ -20,6 +20,7 @@ import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationRequest;
 import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
 import com.b101.dib.auth.domain.PhoneVerificationPurpose;
+import com.b101.dib.auth.domain.PhoneNumber;
 import com.b101.dib.auth.repository.PhoneVerificationConfirmation;
 import com.b101.dib.auth.repository.PhoneVerificationReservation;
 import com.b101.dib.auth.repository.PhoneVerificationStore;
@@ -43,7 +44,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
 
     @Override
     public PhoneVerificationResponse request(PhoneVerificationRequest request) {
-        String phoneNumber = normalizePhoneNumber(request == null ? null : request.phoneNumber());
+        String phoneNumber = PhoneNumber.from(request == null ? null : request.phoneNumber()).value();
         PhoneVerificationPurpose purpose = requirePurpose(request == null ? null : request.purpose());
         String code = "%06d".formatted(secureRandom.nextInt(1_000_000));
         String phoneHash = hmac("phone:" + phoneNumber);
@@ -94,17 +95,23 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         );
     }
 
-    // 휴대전화 번호 정규화 및 유효성 검사
-    private String normalizePhoneNumber(String rawPhoneNumber) {
-        if (rawPhoneNumber == null) {
-            throw new BusinessException(ErrorCode.INVALID_PHONE);
+    @Override
+    public void consumeVerificationToken(
+            String verificationToken,
+            PhoneVerificationPurpose purpose,
+            String phoneNumber
+    ) {
+        // 인증 토큰 유효성 검사
+        if (verificationToken == null || verificationToken.isBlank() || purpose == null) {
+            throw new BusinessException(ErrorCode.INVALID_VERIFICATION);
         }
 
-        String normalized = rawPhoneNumber.trim().replaceAll("[\\s-]", "");
-        if (!normalized.matches("010\\d{8}")) {
-            throw new BusinessException(ErrorCode.INVALID_PHONE);
-        }
-        return normalized;
+        String normalizedPhoneNumber = PhoneNumber.from(phoneNumber).value();
+        phoneVerificationStore.consume(
+                hmac("token:" + verificationToken),
+                purpose,
+                hmac("phone:" + normalizedPhoneNumber)
+        );
     }
 
     // 인증 목적 유효성 검사

@@ -4,12 +4,16 @@ import java.time.OffsetDateTime;
 
 import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
+import com.b101.dib.auth.command.dto.SignupResponse;
 import com.b101.dib.auth.exception.InvalidVerificationCodeException;
 import com.b101.dib.auth.command.service.PhoneVerificationService;
+import com.b101.dib.auth.command.service.SignupService;
 import com.b101.dib.common.config.SecurityConfig;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
 import com.b101.dib.common.exception.RateLimitExceededException;
+import com.b101.dib.member.domain.MemberRole;
+import com.b101.dib.member.domain.MemberStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -34,6 +38,9 @@ class AuthCommandControllerTest {
 
     @MockitoBean
     private PhoneVerificationService phoneVerificationService;
+
+    @MockitoBean
+    private SignupService signupService;
 
     @Test
     void acceptsPhoneVerificationRequest() throws Exception {
@@ -156,5 +163,82 @@ class AuthCommandControllerTest {
                                 """))
                 .andExpect(status().isTooManyRequests())
                 .andExpect(jsonPath("$.code").value("ATTEMPTS_EXCEEDED"));
+    }
+
+    @Test
+    void createsGeneralMemberAndReturnsTokens() throws Exception {
+        given(signupService.signup(any()))
+                .willReturn(new SignupResponse(
+                        1L,
+                        "user@example.com",
+                        "길동이",
+                        MemberStatus.ACTIVE,
+                        MemberRole.USER,
+                        "access-token",
+                        "refresh-token"
+                ));
+
+        mockMvc.perform(post("/api/v1/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"user@example.com",
+                                  "password":"Password1!",
+                                  "name":"홍길동",
+                                  "nickname":"길동이",
+                                  "gender":"MALE",
+                                  "birthDate":"2000-01-01",
+                                  "phoneNumber":"01012345678",
+                                  "phoneVerificationToken":"verification-token",
+                                  "deviceId":"device-id"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.memberId").value(1))
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.role").value("USER"))
+                .andExpect(jsonPath("$.accessToken").value("access-token"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
+    }
+
+    @Test
+    void rejectsSignupWithoutNickname() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"user@example.com",
+                                  "password":"Password1!",
+                                  "name":"홍길동",
+                                  "gender":"MALE",
+                                  "birthDate":"2000-01-01",
+                                  "phoneNumber":"01012345678",
+                                  "phoneVerificationToken":"verification-token",
+                                  "deviceId":"device-id"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT"));
+    }
+
+    @Test
+    void rejectsSignupWithInvalidPassword() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"user@example.com",
+                                  "password":"Password1가",
+                                  "name":"홍길동",
+                                  "nickname":"길동이",
+                                  "gender":"MALE",
+                                  "birthDate":"2000-01-01",
+                                  "phoneNumber":"01012345678",
+                                  "phoneVerificationToken":"verification-token",
+                                  "deviceId":"device-id"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_PASSWORD"));
     }
 }

@@ -160,4 +160,31 @@ class PhoneVerificationServiceImplTest {
 
         verifyNoInteractions(phoneVerificationStore, smsSender);
     }
+
+    @Test
+    void consumesVerificationTokenForNormalizedPhoneNumber() {
+        phoneVerificationService.consumeVerificationToken(
+                "verification-token",
+                PhoneVerificationPurpose.SIGN_UP,
+                "010-1234-5678"
+        );
+
+        verify(phoneVerificationStore).consume(
+                anyString(),
+                org.mockito.ArgumentMatchers.eq(PhoneVerificationPurpose.SIGN_UP),
+                anyString()
+        );
+    }
+
+    @Test
+    void rejectsBlankVerificationToken() {
+        assertThatThrownBy(() -> phoneVerificationService.consumeVerificationToken(
+                " ", PhoneVerificationPurpose.SIGN_UP, "01012345678"
+        ))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.INVALID_VERIFICATION));
+
+        verifyNoInteractions(phoneVerificationStore, smsSender);
+    }
 }

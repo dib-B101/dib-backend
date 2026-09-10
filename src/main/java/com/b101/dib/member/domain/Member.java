@@ -16,9 +16,9 @@ import java.time.LocalDateTime;
 @Table(
         name = "member",
         uniqueConstraints = {
-            @UniqueConstraint(name = "uk_member_email", columnNames = "email"),
-            @UniqueConstraint(name = "uk_member.nickname", columnNames = "nickname"),
-            @UniqueConstraint(name = "uk_member_phone", columnNames = "phone_number")
+            @UniqueConstraint(name = "up_member_email", columnNames = "email"),
+            @UniqueConstraint(name = "uq_member_nickname", columnNames = "nickname"),
+            @UniqueConstraint(name = "uq_member_phone_number", columnNames = "phone_number")
         }
 )
 @NoArgsConstructor
@@ -40,7 +40,7 @@ public class Member {
     @Column(nullable = false, length = 50)
     private String nickname;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 10)
     private String name;
 
     // DB 컬럼이 PostgreSQL 네이티브 ENUM(gender) 이라 NAMED_ENUM 으로 바인딩해야 INSERT 가 통과한다

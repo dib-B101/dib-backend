@@ -22,19 +22,22 @@ public class RedisPhoneVerificationStore implements PhoneVerificationStore {
     private final DefaultRedisScript<Long> requestScript;
     private final DefaultRedisScript<Long> cancelScript;
     private final DefaultRedisScript<Long> confirmScript;
+    private final DefaultRedisScript<Long> consumeScript;
 
     public RedisPhoneVerificationStore(
             StringRedisTemplate redisTemplate,
             PhoneVerificationProperties properties,
             @Qualifier("requestPhoneVerificationScript") DefaultRedisScript<Long> requestScript,
             @Qualifier("cancelPhoneVerificationScript") DefaultRedisScript<Long> cancelScript,
-            @Qualifier("confirmPhoneVerificationScript") DefaultRedisScript<Long> confirmScript
+            @Qualifier("confirmPhoneVerificationScript") DefaultRedisScript<Long> confirmScript,
+            @Qualifier("consumePhoneVerificationScript") DefaultRedisScript<Long> consumeScript
     ) {
         this.redisTemplate = redisTemplate;
         this.properties = properties;
         this.requestScript = requestScript;
         this.cancelScript = cancelScript;
         this.confirmScript = confirmScript;
+        this.consumeScript = consumeScript;
     }
 
     @Override
@@ -114,6 +117,27 @@ public class RedisPhoneVerificationStore implements PhoneVerificationStore {
         }
 
         return new PhoneVerificationConfirmation(confirmedAt.plus(properties.verificationTtl()));
+    }
+
+    @Override
+    public void consume(
+            String verificationTokenHash,
+            PhoneVerificationPurpose purpose,
+            String phoneHash
+    ) {
+        Long result = redisTemplate.execute(
+                consumeScript,
+                List.of("auth:verification:" + verificationTokenHash),
+                purpose.name(),
+                phoneHash
+        );
+
+        if (result == null) {
+            throw new IllegalStateException("Redis에서 본인인증 토큰 소비 결과를 받지 못했습니다.");
+        }
+        if (result != 1) {
+            throw new BusinessException(ErrorCode.INVALID_VERIFICATION);
+        }
     }
 
     private String otpKey(PhoneVerificationPurpose purpose, String phoneHash) {

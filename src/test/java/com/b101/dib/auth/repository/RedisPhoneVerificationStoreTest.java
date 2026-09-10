@@ -36,6 +36,8 @@ class RedisPhoneVerificationStoreTest {
     private DefaultRedisScript<Long> cancelScript;
     @Mock
     private DefaultRedisScript<Long> confirmScript;
+    @Mock
+    private DefaultRedisScript<Long> consumeScript;
 
     private RedisPhoneVerificationStore store;
 
@@ -46,7 +48,7 @@ class RedisPhoneVerificationStoreTest {
                 Duration.ofHours(1), 5, 5, "secret"
         );
         store = new RedisPhoneVerificationStore(
-                redisTemplate, properties, requestScript, cancelScript, confirmScript
+                redisTemplate, properties, requestScript, cancelScript, confirmScript, consumeScript
         );
     }
 
@@ -180,5 +182,33 @@ class RedisPhoneVerificationStoreTest {
                 .isInstanceOfSatisfying(BusinessException.class,
                         exception -> assertThat(exception.getErrorCode())
                                 .isEqualTo(ErrorCode.ATTEMPTS_EXCEEDED));
+    }
+
+    @Test
+    void consumesMatchingVerificationTokenOnce() {
+        given(redisTemplate.execute(eq(consumeScript), anyList(), any(Object[].class)))
+                .willReturn(1L);
+
+        store.consume("token-hash", PhoneVerificationPurpose.SIGN_UP, "phone-hash");
+
+        verify(redisTemplate).execute(
+                eq(consumeScript),
+                eq(java.util.List.of("auth:verification:token-hash")),
+                eq("SIGN_UP"),
+                eq("phone-hash")
+        );
+    }
+
+    @Test
+    void rejectsMissingOrMismatchedVerificationToken() {
+        given(redisTemplate.execute(eq(consumeScript), anyList(), any(Object[].class)))
+                .willReturn(0L);
+
+        assertThatThrownBy(() -> store.consume(
+                "token-hash", PhoneVerificationPurpose.SIGN_UP, "phone-hash"
+        ))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.INVALID_VERIFICATION));
     }
 }
