@@ -2,6 +2,7 @@ package com.b101.dib.question.query.service;
 
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
+import com.b101.dib.question.query.dto.AdminQuestionQueryDto;
 import com.b101.dib.question.query.dto.QuestionDetailDto;
 import com.b101.dib.question.query.dto.QuestionQueryDto;
 import com.b101.dib.question.repository.QuestionMapper;
@@ -32,5 +33,10 @@ public class QuestionQueryServiceImpl implements QuestionQueryService {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
         return dto;
+    }
+
+    @Override
+    public List<AdminQuestionQueryDto> findAll(Boolean answered) {
+        return questionMapper.findAll(answered);
     }
 }

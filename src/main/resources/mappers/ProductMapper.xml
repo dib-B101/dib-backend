@@ -90,4 +90,38 @@
 		WHERE p.product_id = #{productId}
 		AND p.deleted_at IS NULL
 	</select>
+
+	<resultMap id="AdminProductQueryMap"
+		type="com.b101.dib.product.query.dto.AdminProductQueryDto">
+		<id property="productId" column="product_id" />
+		<result property="memberId" column="member_id" />
+		<result property="memberNickname" column="member_nickname" />
+		<result property="title" column="title" />
+		<result property="status" column="status" />
+		<result property="createdAt" column="created_at" />
+		<result property="updatedAt" column="updated_at" />
+	</resultMap>
+
+	<select id="findForModeration" resultMap="AdminProductQueryMap">
+		SELECT
+			p.product_id,
+			p.member_id,
+			m.nickname AS member_nickname,
+			p.title,
+			p.status,
+			p.created_at,
+			p.updated_at
+		FROM product p
+		JOIN member m ON m.member_id = p.member_id
+		WHERE p.deleted_at IS NULL
+		<choose>
+			<when test="status != null">
+				AND p.status = #{status}::product_status
+			</when>
+			<otherwise>
+				AND p.status IN ('PENDING'::product_status, 'REJECTED'::product_status)
+			</otherwise>
+		</choose>
+		ORDER BY p.created_at
+	</select>
 </mapper>

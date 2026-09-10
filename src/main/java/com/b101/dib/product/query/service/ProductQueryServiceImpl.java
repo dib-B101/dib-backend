@@ -1,5 +1,7 @@
 package com.b101.dib.product.query.service;
 
+import com.b101.dib.product.domain.ProductStatus;
+import com.b101.dib.product.query.dto.AdminProductQueryDto;
 import com.b101.dib.product.query.dto.ProductDetailDto;
 import com.b101.dib.product.query.dto.ProductQueryDto;
 import com.b101.dib.product.repository.ProductMapper;
@@ -36,5 +38,10 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         	throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
         }
         return dto;
+    }
+
+    @Override
+    public List<AdminProductQueryDto> findForModeration(ProductStatus status) {
+        return productQueryMapper.findForModeration(status);
     }
 }

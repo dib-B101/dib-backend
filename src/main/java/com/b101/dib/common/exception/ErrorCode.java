@@ -19,6 +19,7 @@ public enum ErrorCode {
     PRODUCT_ALREADY_SOLD(HttpStatus.CONFLICT, "판매 완료된 상품은 삭제할 수 없습니다"),
     PRODUCT_ALREADY_DELETED(HttpStatus.NOT_FOUND, "이미 삭제된 상품입니다"),
     NOT_MY_PRODUCT(HttpStatus.FORBIDDEN, "내가 등록한 상품이 아닙니다."),
+    PRODUCT_MODERATION_NOT_ALLOWED(HttpStatus.CONFLICT, "검수 대기 상품만 승인 또는 거부할 수 있습니다"),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "카테고리를 찾을 수 없습니다"),
     INVALID_FILTER(HttpStatus.BAD_REQUEST, "필터 값이 올바르지 않습니다"),
     INVALID_CURSOR(HttpStatus.BAD_REQUEST, "커서 값이 올바르지 않습니다"),
@@ -58,6 +59,17 @@ public enum ErrorCode {
     // 문의
     QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "문의를 찾을 수 없습니다"),
     
+    // 신고
+    SELF_REPORT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "본인 또는 본인 상품은 신고할 수 없습니다"),
+    DUPLICATE_REPORT(HttpStatus.CONFLICT, "이미 신고한 대상입니다"),
+    REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "신고를 찾을 수 없습니다"),
+
+    // 이상입찰
+    DUPLICATE_LABEL(HttpStatus.CONFLICT, "이미 라벨이 확정된 입찰자입니다"),
+
+    // 주문
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다"),
+
     // 회원
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
     private final HttpStatus status;
