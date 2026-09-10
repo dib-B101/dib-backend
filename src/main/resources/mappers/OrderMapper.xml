@@ -137,4 +137,12 @@
         WHERE o.order_id = #{orderId}
     </select>
 
+    <select id="findWinnerId" resultType="java.lang.Long">
+        SELECT
+            b.member_id
+        FROM auction a
+        JOIN bid b ON b.bid_id = a.top_bid_id
+        WHERE a.auction_id = #{auctionId}
+    </select>
+
 </mapper>

@@ -78,6 +78,13 @@ INSERT INTO bid (auction_id, member_id, amount) VALUES
 (1, 3, 520000),
 (1, 2, 600000);
 
+-- 7-1. 종료된 경매 + 낙찰 입찰 (주문 생성 create(auctionId) 테스트용: 경매 2, 판매자 2, 낙찰자 1)
+INSERT INTO auction (product_id, start_price, current_price, auction_time, started_at, ended_at, status, bid_count, bidder_count, top_bid_id) VALUES
+(2, 30000, 45000, 3600, NOW() - INTERVAL '2 hours', NOW() - INTERVAL '1 hour', 'ENDED', 1, 1, NULL);
+INSERT INTO bid (auction_id, member_id, amount) VALUES
+(2, 1, 45000);
+UPDATE auction SET top_bid_id = (SELECT bid_id FROM bid WHERE auction_id = 2 AND amount = 45000) WHERE auction_id = 2;
+
 -- 8. 찜 (Bookmark)
 INSERT INTO bookmark (member_id, auction_id) VALUES
 (2, 1), (3, 1), (1, 1);

@@ -8,6 +8,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "\"order\"")
@@ -17,6 +18,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Order {
+    private static final int PAYMENT_DUE_HOURS = 24;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderId;
@@ -39,6 +42,19 @@ public class Order {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String chattingSessionId;
+
+    public static Order create(Long auctionId, Long sellerId, Long buyerId, Long finalPrice, LocalDateTime endedAt) {
+        return Order.builder()
+                .auctionId(auctionId)
+                .sellerId(sellerId)
+                .buyerId(buyerId)
+                .finalPrice(finalPrice)
+                .status(OrderStatus.PENDING)
+                .paymentDue(endedAt.plusHours(PAYMENT_DUE_HOURS))
+                .chattingSessionId(UUID.randomUUID().toString())
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
 
     public boolean isBuyer(Long memberId) {
         return buyerId.equals(memberId);

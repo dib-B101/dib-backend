@@ -15,4 +15,5 @@ public interface OrderMapper {
                                        @Param("role") OrderRole role,
                                        @Param("status") OrderStatus status);
     OrderDetailDto findById(@Param("orderId") Long orderId);
+    Long findWinnerId(@Param("auctionId") Long auctionId);
 }
