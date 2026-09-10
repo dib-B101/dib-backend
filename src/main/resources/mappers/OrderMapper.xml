@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.b101.dib.order.repository.OrderMapper">
+
+    <resultMap id="OrderQueryMap"
+        type="com.b101.dib.order.query.dto.OrderQueryDto">
+        <id property="orderId" column="order_id" />
+        <result property="auctionId" column="auction_id" />
+        <result property="productId" column="product_id" />
+        <result property="productTitle" column="product_title" />
+        <result property="thumbnailUrl" column="thumbnail_url" />
+        <result property="sellerId" column="seller_id" />
+        <result property="sellerNickname" column="seller_nickname" />
+        <result property="buyerId" column="buyer_id" />
+        <result property="buyerNickname" column="buyer_nickname" />
+        <result property="finalPrice" column="final_price" />
+        <result property="status" column="status" />
+        <result property="paymentDue" column="payment_due" />
+        <result property="trackingNumber" column="tracking_number" />
+        <result property="createdAt" column="created_at" />
+    </resultMap>
+
+    <select id="findByMemberId" resultMap="OrderQueryMap">
+        SELECT
+            o.order_id,
+            o.auction_id,
+            a.product_id,
+            p.title AS product_title,
+            p.thumbnail_url,
+            o.seller_id,
+            s.nickname AS seller_nickname,
+            o.buyer_id,
+            b.nickname AS buyer_nickname,
+            o.final_price,
+            o.status,
+            o.payment_due,
+            o.tracking_number,
+            o.created_at
+        FROM "order" o
+        JOIN auction a ON a.auction_id = o.auction_id
+        JOIN product p ON p.product_id = a.product_id
+        JOIN member s ON s.member_id = o.seller_id
+        JOIN member b ON b.member_id = o.buyer_id
+        <where>
+            <choose>
+                <when test="role != null and role.name() == 'BUYER'">
+                    o.buyer_id = #{memberId}
+                </when>
+                <when test="role != null and role.name() == 'SELLER'">
+                    o.seller_id = #{memberId}
+                </when>
+                <otherwise>
+                    (o.buyer_id = #{memberId} OR o.seller_id = #{memberId})
+                </otherwise>
+            </choose>
+            <if test="status != null">
+                AND o.status = #{status}::order_status
+            </if>
+        </where>
+        ORDER BY o.created_at DESC, o.order_id DESC
+    </select>
+
+    <resultMap id="OrderDetailMap"
+        type="com.b101.dib.order.query.dto.OrderDetailDto">
+        <id property="orderId" column="order_id" />
+        <result property="sellerId" column="seller_id" />
+        <result property="sellerNickname" column="seller_nickname" />
+        <result property="buyerId" column="buyer_id" />
+        <result property="buyerNickname" column="buyer_nickname" />
+        <result property="finalPrice" column="final_price" />
+        <result property="status" column="status" />
+        <result property="paymentDue" column="payment_due" />
+        <result property="address" column="address" />
+        <result property="trackingNumber" column="tracking_number" />
+        <result property="chattingSessionId" column="chatting_session_id" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+        <result property="auctionId" column="auction_id" />
+        <result property="startPrice" column="start_price" />
+        <result property="currentPrice" column="current_price" />
+        <result property="auctionStatus" column="auction_status" />
+        <result property="auctionEndedAt" column="auction_ended_at" />
+        <result property="productId" column="product_id" />
+        <result property="productTitle" column="product_title" />
+        <result property="thumbnailUrl" column="thumbnail_url" />
+        <result property="condition" column="condition" />
+        <result property="modelName" column="model_name" />
+        <result property="paymentId" column="payment_id" />
+        <result property="paymentAmount" column="payment_amount" />
+        <result property="paymentType" column="payment_type" />
+        <result property="paidAt" column="paid_at" />
+        <result property="settlementId" column="settlement_id" />
+        <result property="netAmount" column="net_amount" />
+        <result property="payoutAt" column="payout_at" />
+    </resultMap>
+
+    <select id="findById" resultMap="OrderDetailMap">
+        SELECT
+            o.order_id,
+            o.seller_id,
+            s.nickname AS seller_nickname,
+            o.buyer_id,
+            b.nickname AS buyer_nickname,
+            o.final_price,
+            o.status,
+            o.payment_due,
+            o.address::text AS address,
+            o.tracking_number,
+            o.chatting_session_id,
+            o.created_at,
+            o.updated_at,
+            a.auction_id,
+            a.start_price,
+            a.current_price,
+            a.status AS auction_status,
+            a.ended_at AS auction_ended_at,
+            p.product_id,
+            p.title AS product_title,
+            p.thumbnail_url,
+            p.condition,
+            p.model_name,
+            pay.payment_id,
+            pay.amount AS payment_amount,
+            pay.type AS payment_type,
+            pay.paid_at,
+            st.settlement_id,
+            st.net_amount,
+            st.payout_at
+        FROM "order" o
+        JOIN auction a ON a.auction_id = o.auction_id
+        JOIN product p ON p.product_id = a.product_id
+        JOIN member s ON s.member_id = o.seller_id
+        JOIN member b ON b.member_id = o.buyer_id
+        LEFT JOIN payment pay ON pay.order_id = o.order_id
+        LEFT JOIN settlement st ON st.order_id = o.order_id
+        WHERE o.order_id = #{orderId}
+    </select>
+
+    <select id="findWinnerId" resultType="java.lang.Long">
+        SELECT
+            b.member_id
+        FROM auction a
+        JOIN bid b ON b.bid_id = a.top_bid_id
+        WHERE a.auction_id = #{auctionId}
+    </select>
+
+</mapper>

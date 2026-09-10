@@ -69,6 +69,10 @@ public enum ErrorCode {
 
     // 주문
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다"),
+    DELIVERY_NOT_COMPLETED(HttpStatus.CONFLICT, "배송이 완료된 주문만 구매 확정할 수 있습니다"),
+    ALREADY_CONFIRMED(HttpStatus.CONFLICT, "이미 구매 확정된 주문입니다"),
+    NO_WINNING_BID(HttpStatus.CONFLICT, "낙찰자가 없는 경매입니다"),
+    DUPLICATE_ORDER(HttpStatus.CONFLICT, "이미 주문이 생성된 경매입니다"),
 
     // 회원
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
