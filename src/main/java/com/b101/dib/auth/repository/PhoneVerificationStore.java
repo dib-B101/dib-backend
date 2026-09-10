@@ -25,4 +25,6 @@ public interface PhoneVerificationStore {
             String codeHash,
             String verificationTokenHash,
             Instant confirmedAt);
+
+    void consume(String verificationTokenHash, PhoneVerificationPurpose purpose, String phoneHash);
 }

@@ -48,10 +48,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException e) {
 
-        ErrorCode errorCode = e.getBindingResult().getFieldErrors().stream()
-                .anyMatch(fieldError -> "email".equals(fieldError.getField()))
-                ? ErrorCode.INVALID_EMAIL
-                : ErrorCode.INVALID_INPUT;
+        boolean hasEmailError = e.getBindingResult().getFieldErrors().stream()
+                .anyMatch(fieldError -> "email".equals(fieldError.getField()));
+        boolean hasPasswordError = e.getBindingResult().getFieldErrors().stream()
+                .anyMatch(fieldError -> "password".equals(fieldError.getField()));
+
+        ErrorCode errorCode;
+        if (hasEmailError) {
+            errorCode = ErrorCode.INVALID_EMAIL;
+        } else if (hasPasswordError) {
+            errorCode = ErrorCode.INVALID_PASSWORD;
+        } else {
+            errorCode = ErrorCode.INVALID_INPUT;
+        }
 
         String detail = e.getBindingResult().getFieldErrors().stream()
                 .findFirst()

@@ -51,4 +51,13 @@ public class PhoneVerificationConfig {
         script.setResultType(Long.class);
         return script;
     }
+
+    @Bean
+    public DefaultRedisScript<Long> consumePhoneVerificationScript() {
+        // 인증 완료 시 실행할 Redis Lua 스크립트 등록
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setLocation(new ClassPathResource("redis/consume-phone-verification.lua"));
+        script.setResultType(Long.class);
+        return script;
+    }
 }

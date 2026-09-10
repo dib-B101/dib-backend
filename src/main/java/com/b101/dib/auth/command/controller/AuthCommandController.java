@@ -4,7 +4,11 @@ import com.b101.dib.auth.command.dto.PhoneVerificationConfirmRequest;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationRequest;
 import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
+import com.b101.dib.auth.command.dto.SignupRequest;
+import com.b101.dib.auth.command.dto.SignupResponse;
 import com.b101.dib.auth.command.service.PhoneVerificationService;
+import com.b101.dib.auth.command.service.SignupService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthCommandController {
 
     private final PhoneVerificationService phoneVerificationService;
+    private final SignupService signupService;
 
     @PostMapping("/phone-verifications")
     public ResponseEntity<PhoneVerificationResponse> requestPhoneVerification(
@@ -35,5 +40,10 @@ public class AuthCommandController {
             @RequestBody PhoneVerificationConfirmRequest request
     ) {
         return ResponseEntity.ok(phoneVerificationService.confirm(verificationId, request));
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(signupService.signup(request));
     }
 }

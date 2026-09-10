@@ -42,6 +42,10 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 
+jwt:
+  refresh-token-inactivity: 30d
+  refresh-token-absolute: 90d
+
 auth:
   phone-verification:
     otp-ttl: 3m
