@@ -55,3 +55,8 @@ auth:
     max-requests-per-window: 5
     max-attempts: 5
     hmac-secret: ${PHONE_VERIFICATION_HMAC_SECRET}
+
+# TossPayments 자동결제(빌링). 키는 프로필/환경변수에서 — 없으면 결제 호출 시점에만 실패
+toss:
+  secret-key: ${TOSS_SECRET_KEY:}
+  base-url: https://api.tosspayments.com

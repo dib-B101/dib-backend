@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.b101.dib.payment.repository.PaymentMapper">
+
+    <resultMap id="PaymentDetailMap" type="com.b101.dib.payment.query.dto.PaymentDetailDto">
+        <id property="paymentId" column="payment_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="buyerId" column="buyer_id"/>
+        <result property="sellerId" column="seller_id"/>
+        <result property="amount" column="amount"/>
+        <result property="type" column="type"/>
+        <result property="receiptUrl" column="receipt_url"/>
+        <result property="paidAt" column="paid_at"/>
+        <result property="orderStatus" column="order_status"/>
+    </resultMap>
+
+    <select id="findById" resultMap="PaymentDetailMap">
+        SELECT
+            pay.payment_id,
+            pay.order_id,
+            pay.buyer_id,
+            o.seller_id,
+            pay.amount,
+            pay.type,
+            pay.receipt_url,
+            pay.paid_at,
+            o.status AS order_status
+        FROM payment pay
+        JOIN "order" o ON o.order_id = pay.order_id
+        WHERE pay.payment_id = #{paymentId}
+    </select>
+
+</mapper>
