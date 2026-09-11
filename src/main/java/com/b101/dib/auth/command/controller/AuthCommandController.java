@@ -1,11 +1,14 @@
 package com.b101.dib.auth.command.controller;
 
+import com.b101.dib.auth.command.dto.LoginRequest;
+import com.b101.dib.auth.command.dto.LoginResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmRequest;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationRequest;
 import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
 import com.b101.dib.auth.command.dto.SignupRequest;
 import com.b101.dib.auth.command.dto.SignupResponse;
+import com.b101.dib.auth.command.service.LoginService;
 import com.b101.dib.auth.command.service.PhoneVerificationService;
 import com.b101.dib.auth.command.service.SignupService;
 import jakarta.validation.Valid;
@@ -25,6 +28,7 @@ public class AuthCommandController {
 
     private final PhoneVerificationService phoneVerificationService;
     private final SignupService signupService;
+    private final LoginService loginService;
 
     @PostMapping("/phone-verifications")
     public ResponseEntity<PhoneVerificationResponse> requestPhoneVerification(
@@ -45,5 +49,10 @@ public class AuthCommandController {
     @PostMapping("/signup")
     public ResponseEntity<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(signupService.signup(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(loginService.login(request));
     }
 }
