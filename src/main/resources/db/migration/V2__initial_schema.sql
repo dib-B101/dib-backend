@@ -132,6 +132,7 @@ CREATE TABLE bookmark (
 	bookmark_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY, CONSTRAINT pk_bookmark PRIMARY KEY (bookmark_id),
     member_id BIGINT NOT NULL, CONSTRAINT fk_bookmark_member FOREIGN KEY (member_id) REFERENCES member (member_id),
 	product_id BIGINT NOT NULL, CONSTRAINT fk_bookmark_product FOREIGN KEY (product_id) REFERENCES product (product_id),
+	CONSTRAINT uq_bookmark UNIQUE (member_id, product_id),
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

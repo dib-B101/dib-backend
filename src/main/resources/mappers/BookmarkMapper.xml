@@ -28,7 +28,7 @@
         	b.product_id,
         	b.created_at
     	FROM bookmark b
-    	WHERE b.bookmark_id = #{memberId}
+    	WHERE b.member_id = #{memberId}
     	ORDER BY b.created_at DESC
     </select>
     
