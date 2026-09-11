@@ -86,7 +86,7 @@ INSERT INTO bid (auction_id, member_id, amount) VALUES
 UPDATE auction SET top_bid_id = (SELECT bid_id FROM bid WHERE auction_id = 2 AND amount = 45000) WHERE auction_id = 2;
 
 -- 8. 찜 (Bookmark)
-INSERT INTO bookmark (member_id, auction_id) VALUES
+INSERT INTO bookmark (member_id, product_id) VALUES
 (2, 1), (3, 1), (1, 1);
 
 -- 9. 입찰 보증금 (Bid Deposit)

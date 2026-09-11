@@ -68,9 +68,9 @@ public class AuctionCommandController {
         Auction auction = auctionCommandService.delete(myId, auctionId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "경매 삭제 성공");
-        map.put("data", map);
+        map.put("data", auction);
         return ResponseEntity
-        		.status(HttpStatus.NO_CONTENT)
-        		.body(null);
+        		.status(HttpStatus.OK)
+        		.body(map);
     }
 }

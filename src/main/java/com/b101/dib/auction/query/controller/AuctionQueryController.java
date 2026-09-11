@@ -1,6 +1,5 @@
 package com.b101.dib.auction.query.controller;
 
-import com.b101.dib.auction.query.dto.AuctionQueryDto;
 import com.b101.dib.auction.query.service.AuctionQueryService;
 import lombok.RequiredArgsConstructor;
 

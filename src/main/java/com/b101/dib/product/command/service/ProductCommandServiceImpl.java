@@ -100,7 +100,8 @@ public class ProductCommandServiceImpl implements ProductCommandService {
             product.setMarketPrice(request.getMarketPrice());
             updated = true;
         }
-        if(updated) { 
+        if(updated) {
+        	product.setStatus(ProductStatus.PENDING);
         	product.setUpdatedAt(LocalDateTime.now());
         }
         
