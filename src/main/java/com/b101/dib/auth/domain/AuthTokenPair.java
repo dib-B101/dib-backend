@@ -2,6 +2,7 @@ package com.b101.dib.auth.domain;
 
 import java.time.Instant;
 
+/** 액세스 토큰과 리프레시 토큰을 함께 담는 Record */
 public record AuthTokenPair(
         String accessToken, // 액세스 토큰
         String refreshToken, // 리프레시 토큰

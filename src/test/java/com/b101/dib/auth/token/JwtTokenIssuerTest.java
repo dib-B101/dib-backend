@@ -39,7 +39,8 @@ class JwtTokenIssuerTest {
         JwtTokenIssuer issuer = new JwtTokenIssuer(
                 properties,
                 new SecureRandom(),
-                Clock.fixed(NOW, ZoneOffset.UTC)
+                Clock.fixed(NOW, ZoneOffset.UTC),
+                new RefreshTokenHasher()
         );
         Member member = Member.builder()
                 .id(1L)
@@ -67,6 +68,18 @@ class JwtTokenIssuerTest {
         AuthTokenPair nextTokens = issuer.issue(member);
         assertThat(nextTokens.refreshToken()).isNotEqualTo(tokens.refreshToken());
         assertThat(nextTokens.familyId()).isNotEqualTo(tokens.familyId());
+
+        AuthTokenPair rotatedTokens = issuer.rotate(
+                member,
+                tokens.familyId(),
+                tokens.absoluteExpiresAt()
+        );
+        assertThat(rotatedTokens.refreshToken()).isNotEqualTo(tokens.refreshToken());
+        assertThat(rotatedTokens.refreshTokenHash()).isEqualTo(
+                sha256(rotatedTokens.refreshToken())
+        );
+        assertThat(rotatedTokens.familyId()).isEqualTo(tokens.familyId());
+        assertThat(rotatedTokens.absoluteExpiresAt()).isEqualTo(tokens.absoluteExpiresAt());
     }
 
     private String sha256(String value) {

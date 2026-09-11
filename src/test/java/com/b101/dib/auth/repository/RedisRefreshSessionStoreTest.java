@@ -26,6 +26,10 @@ class RedisRefreshSessionStoreTest {
     private StringRedisTemplate redisTemplate;
     @Mock
     private DefaultRedisScript<Long> saveScript;
+    @Mock
+    private DefaultRedisScript<Long> rotateScript;
+    @Mock
+    private DefaultRedisScript<Long> revokeScript;
 
     private RedisRefreshSessionStore store;
 
@@ -37,7 +41,13 @@ class RedisRefreshSessionStoreTest {
                 Duration.ofDays(30),
                 Duration.ofDays(90)
         );
-        store = new RedisRefreshSessionStore(redisTemplate, properties, saveScript);
+        store = new RedisRefreshSessionStore(
+                redisTemplate,
+                properties,
+                saveScript,
+                rotateScript,
+                revokeScript
+        );
     }
 
     @Test
@@ -54,12 +64,19 @@ class RedisRefreshSessionStoreTest {
 
         verify(redisTemplate).execute(
                 eq(saveScript),
-                eq(java.util.List.of("session:refresh:1:device-id")),
+                eq(java.util.List.of(
+                        "session:refresh:1:device-id",
+                        "session:refresh:lookup:refresh-hash"
+                )),
                 eq("refresh-hash"),
                 eq("family-id"),
                 eq("1788944400"),
                 eq("1796720400"),
-                eq("2592000")
+                eq("2592000"),
+                eq("1"),
+                eq("device-id"),
+                eq("session:refresh:lookup:"),
+                eq("7776000")
         );
     }
 }
