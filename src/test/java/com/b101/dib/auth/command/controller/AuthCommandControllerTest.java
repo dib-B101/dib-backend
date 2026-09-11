@@ -2,12 +2,15 @@ package com.b101.dib.auth.command.controller;
 
 import java.time.OffsetDateTime;
 
+import com.b101.dib.auth.command.dto.LoginMemberResponse;
+import com.b101.dib.auth.command.dto.LoginResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
 import com.b101.dib.auth.command.dto.SignupResponse;
-import com.b101.dib.auth.exception.InvalidVerificationCodeException;
+import com.b101.dib.auth.command.service.LoginService;
 import com.b101.dib.auth.command.service.PhoneVerificationService;
 import com.b101.dib.auth.command.service.SignupService;
+import com.b101.dib.auth.exception.InvalidVerificationCodeException;
 import com.b101.dib.common.config.SecurityConfig;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
@@ -41,6 +44,9 @@ class AuthCommandControllerTest {
 
     @MockitoBean
     private SignupService signupService;
+
+    @MockitoBean
+    private LoginService loginService;
 
     @Test
     void acceptsPhoneVerificationRequest() throws Exception {
@@ -240,5 +246,87 @@ class AuthCommandControllerTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("INVALID_PASSWORD"));
+    }
+
+    @Test
+    void logsInGeneralMemberAndReturnsTokens() throws Exception {
+        given(loginService.login(any()))
+                .willReturn(new LoginResponse(
+                        new LoginMemberResponse(
+                                1L,
+                                "user@example.com",
+                                "길동이",
+                                MemberStatus.ACTIVE,
+                                MemberRole.USER
+                        ),
+                        "access-token",
+                        "refresh-token",
+                        1800
+                ));
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"user@example.com",
+                                  "password":"Password1!",
+                                  "deviceId":"device-id"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.member.memberId").value(1))
+                .andExpect(jsonPath("$.member.email").value("user@example.com"))
+                .andExpect(jsonPath("$.member.nickname").value("길동이"))
+                .andExpect(jsonPath("$.member.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.member.role").value("USER"))
+                .andExpect(jsonPath("$.accessToken").value("access-token"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-token"))
+                .andExpect(jsonPath("$.accessExpiresIn").value(1800));
+    }
+
+    @Test
+    void rejectsLoginWithoutDeviceId() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"user@example.com",
+                                  "password":"Password1!"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT"));
+    }
+
+    @Test
+    void returnsUnauthorizedForInvalidLoginCredentials() throws Exception {
+        given(loginService.login(any()))
+                .willThrow(new BusinessException(ErrorCode.INVALID_CREDENTIALS));
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"user@example.com",
+                                  "password":"wrong-password",
+                                  "deviceId":"device-id"
+                                }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
+    }
+
+    @Test
+    void returnsInvalidInputWhenLoginPasswordIsMissing() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"user@example.com",
+                                  "deviceId":"device-id"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT"));
     }
 }

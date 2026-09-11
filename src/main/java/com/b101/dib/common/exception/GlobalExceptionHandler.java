@@ -50,13 +50,13 @@ public class GlobalExceptionHandler {
 
         boolean hasEmailError = e.getBindingResult().getFieldErrors().stream()
                 .anyMatch(fieldError -> "email".equals(fieldError.getField()));
-        boolean hasPasswordError = e.getBindingResult().getFieldErrors().stream()
-                .anyMatch(fieldError -> "password".equals(fieldError.getField()));
+        boolean hasPasswordPolicyError = e.getBindingResult().getFieldErrors().stream()
+                .anyMatch(fieldError -> "ValidPassword".equals(fieldError.getCode()));
 
         ErrorCode errorCode;
         if (hasEmailError) {
             errorCode = ErrorCode.INVALID_EMAIL;
-        } else if (hasPasswordError) {
+        } else if (hasPasswordPolicyError) {
             errorCode = ErrorCode.INVALID_PASSWORD;
         } else {
             errorCode = ErrorCode.INVALID_INPUT;
