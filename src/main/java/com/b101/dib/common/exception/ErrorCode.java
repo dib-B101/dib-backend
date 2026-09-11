@@ -74,6 +74,17 @@ public enum ErrorCode {
     NO_WINNING_BID(HttpStatus.CONFLICT, "낙찰자가 없는 경매입니다"),
     DUPLICATE_ORDER(HttpStatus.CONFLICT, "이미 주문이 생성된 경매입니다"),
 
+    // 결제수단
+    PAYMENT_METHOD_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 결제수단이 있습니다."),
+    BILLING_KEY_ISSUE_FAILED(HttpStatus.BAD_GATEWAY, "결제수단 등록에 실패했습니다."),
+    PAYMENT_METHOD_NOT_FOUND(HttpStatus.NOT_FOUND, "등록된 결제수단을 찾을 수 없습니다."),
+
+    // 결제
+    DUPLICATE_PAYMENT(HttpStatus.CONFLICT, "이미 처리된 결제입니다."),
+    PAYMENT_DEADLINE_EXPIRED(HttpStatus.CONFLICT, "결제 기한이 만료되었습니다."),
+    TOSS_CONFIRM_FAILED(HttpStatus.BAD_GATEWAY, "결제 승인에 실패했습니다."),
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 정보를 찾을 수 없습니다."),
+
     // 회원
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
     private final HttpStatus status;

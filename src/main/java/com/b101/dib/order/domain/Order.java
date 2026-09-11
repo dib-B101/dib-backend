@@ -64,6 +64,23 @@ public class Order {
         return buyerId.equals(memberId) || sellerId.equals(memberId);
     }
 
+    public boolean isPayable() {
+        return status == OrderStatus.PENDING
+                && paymentDue != null
+                && LocalDateTime.now().isBefore(paymentDue);
+    }
+
+    public void pay() {
+        if (status == OrderStatus.PAID) {
+            throw new BusinessException(ErrorCode.DUPLICATE_PAYMENT);
+        }
+        if (!isPayable()) {
+            throw new BusinessException(ErrorCode.PAYMENT_DEADLINE_EXPIRED);
+        }
+        this.status = OrderStatus.PAID;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public void confirm() {
         if (status == OrderStatus.CONFIRMED) {
             throw new BusinessException(ErrorCode.ALREADY_CONFIRMED);
