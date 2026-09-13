@@ -8,6 +8,8 @@ import com.b101.dib.bookmark.domain.Bookmark;
 import com.b101.dib.bookmark.repository.BookmarkRepository;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
+import com.b101.dib.product.domain.Product;
+import com.b101.dib.product.repository.ProductRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,9 +18,12 @@ import lombok.RequiredArgsConstructor;
 public class BookmarkCommandServiceImpl implements BookmarkCommandService {
 	
 	private final BookmarkRepository bookmarkRepository;
+	private final ProductRepository productRepository;
 	
 	@Override
 	public Bookmark create(Long myId, Long productId) {
+		Product product = productRepository.findById(productId)
+				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 		Bookmark bookmark = bookmarkRepository.findByMemberIdAndProductId(myId, productId);
 		if(bookmark != null) {
 			throw new BusinessException(ErrorCode.BOOKMARK_ALREADY_EXISTS);
@@ -34,6 +39,8 @@ public class BookmarkCommandServiceImpl implements BookmarkCommandService {
 
 	@Override
 	public Bookmark delete(Long myId, Long productId) {
+		Product product = productRepository.findById(productId)
+				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 		Bookmark bookmark = bookmarkRepository.findByMemberIdAndProductId(myId, productId);
 		if(bookmark == null) {
 			throw new BusinessException(ErrorCode.BOOKMARK_NOT_FOUND);
