@@ -41,6 +41,7 @@
 			p.deleted_at
 		FROM product p
 		WHERE p.deleted_at IS NULL
+		AND p.status in ('REGISTERED', 'ON_AUCTION')
 		ORDER BY p.created_at DESC, p.product_id DESC
 	</select>
 
