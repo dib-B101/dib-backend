@@ -3,6 +3,8 @@ package com.b101.dib.order.command.controller;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.order.command.service.OrderCommandService;
 import com.b101.dib.order.domain.Order;
+import com.b101.dib.order.query.dto.OrderDetailDto;
+import com.b101.dib.order.query.service.OrderInternalQueryService;
 import com.b101.dib.payment.command.service.PaymentCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import java.util.Map;
 @Slf4j
 public class OrderInternalController {
     private final OrderCommandService orderCommandService;
+    private final OrderInternalQueryService orderInternalQueryService;
     private final PaymentCommandService paymentCommandService;
 
     @PostMapping("/auctions/{auctionId}/orders")
@@ -31,7 +34,7 @@ public class OrderInternalController {
             log.warn("자동 결제 실패 orderId={} code={}", order.getOrderId(), e.getErrorCode());
             paymentResult = e.getErrorCode().name();
         }
-        Order current = orderCommandService.find(order.getOrderId());
+        OrderDetailDto current = orderInternalQueryService.find(order.getOrderId());
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "주문 생성 성공");
         map.put("orderId", current.getOrderId());

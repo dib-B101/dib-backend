@@ -24,6 +24,13 @@ public enum ErrorCode {
     INVALID_FILTER(HttpStatus.BAD_REQUEST, "필터 값이 올바르지 않습니다"),
     INVALID_CURSOR(HttpStatus.BAD_REQUEST, "커서 값이 올바르지 않습니다"),
     TOO_MUCH_IMAGES(HttpStatus.BAD_REQUEST, "이미지는 10장까지만 등록할 수 있습니다."),
+    
+    // 검색
+    INVALID_SEARCH(HttpStatus.BAD_REQUEST, "검색 조건과 키워드가 유효하지 않습니다"),
+    
+    // 북마크(찜)
+    BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "북마크를 찾을 수 없습니다"),
+    BOOKMARK_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "북마크가 이미 존재합니다"),
 
     // 경매
     AUCTION_NOT_FOUND(HttpStatus.NOT_FOUND, "경매를 찾을 수 없습니다"),
@@ -74,14 +81,16 @@ public enum ErrorCode {
     NO_WINNING_BID(HttpStatus.CONFLICT, "낙찰자가 없는 경매입니다"),
     DUPLICATE_ORDER(HttpStatus.CONFLICT, "이미 주문이 생성된 경매입니다"),
 
+    // 결제수단
+    PAYMENT_METHOD_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 결제수단이 있습니다."),
+    BILLING_KEY_ISSUE_FAILED(HttpStatus.BAD_GATEWAY, "결제수단 등록에 실패했습니다."),
+    PAYMENT_METHOD_NOT_FOUND(HttpStatus.NOT_FOUND, "등록된 결제수단을 찾을 수 없습니다."),
+
     // 결제
-    PAYMENT_METHOD_NOT_FOUND(HttpStatus.NOT_FOUND, "등록된 결제 수단이 없습니다"),
-    PAYMENT_METHOD_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 결제 수단이 있습니다"),
-    BILLING_KEY_ISSUE_FAILED(HttpStatus.BAD_GATEWAY, "카드 등록에 실패했습니다"),
-    TOSS_CONFIRM_FAILED(HttpStatus.BAD_GATEWAY, "결제 승인에 실패했습니다"),
-    PAYMENT_DEADLINE_EXPIRED(HttpStatus.CONFLICT, "결제 기한이 만료되었습니다"),
-    DUPLICATE_PAYMENT(HttpStatus.CONFLICT, "이미 처리된 결제입니다"),
-    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 정보를 찾을 수 없습니다"),
+    DUPLICATE_PAYMENT(HttpStatus.CONFLICT, "이미 처리된 결제입니다."),
+    PAYMENT_DEADLINE_EXPIRED(HttpStatus.CONFLICT, "결제 기한이 만료되었습니다."),
+    TOSS_CONFIRM_FAILED(HttpStatus.BAD_GATEWAY, "결제 승인에 실패했습니다."),
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 정보를 찾을 수 없습니다."),
 
     // 회원
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");

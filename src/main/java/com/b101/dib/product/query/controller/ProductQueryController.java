@@ -1,14 +1,11 @@
 package com.b101.dib.product.query.controller;
 
-import com.b101.dib.common.exception.BusinessException;
-import com.b101.dib.common.exception.ErrorCode;
 import com.b101.dib.product.query.dto.ProductQueryDto;
 import com.b101.dib.product.query.service.ProductQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.b101.dib.product.query.dto.ProductDetailDto;
+import com.b101.dib.product.query.dto.ProductListDto;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -42,6 +40,17 @@ public class ProductQueryController {
         map.put("message", "상품 상세 조회 성공");
         map.put("data", dto);
         return ResponseEntity.status(HttpStatus.OK).body(map);
+    }
+    
+    @GetMapping("/search")
+    public ResponseEntity<Map<String, Object>> search(
+    		@RequestParam("keyword") String keyword
+    		){
+    	List<ProductListDto> dtoList = productQueryService.search(keyword);
+    	HashMap<String, Object> map = new HashMap<>();
+    	map.put("message", "상품 목록 검색 성공");
+    	map.put("data", dtoList);
+    	return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 
 }

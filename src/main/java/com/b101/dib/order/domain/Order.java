@@ -65,14 +65,16 @@ public class Order {
     }
 
     public boolean isPayable() {
-        return status == OrderStatus.PENDING && !paymentDue.isBefore(LocalDateTime.now());
+        return status == OrderStatus.PENDING
+                && paymentDue != null
+                && LocalDateTime.now().isBefore(paymentDue);
     }
 
     public void pay() {
         if (status == OrderStatus.PAID) {
             throw new BusinessException(ErrorCode.DUPLICATE_PAYMENT);
         }
-        if (status != OrderStatus.PENDING || paymentDue.isBefore(LocalDateTime.now())) {
+        if (!isPayable()) {
             throw new BusinessException(ErrorCode.PAYMENT_DEADLINE_EXPIRED);
         }
         this.status = OrderStatus.PAID;
