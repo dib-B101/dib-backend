@@ -102,8 +102,8 @@ INSERT INTO "order" (auction_id, seller_id, buyer_id, final_price, status, payme
 (1, 1, 2, 70000, 'PENDING', NOW() + INTERVAL '12 hours', NULL, NULL, 'SESSION-003');
 
 -- 11. 결제 (Payment)
-INSERT INTO payment (order_id, buyer_id, amount, type, refund_key, receipt_url) VALUES
-(1, 2, 60000, 'CARD', 'TOSS-KEY-001', 'https://toss.im/receipt/001');
+INSERT INTO payment (order_id, buyer_id, amount, type, payment_key, refund_key, receipt_url) VALUES
+(1, 2, 60000, 'CARD', 'tviva20260910dummy0001', NULL, 'https://toss.im/receipt/001');
 
 -- 12. 정산 (Settlement) - PK가 문자열임에 주의
 INSERT INTO settlement (order_id, seller_id, gross_amount, commision_fee, net_amount, bank_name, account_number, payout_at) VALUES
