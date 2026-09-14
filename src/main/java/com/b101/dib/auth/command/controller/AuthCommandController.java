@@ -2,15 +2,19 @@ package com.b101.dib.auth.command.controller;
 
 import com.b101.dib.auth.command.dto.LoginRequest;
 import com.b101.dib.auth.command.dto.LoginResponse;
+import com.b101.dib.auth.command.dto.LogoutRequest;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmRequest;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationRequest;
 import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
 import com.b101.dib.auth.command.dto.SignupRequest;
 import com.b101.dib.auth.command.dto.SignupResponse;
+import com.b101.dib.auth.command.dto.TokenRefreshRequest;
+import com.b101.dib.auth.command.dto.TokenRefreshResponse;
 import com.b101.dib.auth.command.service.LoginService;
 import com.b101.dib.auth.command.service.PhoneVerificationService;
 import com.b101.dib.auth.command.service.SignupService;
+import com.b101.dib.auth.command.service.TokenSessionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,6 +34,7 @@ public class AuthCommandController {
     private final PhoneVerificationService phoneVerificationService;
     private final SignupService signupService;
     private final LoginService loginService;
+    private final TokenSessionService tokenSessionService;
 
     @PostMapping("/phone-verifications")
     public ResponseEntity<PhoneVerificationResponse> requestPhoneVerification(
@@ -54,5 +60,21 @@ public class AuthCommandController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(loginService.login(request));
+    }
+
+    @PostMapping("/token/refresh")
+    public ResponseEntity<TokenRefreshResponse> refreshToken(
+            @Valid @RequestBody TokenRefreshRequest request
+    ) {
+        return ResponseEntity.ok(tokenSessionService.refresh(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @Valid @RequestBody LogoutRequest request
+    ) {
+        tokenSessionService.logout(authorizationHeader, request);
+        return ResponseEntity.noContent().build();
     }
 }

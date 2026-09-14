@@ -4,12 +4,14 @@ import java.time.OffsetDateTime;
 
 import com.b101.dib.auth.command.dto.LoginMemberResponse;
 import com.b101.dib.auth.command.dto.LoginResponse;
+import com.b101.dib.auth.command.dto.TokenRefreshResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
 import com.b101.dib.auth.command.dto.SignupResponse;
 import com.b101.dib.auth.command.service.LoginService;
 import com.b101.dib.auth.command.service.PhoneVerificationService;
 import com.b101.dib.auth.command.service.SignupService;
+import com.b101.dib.auth.command.service.TokenSessionService;
 import com.b101.dib.auth.exception.InvalidVerificationCodeException;
 import com.b101.dib.common.config.SecurityConfig;
 import com.b101.dib.common.exception.BusinessException;
@@ -27,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -47,6 +50,9 @@ class AuthCommandControllerTest {
 
     @MockitoBean
     private LoginService loginService;
+
+    @MockitoBean
+    private TokenSessionService tokenSessionService;
 
     @Test
     void acceptsPhoneVerificationRequest() throws Exception {
@@ -328,5 +334,87 @@ class AuthCommandControllerTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("INVALID_INPUT"));
+    }
+
+    @Test
+    void refreshesAccessAndRefreshTokens() throws Exception {
+        given(tokenSessionService.refresh(any()))
+                .willReturn(new TokenRefreshResponse(
+                        "new-access-token",
+                        "new-refresh-token",
+                        1800
+                ));
+
+        mockMvc.perform(post("/api/v1/auth/token/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "refreshToken":"old-refresh-token",
+                                  "deviceId":"device-id"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("new-access-token"))
+                .andExpect(jsonPath("$.refreshToken").value("new-refresh-token"))
+                .andExpect(jsonPath("$.accessExpiresIn").value(1800));
+    }
+
+    @Test
+    void returnsSessionRevokedForInvalidRefreshSession() throws Exception {
+        given(tokenSessionService.refresh(any()))
+                .willThrow(new BusinessException(ErrorCode.SESSION_REVOKED));
+
+        mockMvc.perform(post("/api/v1/auth/token/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "refreshToken":"reused-refresh-token",
+                                  "deviceId":"device-id"
+                                }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("SESSION_REVOKED"));
+    }
+
+    @Test
+    void rejectsRefreshWithoutDeviceId() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/token/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"refreshToken":"refresh-token"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT"));
+    }
+
+    @Test
+    void logsOutAndReturnsNoContent() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/logout")
+                        .header("Authorization", "Bearer access-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"deviceId":"device-id"}
+                                """))
+                .andExpect(status().isNoContent());
+
+        verify(tokenSessionService).logout(
+                "Bearer access-token",
+                new com.b101.dib.auth.command.dto.LogoutRequest("device-id")
+        );
+    }
+
+    @Test
+    void returnsUnauthorizedWhenLogoutAccessTokenIsMissing() throws Exception {
+        org.mockito.BDDMockito.willThrow(new BusinessException(ErrorCode.UNAUTHORIZED))
+                .given(tokenSessionService)
+                .logout(org.mockito.ArgumentMatchers.isNull(), any());
+
+        mockMvc.perform(post("/api/v1/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"deviceId":"device-id"}
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
     }
 }
