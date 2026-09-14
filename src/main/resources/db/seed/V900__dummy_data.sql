@@ -78,13 +78,6 @@ INSERT INTO bid (auction_id, member_id, amount) VALUES
 (1, 3, 520000),
 (1, 2, 600000);
 
--- 7-1. 종료된 경매 + 낙찰 입찰 (주문 생성 create(auctionId) 테스트용: 경매 2, 판매자 2, 낙찰자 1)
-INSERT INTO auction (product_id, start_price, current_price, auction_time, started_at, ended_at, status, bid_count, bidder_count, top_bid_id) VALUES
-(2, 30000, 45000, 3600, NOW() - INTERVAL '2 hours', NOW() - INTERVAL '1 hour', 'ENDED', 1, 1, NULL);
-INSERT INTO bid (auction_id, member_id, amount) VALUES
-(2, 1, 45000);
-UPDATE auction SET top_bid_id = (SELECT bid_id FROM bid WHERE auction_id = 2 AND amount = 45000) WHERE auction_id = 2;
-
 -- 8. 찜 (Bookmark)
 INSERT INTO bookmark (member_id, product_id) VALUES
 (2, 1), (3, 1), (1, 1);
@@ -97,13 +90,11 @@ INSERT INTO bid_deposit (member_id, auction_id, amount, status) VALUES
 
 -- 10. 주문/거래 (Order)
 INSERT INTO "order" (auction_id, seller_id, buyer_id, final_price, status, payment_due, address, tracking_number, chatting_session_id) VALUES
-(1, 1, 2, 60000, 'PAID', NOW() + INTERVAL '24 hours', '{"zip": "46241", "addr": "부산광역시 금정구"}', 'CJ-123456789', 'SESSION-001'),
-(1, 1, 2, 55000, 'DELIEVERED', NOW() - INTERVAL '3 days', '{"zip": "46241", "addr": "부산광역시 금정구"}', 'CJ-987654321', 'SESSION-002'),
-(1, 1, 2, 70000, 'PENDING', NOW() + INTERVAL '12 hours', NULL, NULL, 'SESSION-003');
+(1, 1, 2, 60000, 'PAID', NOW() + INTERVAL '24 hours', '{"zip": "46241", "addr": "부산광역시 금정구"}', 'CJ-123456789', 'SESSION-001');
 
 -- 11. 결제 (Payment)
-INSERT INTO payment (order_id, buyer_id, amount, type, payment_key, refund_key, receipt_url) VALUES
-(1, 2, 60000, 'CARD', 'tviva20260910dummy0001', NULL, 'https://toss.im/receipt/001');
+INSERT INTO payment (order_id, buyer_id, amount, type, refund_key, receipt_url) VALUES
+(1, 2, 60000, 'CARD', 'TOSS-KEY-001', 'https://toss.im/receipt/001');
 
 -- 12. 정산 (Settlement) - PK가 문자열임에 주의
 INSERT INTO settlement (order_id, seller_id, gross_amount, commision_fee, net_amount, bank_name, account_number, payout_at) VALUES
@@ -148,10 +139,10 @@ INSERT INTO fraud_detection (auction_id, member_id, bid_id, bidder_tendency, bid
 -- 19. 라이브 방송 (Live Broadcast)
 -- 회원 1(김철수)은 아이폰 경매를 현재 LIVE로 진행 중, 해리포터는 과거에 종료(ENDED)됨
 -- 회원 2(이영희)는 나이키 바람막이 경매를 곧 진행할 예정(SCHEDULED)
-INSERT INTO live_broadcast (member_id, title, description, status, stream_url, scheduled_at, started_at, ended_at, view_count) VALUES
-(1, '아이폰 13 프로 S급 라이브 경매!', '기스 하나 없는 S급 아이폰 실물 라이브로 확인하세요.', 'LIVE', 'https://stream.example.com/live/user1', NOW() - INTERVAL '1 hour', NOW() - INTERVAL '10 minutes', NULL, 150),
-(2, '나이키 빈티지 바람막이 득템 찬스', '실착 3회 미만! 상태 아주 좋습니다. 곧 시작합니다.', 'SCHEDULED', NULL, NOW() + INTERVAL '2 hours', NULL, NULL, 0),
-(1, '해리포터 원서 전권 경매', '소장용 해리포터 원서 세트 방송입니다.', 'ENDED', 'https://stream.example.com/vod/user1_123', NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days' + INTERVAL '10 minutes', NOW() - INTERVAL '3 days' + INTERVAL '2 hours', 450);
+INSERT INTO live_broadcast (member_id, title, description, status, stream_url, started_at, ended_at, view_count) VALUES
+(1, '아이폰 13 프로 S급 라이브 경매!', '기스 하나 없는 S급 아이폰 실물 라이브로 확인하세요.', 'LIVE', 'https://stream.example.com/live/user1', NOW() - INTERVAL '10 minutes', NULL, 150),
+(2, '나이키 빈티지 바람막이 득템 찬스', '실착 3회 미만! 상태 아주 좋습니다. 곧 시작합니다.', 'SCHEDULED', NULL, NULL, NULL, 0),
+(1, '해리포터 원서 전권 경매', '소장용 해리포터 원서 세트 방송입니다.', 'ENDED', 'https://stream.example.com/vod/user1_123', NOW() - INTERVAL '3 days' + INTERVAL '10 minutes', NOW() - INTERVAL '3 days' + INTERVAL '2 hours', 450);
 
 -- 20. 라이브 채팅
 INSERT INTO live_chatting (live_broadcast_id, member_id, content, time) VALUES
