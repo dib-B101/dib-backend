@@ -17,5 +17,7 @@ public interface ProductMapper {
 	List<ProductQueryDto> findAll();
 	ProductDetailDto findById(@Param("productId") Long productId);
 	List<AdminProductQueryDto> findForModeration(@Param("status") ProductStatus status);
+	List<ProductListDto> findMyProducts(Long myId);
+	List<ProductListDto> findByMemberId(Long memberId);
 	List<ProductListDto> search(String keyword);
 }
