@@ -1,4 +1,4 @@
-package com.b101.dib.live.dto;
+package com.b101.dib.liveBroadcast.command.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

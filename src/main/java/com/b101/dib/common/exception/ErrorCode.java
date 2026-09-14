@@ -42,6 +42,9 @@ public enum ErrorCode {
     PRODUCT_NOT_OWNED(HttpStatus.FORBIDDEN, "본인 소유의 상품만 경매에 등록할 수 있습니다"),
     INVALID_AUCTION(HttpStatus.BAD_REQUEST, "일반 경매 요청이 올바르지 않습니다"),
     
+    // 라이브 방송
+    LIVE_BROADCAST_NOT_FOUND(HttpStatus.NOT_FOUND, "라이브 방송을 찾을 수 없습니다"),
+    
     // 회원 가입 및 로그인
     INVALID_EMAIL(HttpStatus.BAD_REQUEST, "이메일 형식이 올바르지 않습니다."),
     EMAIL_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
