@@ -41,7 +41,91 @@
 			p.deleted_at
 		FROM product p
 		WHERE p.deleted_at IS NULL
+		AND p.status in ('REGISTERED', 'ON_AUCTION')
 		ORDER BY p.created_at DESC, p.product_id DESC
+	</select>
+	
+	<resultMap id="ProductListMap"
+		type="com.b101.dib.product.query.dto.ProductListDto">
+
+		<id property="productId" column="product_id" />
+		<result property="memberId" column="member_id" />
+		<result property="categoryId" column="category_id" />
+		<result property="title" column="title" />
+		<result property="description" column="description" />
+		<result property="condition" column="condition" />
+		<result property="modelName" column="model_name" />
+		<result property="releaseYear" column="release_year" />
+		<result property="marketPrice" column="market_price" />
+		<result property="thumbnailUrl" column="thumbnail_url" />
+		<result property="productStatus" column="product_status" />
+		<result property="productCreatedAt" column="product_created_at" />
+		<result property="productUpdatedAt" column="product_updated_at" />
+		<result property="productDeletedAt" column="product_deleted_at" />
+		
+		<result property="auctionId" column="auction_id" />
+		<result property="startPrice" column="start_price" />
+		<result property="currentPrice" column="current_price" />
+		<result property="auctionTime" column="auction_time" />
+		<result property="startedAt" column="started_at" />
+		<result property="endedAt" column="ended_at" />
+		<result property="auctionStatus" column="auction_status" />
+		<result property="bidCount" column="bid_count" />
+		<result property="bidderCount" column="bidder_count" />
+		<result property="viewCount" column="view_count" />
+		<result property="bookmarkCount" column="bookmark_count" />
+		<result property="topBidId" column="top_bid_id" />
+		<result property="extensionCount" column="extension_count" />
+		<result property="auctionCreatedAt" column="auction_created_at" />
+		<result property="auctionUpdatedAt" column="auction_updated_at" />
+		<result property="auctionDeletedAt" column="auctino_deleted_at" />
+		<result property="liveBroadcastId" column="live_broadcast_id" />
+
+	</resultMap>
+	
+	<select id="search" resultMap="ProductListMap">
+		SELECT
+			p.product_id,
+			p.member_id,
+			p.category_id,
+			p.title,
+			p.description,
+			p.condition,
+			p.model_name,
+			p.release_year,
+			p.market_price,
+			p.thumbnail_url,
+			p.status as product_status,
+			p.created_at as product_created_at,
+			p.updated_at as product_updated_at,
+			p.deleted_at as product_deleted_at,
+			
+			a.auction_id,
+			a.start_price,
+			a.current_price,
+			a.auction_time,
+			a.started_at,
+			a.ended_at,
+			a.status as auction_status,
+			a.bid_count,
+			a.bidder_count,
+			a.view_count,
+			a.bookmark_count,
+			a.top_bid_id,
+			a.extension_count,
+			a.created_at as auction_created_at,
+			a.updated_at as auction_updated_at,
+			a.deleted_at as auction_deleted_at,
+			a.live_broadcast_id
+			
+		FROM product p
+		JOIN auction a ON p.product_id = a.auction_id
+		WHERE 
+		(p.title LIKE CONCAT('%', #{keyword}, '%') 
+			OR p.description LIKE CONCAT('%', #{keyword}, '%'))
+		AND p.deleted_at IS NULL
+		AND p.status IN ('REGISTERED', 'ON_AUCTION')
+		ORDER BY a.created_at DESC
 	</select>
 
 	<resultMap id="ProductDetailMap"

@@ -3,6 +3,7 @@ package com.b101.dib.product.query.service;
 import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.product.query.dto.AdminProductQueryDto;
 import com.b101.dib.product.query.dto.ProductDetailDto;
+import com.b101.dib.product.query.dto.ProductListDto;
 import com.b101.dib.product.query.dto.ProductQueryDto;
 import com.b101.dib.product.repository.ProductMapper;
 
@@ -44,4 +45,9 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     public List<AdminProductQueryDto> findForModeration(ProductStatus status) {
         return productQueryMapper.findForModeration(status);
     }
+
+	@Override
+	public List<ProductListDto> search(String keyword) {
+		return productQueryMapper.search(keyword);			
+	}
 }
