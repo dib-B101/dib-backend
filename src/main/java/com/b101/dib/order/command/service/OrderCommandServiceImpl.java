@@ -45,6 +45,13 @@ public class OrderCommandServiceImpl implements OrderCommandService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Order find(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+    }
+
+    @Override
     public Order confirm(Long memberId, Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
