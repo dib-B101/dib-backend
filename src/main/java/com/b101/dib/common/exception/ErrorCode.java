@@ -133,6 +133,7 @@ public enum ErrorCode {
     ACCOUNT_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "정산 계좌 확인에 실패했습니다."),
 
     // 회원
+    INVALID_ADDRESS(HttpStatus.BAD_REQUEST, "배송지 정보를 확인해 주세요."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
     private final HttpStatus status;
     private final String message;
