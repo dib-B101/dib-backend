@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.b101.dib.address.repository.AddressMapper">
+
+    <resultMap id="AddressQueryMap"
+        type="com.b101.dib.address.query.dto.AddressQueryDto">
+        <id property="addressId" column="address_id" />
+        <result property="number" column="number" />
+        <result property="address" column="address" />
+        <result property="name" column="name" />
+        <result property="apiAddressId" column="api_address_id" />
+    </resultMap>
+
+    <select id="findByMemberId" resultMap="AddressQueryMap">
+        SELECT
+            a.address_id,
+            a.number,
+            a.address,
+            a.name,
+            a.api_address_id
+        FROM address a
+        WHERE a.member_id = #{memberId}
+        ORDER BY a.address_id
+    </select>
+</mapper>
