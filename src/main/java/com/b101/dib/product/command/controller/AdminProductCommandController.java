@@ -24,9 +24,11 @@ public class AdminProductCommandController {
         Product product = productCommandService.moderate(productId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 검수 처리 성공");
-        map.put("productId", product.getProductId());
-        map.put("status", product.getStatus());
-        map.put("updatedAt", product.getUpdatedAt());
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("productId", product.getProductId());
+        data.put("status", product.getStatus());
+        data.put("updatedAt", product.getUpdatedAt());
+        map.put("data", data);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 }

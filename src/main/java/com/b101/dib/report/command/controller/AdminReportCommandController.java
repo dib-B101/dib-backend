@@ -24,9 +24,11 @@ public class AdminReportCommandController {
         LocalDateTime processedAt = reportCommandService.process(reportId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "신고 처리 성공");
-        map.put("reportId", reportId);
-        map.put("status", request.getStatus());
-        map.put("processedAt", processedAt);
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("reportId", reportId);
+        data.put("status", request.getStatus());
+        data.put("processedAt", processedAt);
+        map.put("data", data);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 }

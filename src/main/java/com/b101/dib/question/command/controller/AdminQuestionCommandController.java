@@ -24,9 +24,11 @@ public class AdminQuestionCommandController {
         LocalDateTime answeredAt = questionCommandService.answer(questionId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "문의 답변 등록 성공");
-        map.put("questionId", questionId);
-        map.put("answer", request.getAnswer());
-        map.put("answeredAt", answeredAt);
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("questionId", questionId);
+        data.put("answer", request.getAnswer());
+        data.put("answeredAt", answeredAt);
+        map.put("data", data);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 }

@@ -23,8 +23,10 @@ public class AdminFraudLabelCommandController {
         FraudLabel fraudLabel = fraudLabelCommandService.create(request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "이상입찰 라벨 확정 성공");
-        map.put("fraudLabelId", fraudLabel.getFraudLabelId());
-        map.put("confirmedAt", fraudLabel.getConfirmedAt());
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("fraudLabelId", fraudLabel.getFraudLabelId());
+        data.put("confirmedAt", fraudLabel.getConfirmedAt());
+        map.put("data", data);
         return ResponseEntity.status(HttpStatus.CREATED).body(map);
     }
 }

@@ -24,8 +24,10 @@ public class MemberReportCommandController {
         Long reportId = reportCommandService.reportMember(memberId, targetMemberId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "회원 신고 접수");
-        map.put("reportId", reportId);
-        map.put("status", "PENDING");
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("reportId", reportId);
+        data.put("status", "PENDING");
+        map.put("data", data);
         return ResponseEntity.status(HttpStatus.CREATED).body(map);
     }
 }

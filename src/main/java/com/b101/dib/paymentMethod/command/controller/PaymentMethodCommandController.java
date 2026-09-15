@@ -24,7 +24,7 @@ public class PaymentMethodCommandController {
         PaymentMethod pm = paymentMethodCommandService.register(memberId, request.getAuthKey(), request.getCustomerKey());
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "결제 수단 등록 성공");
-        map.put("paymentMethod", pm);
+        map.put("data", pm);
         return ResponseEntity.status(HttpStatus.CREATED).body(map);
     }
 
