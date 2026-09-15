@@ -1,4 +1,4 @@
-package com.b101.dib.live.service;
+package com.b101.dib.liveBroadcast.command.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -10,13 +10,13 @@ import io.livekit.server.CanPublish;
 import io.livekit.server.CanSubscribe;
 
 @Service
-public class LiveKitService {
+public class LiveKitServiceImpl implements LiveKitService {
 
     private final String livekitUrl;
     private final String apiKey;
     private final String apiSecret;
 
-    public LiveKitService(
+    public LiveKitServiceImpl(
             @Value("${livekit.url}") String livekitUrl,
             @Value("${livekit.api-key}") String apiKey,
             @Value("${livekit.api-secret}") String apiSecret

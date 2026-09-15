@@ -1,9 +1,11 @@
-package com.b101.dib.live.controller;
+package com.b101.dib.liveBroadcast.command.controller;
 
-import com.b101.dib.live.dto.LiveKitTokenResponse;
-import com.b101.dib.live.service.LiveKitService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import com.b101.dib.liveBroadcast.command.dto.LiveKitTokenResponse;
+import com.b101.dib.liveBroadcast.command.service.LiveKitService;
 
 @RestController
 @RequestMapping("/api/live")

@@ -42,6 +42,14 @@ public enum ErrorCode {
     PRODUCT_NOT_OWNED(HttpStatus.FORBIDDEN, "본인 소유의 상품만 경매에 등록할 수 있습니다"),
     INVALID_AUCTION(HttpStatus.BAD_REQUEST, "일반 경매 요청이 올바르지 않습니다"),
     
+    // 라이브 방송
+    LIVE_BROADCAST_NO_TITLE(HttpStatus.BAD_REQUEST, "라이브 방송 제목은 필수입니다"),
+    LIVE_BROADCAST_NOT_FOUND(HttpStatus.NOT_FOUND, "라이브 방송을 찾을 수 없습니다"),
+    LIVE_BROADCAST_NOT_OWNED(HttpStatus.FORBIDDEN, "본인 소유의 라이브 방송이 아닙니다"),
+    LIVE_BROADCAST_ALREADY_STARTED(HttpStatus.BAD_REQUEST, "라이브 방송이 이미 시작되었습니다"),
+    LIVE_BROADCAST_ALREADY_ENDED(HttpStatus.BAD_REQUEST, "라이브 방송이 이미 끝났습니다"),
+    LIVE_BROADCAST_ALREADY_CANCELED(HttpStatus.BAD_REQUEST, "라이브 방송이 취소되었습니다"),
+    
     // 회원 가입 및 로그인
     INVALID_EMAIL(HttpStatus.BAD_REQUEST, "이메일 형식이 올바르지 않습니다."),
     EMAIL_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
@@ -49,6 +57,10 @@ public enum ErrorCode {
     NICKNAME_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호 정책을 충족하지 않습니다."),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
+    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "로그인이 만료되었습니다."),
+    SESSION_REVOKED(HttpStatus.UNAUTHORIZED, "다른 기기 로그인 또는 보안 변경으로 세션이 종료되었습니다."),
+    DEVICE_MISMATCH(HttpStatus.BAD_REQUEST, "등록된 기기 정보와 일치하지 않습니다."),
 
     // 본인 인증
     INVALID_PHONE(HttpStatus.BAD_REQUEST, "휴대전화번호 형식이 올바르지 않습니다."),

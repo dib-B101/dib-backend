@@ -1,8 +1,6 @@
 package com.b101.dib.auth.token;
 
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
@@ -25,12 +23,28 @@ public class JwtTokenIssuer implements TokenIssuer {
     private final JwtProperties properties;
     private final SecureRandom secureRandom;
     private final Clock clock;
+    private final RefreshTokenHasher refreshTokenHasher;
 
     @Override
     public AuthTokenPair issue(Member member) {
         Instant issuedAt = clock.instant();
-        Instant accessExpiresAt = issuedAt.plusSeconds(properties.accessTokenValiditySeconds());
         Instant absoluteExpiresAt = issuedAt.plus(properties.refreshTokenAbsolute());
+        return issue(member, UUID.randomUUID().toString(), issuedAt, absoluteExpiresAt);
+    }
+
+    @Override
+    public AuthTokenPair rotate(Member member, String familyId, Instant absoluteExpiresAt) {
+        Instant issuedAt = clock.instant();
+        return issue(member, familyId, issuedAt, absoluteExpiresAt);
+    }
+
+    private AuthTokenPair issue(
+            Member member,
+            String familyId,
+            Instant issuedAt,
+            Instant absoluteExpiresAt
+    ) {
+        Instant accessExpiresAt = issuedAt.plusSeconds(properties.accessTokenValiditySeconds());
         String accessToken = Jwts.builder()
                 .subject(String.valueOf(member.getId()))
                 .claim("role", member.getRole().name())
@@ -43,8 +57,8 @@ public class JwtTokenIssuer implements TokenIssuer {
         return new AuthTokenPair(
                 accessToken,
                 refreshToken,
-                sha256(refreshToken),
-                UUID.randomUUID().toString(),
+                refreshTokenHasher.hash(refreshToken),
+                familyId,
                 issuedAt,
                 absoluteExpiresAt
         );
@@ -57,14 +71,4 @@ public class JwtTokenIssuer implements TokenIssuer {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    // SHA-256 해시 생성
-    private String sha256(String value) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return Base64.getUrlEncoder().withoutPadding()
-                    .encodeToString(digest.digest(value.getBytes(StandardCharsets.UTF_8)));
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("Refresh Token 해시를 생성할 수 없습니다.", e);
-        }
-    }
 }
