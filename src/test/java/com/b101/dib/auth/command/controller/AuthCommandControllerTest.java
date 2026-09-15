@@ -14,6 +14,8 @@ import com.b101.dib.auth.command.service.PhoneVerificationService;
 import com.b101.dib.auth.command.service.SignupService;
 import com.b101.dib.auth.command.service.TokenSessionService;
 import com.b101.dib.auth.exception.InvalidVerificationCodeException;
+import com.b101.dib.auth.token.AccessTokenClaims;
+import com.b101.dib.auth.token.AccessTokenVerifier;
 import com.b101.dib.common.config.SecurityConfig;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
@@ -58,6 +60,9 @@ class AuthCommandControllerTest {
 
     @MockitoBean
     private PasswordResetService passwordResetService;
+
+    @MockitoBean
+    private AccessTokenVerifier accessTokenVerifier;
 
     @Test
     void acceptsPhoneVerificationRequest() throws Exception {
@@ -394,6 +399,9 @@ class AuthCommandControllerTest {
 
     @Test
     void logsOutAndReturnsNoContent() throws Exception {
+        given(accessTokenVerifier.verifyBearer("Bearer access-token"))
+                .willReturn(new AccessTokenClaims(1L, MemberRole.USER));
+
         mockMvc.perform(post("/api/v1/auth/logout")
                         .header("Authorization", "Bearer access-token")
                         .contentType(MediaType.APPLICATION_JSON)
