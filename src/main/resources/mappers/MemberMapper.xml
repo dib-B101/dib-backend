@@ -25,6 +25,7 @@
         <result property="name" column="name" />
         <result property="phoneNumber" column="phone_number" />
         <result property="nickname" column="nickname" />
+        <result property="profileImageUrl" column="profile_image_url" />
         <result property="gender" column="gender" />
         <result property="birthDate" column="birth_date" />
         <result property="status" column="status" />
@@ -71,6 +72,7 @@
             m.name,
             m.phone_number,
             m.nickname,
+            m.profile_image_url,
             m.gender,
             m.birth_date,
             m.status,

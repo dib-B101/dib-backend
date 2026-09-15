@@ -52,6 +52,8 @@ class MemberQueryControllerTest {
                 .andExpect(jsonPath("$.name").value("김회원"))
                 .andExpect(jsonPath("$.phoneNumber").value("01012345678"))
                 .andExpect(jsonPath("$.nickname").value("회원"))
+                .andExpect(jsonPath("$.profileImageUrl")
+                        .value("https://cdn.example.com/members/1/profile.webp"))
                 .andExpect(jsonPath("$.gender").value("MALE"))
                 .andExpect(jsonPath("$.birthDate").value("2000-01-02"))
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
@@ -79,6 +81,7 @@ class MemberQueryControllerTest {
         member.setName("김회원");
         member.setPhoneNumber("01012345678");
         member.setNickname("회원");
+        member.setProfileImageUrl("https://cdn.example.com/members/1/profile.webp");
         member.setGender(Gender.MALE);
         member.setBirthDate(LocalDate.of(2000, 1, 2));
         member.setStatus(MemberStatus.ACTIVE);
