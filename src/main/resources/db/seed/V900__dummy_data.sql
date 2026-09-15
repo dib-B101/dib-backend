@@ -148,10 +148,10 @@ INSERT INTO fraud_detection (auction_id, member_id, bid_id, bidder_tendency, bid
 -- 19. 라이브 방송 (Live Broadcast)
 -- 회원 1(김철수)은 아이폰 경매를 현재 LIVE로 진행 중, 해리포터는 과거에 종료(ENDED)됨
 -- 회원 2(이영희)는 나이키 바람막이 경매를 곧 진행할 예정(SCHEDULED)
-INSERT INTO live_broadcast (member_id, title, description, status, stream_url, scheduled_at, started_at, ended_at, view_count) VALUES
-(1, '아이폰 13 프로 S급 라이브 경매!', '기스 하나 없는 S급 아이폰 실물 라이브로 확인하세요.', 'LIVE', 'https://stream.example.com/live/user1', NOW() - INTERVAL '1 hour', NOW() - INTERVAL '10 minutes', NULL, 150),
-(2, '나이키 빈티지 바람막이 득템 찬스', '실착 3회 미만! 상태 아주 좋습니다. 곧 시작합니다.', 'SCHEDULED', NULL, NOW() + INTERVAL '2 hours', NULL, NULL, 0),
-(1, '해리포터 원서 전권 경매', '소장용 해리포터 원서 세트 방송입니다.', 'ENDED', 'https://stream.example.com/vod/user1_123', NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days' + INTERVAL '10 minutes', NOW() - INTERVAL '3 days' + INTERVAL '2 hours', 450);
+INSERT INTO live_broadcast (member_id, title, description, status, livekit_room_name, started_at, ended_at, view_count) VALUES
+(1, '아이폰 13 프로 S급 라이브 경매!', '기스 하나 없는 S급 아이폰 실물 라이브로 확인하세요.', 'LIVE', 'live-broadcast-550e8400-e29b-41d4-a716-446655440000', NOW() - INTERVAL '10 minutes', NULL, 150),
+(2, '나이키 빈티지 바람막이 득템 찬스', '실착 3회 미만! 상태 아주 좋습니다. 곧 시작합니다.', 'SCHEDULED', 'live-broadcast-550e8400-e29b-41d4-a716-446655440001', NULL, NULL, 0),
+(1, '해리포터 원서 전권 경매', '소장용 해리포터 원서 세트 방송입니다.', 'ENDED', 'live-broadcast-550e8400-e29b-41d4-a716-446655440002', NOW() - INTERVAL '3 days' + INTERVAL '10 minutes', NOW() - INTERVAL '3 days' + INTERVAL '2 hours', 450);
 
 -- 20. 라이브 채팅
 INSERT INTO live_chatting (live_broadcast_id, member_id, content, time) VALUES
