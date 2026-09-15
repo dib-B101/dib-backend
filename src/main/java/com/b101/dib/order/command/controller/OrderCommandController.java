@@ -22,9 +22,7 @@ public class OrderCommandController {
         Order order = orderCommandService.confirm(memberId, orderId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "구매 확정 성공");
-        map.put("orderId", order.getOrderId());
-        map.put("status", order.getStatus());
-        map.put("updatedAt", order.getUpdatedAt());
+        map.put("order", order);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 }

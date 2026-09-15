@@ -145,4 +145,60 @@
         WHERE a.auction_id = #{auctionId}
     </select>
 
+    <!-- 차순위: 취소 포함 order가 있던 사람, 이미 제안(AUCTION_WON/차순위 낙찰 안내)을 받은 사람, 비활성 회원 제외 -->
+    <select id="findRunnerUpId" resultType="java.lang.Long">
+        SELECT b.member_id
+        FROM bid b
+        JOIN member m ON m.member_id = b.member_id
+        WHERE b.auction_id = #{auctionId}
+          AND m.status = 'ACTIVE'
+          AND NOT EXISTS (SELECT 1 FROM "order" o WHERE o.auction_id = b.auction_id AND o.buyer_id = b.member_id)
+          AND NOT EXISTS (SELECT 1 FROM notification n
+                          WHERE n.auction_id = b.auction_id AND n.member_id = b.member_id
+                            AND n.type = 'AUCTION_WON' AND n.title = '차순위 낙찰 안내')
+        ORDER BY b.amount DESC
+        LIMIT 1
+    </select>
+
+    <select id="findMaxBidAmount" resultType="java.lang.Long">
+        SELECT MAX(b.amount)
+        FROM bid b
+        WHERE b.auction_id = #{auctionId} AND b.member_id = #{memberId}
+    </select>
+
+    <!-- 경매별 가장 최근 차순위 제안이 만료(before 이전)됐고 그 사람의 order가 없는 경매 -->
+    <select id="findExpiredOfferAuctionIds" resultType="java.lang.Long">
+        SELECT n.auction_id
+        FROM notification n
+        WHERE n.type = 'AUCTION_WON' AND n.title = '차순위 낙찰 안내'
+          AND n.created_at &lt; #{before}
+          AND n.created_at = (SELECT MAX(x.created_at) FROM notification x
+                              WHERE x.auction_id = n.auction_id AND x.type = 'AUCTION_WON' AND x.title = '차순위 낙찰 안내')
+          AND NOT EXISTS (SELECT 1 FROM "order" o WHERE o.auction_id = n.auction_id AND o.buyer_id = n.member_id)
+          AND NOT EXISTS (SELECT 1 FROM "order" o2 WHERE o2.auction_id = n.auction_id AND o2.status &lt;&gt; 'CANCELED')
+    </select>
+
+    <resultMap id="OrderShipmentMap" type="com.b101.dib.order.query.dto.OrderShipmentDto">
+        <id property="orderId" column="order_id"/>
+        <result property="buyerId" column="buyer_id"/>
+        <result property="sellerId" column="seller_id"/>
+        <result property="status" column="status"/>
+        <result property="carrier" column="carrier"/>
+        <result property="trackingNumber" column="tracking_number"/>
+        <result property="address" column="address"/>
+    </resultMap>
+
+    <select id="findShipment" resultMap="OrderShipmentMap">
+        SELECT
+            o.order_id,
+            o.buyer_id,
+            o.seller_id,
+            o.status,
+            o.carrier,
+            o.tracking_number,
+            o.address::text AS address
+        FROM "order" o
+        WHERE o.order_id = #{orderId}
+    </select>
+
 </mapper>

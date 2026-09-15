@@ -38,6 +38,7 @@ public class Order {
     @JdbcTypeCode(SqlTypes.JSON)
     private String address;
 
+    private String carrier;
     private String trackingNumber;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -60,25 +61,84 @@ public class Order {
         return buyerId.equals(memberId);
     }
 
+    public boolean isSeller(Long memberId) {
+        return sellerId.equals(memberId);
+    }
+
     public boolean isParticipant(Long memberId) {
         return buyerId.equals(memberId) || sellerId.equals(memberId);
     }
 
     public boolean isPayable() {
-        return status == OrderStatus.PENDING
-                && paymentDue != null
-                && LocalDateTime.now().isBefore(paymentDue);
+        return status == OrderStatus.PENDING && !paymentDue.isBefore(LocalDateTime.now());
+    }
+
+    public boolean isPaidOrLater() {
+        return status == OrderStatus.PAID || status == OrderStatus.SHIPPED
+                || status == OrderStatus.DELIEVERED || status == OrderStatus.CONFIRMED;
+    }
+
+    public boolean isClosed() {
+        return status == OrderStatus.CONFIRMED || status == OrderStatus.CANCELED || status == OrderStatus.REFUNDED;
     }
 
     public void pay() {
         if (status == OrderStatus.PAID) {
             throw new BusinessException(ErrorCode.DUPLICATE_PAYMENT);
         }
-        if (!isPayable()) {
+        if (status != OrderStatus.PENDING || paymentDue.isBefore(LocalDateTime.now())) {
             throw new BusinessException(ErrorCode.PAYMENT_DEADLINE_EXPIRED);
         }
         this.status = OrderStatus.PAID;
-        this.updatedAt = LocalDateTime.now();
+        touch();
+    }
+
+    public void expire() {
+        if (status != OrderStatus.PENDING) {
+            throw new BusinessException(ErrorCode.PAYMENT_DEADLINE_EXPIRED);
+        }
+        this.status = OrderStatus.CANCELED;
+        touch();
+    }
+
+    public void refund() {
+        if (status != OrderStatus.PAID && status != OrderStatus.SHIPPED && status != OrderStatus.DELIEVERED) {
+            throw new BusinessException(ErrorCode.REFUND_NOT_ALLOWED);
+        }
+        this.status = OrderStatus.REFUNDED;
+        touch();
+    }
+
+    public void updateAddress(String addressJson) {
+        if (status != OrderStatus.PAID) {
+            throw new BusinessException(ErrorCode.ADDRESS_NOT_EDITABLE);
+        }
+        this.address = addressJson;
+        touch();
+    }
+
+    public void ship(String carrier, String trackingNumber) {
+        if (status == OrderStatus.SHIPPED || status == OrderStatus.DELIEVERED) {
+            throw new BusinessException(ErrorCode.SHIPMENT_ALREADY_EXISTS);
+        }
+        if (status != OrderStatus.PAID) {
+            throw new BusinessException(ErrorCode.PAYMENT_REQUIRED);
+        }
+        if (address == null) {
+            throw new BusinessException(ErrorCode.ADDRESS_REQUIRED);
+        }
+        this.carrier = carrier;
+        this.trackingNumber = trackingNumber;
+        this.status = OrderStatus.SHIPPED;
+        touch();
+    }
+
+    public void deliver() {
+        if (status != OrderStatus.SHIPPED) {
+            return;
+        }
+        this.status = OrderStatus.DELIEVERED;
+        touch();
     }
 
     public void confirm() {
@@ -89,6 +149,10 @@ public class Order {
             throw new BusinessException(ErrorCode.DELIVERY_NOT_COMPLETED);
         }
         this.status = OrderStatus.CONFIRMED;
+        touch();
+    }
+
+    private void touch() {
         this.updatedAt = LocalDateTime.now();
     }
 }

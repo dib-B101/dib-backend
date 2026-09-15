@@ -5,4 +5,5 @@ import com.b101.dib.payment.domain.Payment;
 public interface PaymentCommandService {
     Payment autoCharge(Long orderId);
     Payment retry(Long memberId, Long orderId);
+    Payment refund(Long paymentId, String reason, Long amount);
 }

@@ -1,5 +1,7 @@
 package com.b101.dib.payment.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import com.b101.dib.order.domain.Order;
 import com.b101.dib.payment.toss.TossPaymentResponse;
 import jakarta.persistence.*;
@@ -32,7 +34,9 @@ public class Payment {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private PaymentType type;
 
+    @JsonIgnore
     private String paymentKey;
+    @JsonIgnore
     private String refundKey;
     private String receiptUrl;
     private LocalDateTime paidAt;
@@ -47,5 +51,13 @@ public class Payment {
                 .receiptUrl(res.receipt() != null ? res.receipt().url() : null)
                 .paidAt(LocalDateTime.now())
                 .build();
+    }
+
+    public boolean isRefunded() {
+        return refundKey != null;
+    }
+
+    public void markRefunded(String transactionKey) {
+        this.refundKey = transactionKey;
     }
 }

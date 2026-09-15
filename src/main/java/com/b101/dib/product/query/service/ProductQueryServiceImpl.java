@@ -40,6 +40,17 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         }
         return dto;
     }
+    
+    @Override
+	public List<ProductListDto> findMyProducts(Long myId) {
+		return productQueryMapper.findMyProducts(myId);
+	}
+    
+    @Override
+	public List<ProductListDto> findByMemberId(Long memberId) {
+		List<ProductListDto> dtoList = productQueryMapper.findByMemberId(memberId);
+		return dtoList;
+	}
 
     @Override
     public List<AdminProductQueryDto> findForModeration(ProductStatus status) {
@@ -50,4 +61,5 @@ public class ProductQueryServiceImpl implements ProductQueryService {
 	public List<ProductListDto> search(String keyword) {
 		return productQueryMapper.search(keyword);			
 	}
+	
 }

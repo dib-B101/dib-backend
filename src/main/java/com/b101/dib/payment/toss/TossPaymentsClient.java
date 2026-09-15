@@ -10,6 +10,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -49,6 +50,34 @@ public class TossPaymentsClient {
                     .body(TossPaymentResponse.class);
         } catch (RestClientResponseException e) {
             throw new TossApiException(ErrorCode.TOSS_CONFIRM_FAILED, e.getResponseBodyAsString());
+        }
+    }
+
+    public TossPaymentResponse cancel(String paymentKey, String reason, Long amount) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("cancelReason", reason);
+        if (amount != null) {
+            body.put("cancelAmount", amount);
+        }
+        try {
+            return restClient.post()
+                    .uri("/v1/payments/{paymentKey}/cancel", paymentKey)
+                    .body(body)
+                    .retrieve()
+                    .body(TossPaymentResponse.class);
+        } catch (RestClientResponseException e) {
+            throw new TossApiException(ErrorCode.REFUND_NOT_ALLOWED, e.getResponseBodyAsString());
+        }
+    }
+
+    public TossPaymentResponse findByPaymentKey(String paymentKey) {
+        try {
+            return restClient.get()
+                    .uri("/v1/payments/{paymentKey}", paymentKey)
+                    .retrieve()
+                    .body(TossPaymentResponse.class);
+        } catch (RestClientResponseException e) {
+            throw new TossApiException(ErrorCode.PAYMENT_NOT_FOUND, e.getResponseBodyAsString());
         }
     }
 }

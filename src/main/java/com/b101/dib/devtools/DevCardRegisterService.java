@@ -30,8 +30,8 @@ public class DevCardRegisterService {
             throw new BusinessException(ErrorCode.PAYMENT_METHOD_ALREADY_EXISTS);
         }
         String customerKey = "dib-" + UUID.randomUUID();
-        TossBillingKeyResponse res = devTossCardClient.issueByCard(customerKey, req.cardNumber(),
-                req.cardExpirationYear(), req.cardExpirationMonth(), req.customerIdentityNumber());
+        TossBillingKeyResponse res = devTossCardClient.issueByCard(customerKey, req.getCardNumber(),
+                req.getCardExpirationYear(), req.getCardExpirationMonth(), req.getCustomerIdentityNumber());
         return paymentMethodRepository.save(PaymentMethod.of(memberId, customerKey, res));
     }
 }
