@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notification")
+@EntityListeners(NotificationPushListener.class)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -92,6 +93,37 @@ public class Notification {
                 .isRead(false)
                 .createdAt(LocalDateTime.now())
                 .build();
+    }
+
+    public void markRead() {
+        isRead = true;
+    }
+
+    // 프론트 DomainNotification 의 resourceType / resourceId
+    public String resourceType() {
+        if (liveBroadcastId != null) {
+            return "LIVE";
+        }
+        if (auctionId != null) {
+            return "AUCTION";
+        }
+        if (productId != null) {
+            return "PRODUCT";
+        }
+        return "SYSTEM";
+    }
+
+    public Long resourceId() {
+        if (liveBroadcastId != null) {
+            return liveBroadcastId;
+        }
+        if (auctionId != null) {
+            return auctionId;
+        }
+        if (productId != null) {
+            return productId;
+        }
+        return notificationId;
     }
 
     private static String cut(String s) {
