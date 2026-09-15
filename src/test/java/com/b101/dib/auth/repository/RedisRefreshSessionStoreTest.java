@@ -30,6 +30,8 @@ class RedisRefreshSessionStoreTest {
     private DefaultRedisScript<Long> rotateScript;
     @Mock
     private DefaultRedisScript<Long> revokeScript;
+    @Mock
+    private DefaultRedisScript<Long> revokeAllScript;
 
     private RedisRefreshSessionStore store;
 
@@ -46,7 +48,8 @@ class RedisRefreshSessionStoreTest {
                 properties,
                 saveScript,
                 rotateScript,
-                revokeScript
+                revokeScript,
+                revokeAllScript
         );
     }
 
@@ -66,7 +69,8 @@ class RedisRefreshSessionStoreTest {
                 eq(saveScript),
                 eq(java.util.List.of(
                         "session:refresh:1:device-id",
-                        "session:refresh:lookup:refresh-hash"
+                        "session:refresh:lookup:refresh-hash",
+                        "session:refresh:index:1"
                 )),
                 eq("refresh-hash"),
                 eq("family-id"),
@@ -77,6 +81,20 @@ class RedisRefreshSessionStoreTest {
                 eq("device-id"),
                 eq("session:refresh:lookup:"),
                 eq("7776000")
+        );
+    }
+
+    @Test
+    void revokesEverySessionOwnedByMember() {
+        given(redisTemplate.execute(eq(revokeAllScript), anyList(), any(Object[].class)))
+                .willReturn(2L);
+
+        store.revokeAll(1L);
+
+        verify(redisTemplate).execute(
+                eq(revokeAllScript),
+                eq(java.util.List.of("session:refresh:index:1")),
+                eq("session:refresh:lookup:")
         );
     }
 }

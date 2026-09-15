@@ -9,10 +9,13 @@ import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
 import com.b101.dib.auth.command.dto.SignupResponse;
 import com.b101.dib.auth.command.service.LoginService;
+import com.b101.dib.auth.command.service.PasswordResetService;
 import com.b101.dib.auth.command.service.PhoneVerificationService;
 import com.b101.dib.auth.command.service.SignupService;
 import com.b101.dib.auth.command.service.TokenSessionService;
 import com.b101.dib.auth.exception.InvalidVerificationCodeException;
+import com.b101.dib.auth.token.AccessTokenClaims;
+import com.b101.dib.auth.token.AccessTokenVerifier;
 import com.b101.dib.common.config.SecurityConfig;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
@@ -31,6 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -53,6 +57,12 @@ class AuthCommandControllerTest {
 
     @MockitoBean
     private TokenSessionService tokenSessionService;
+
+    @MockitoBean
+    private PasswordResetService passwordResetService;
+
+    @MockitoBean
+    private AccessTokenVerifier accessTokenVerifier;
 
     @Test
     void acceptsPhoneVerificationRequest() throws Exception {
@@ -389,6 +399,9 @@ class AuthCommandControllerTest {
 
     @Test
     void logsOutAndReturnsNoContent() throws Exception {
+        given(accessTokenVerifier.verifyBearer("Bearer access-token"))
+                .willReturn(new AccessTokenClaims(1L, MemberRole.USER));
+
         mockMvc.perform(post("/api/v1/auth/logout")
                         .header("Authorization", "Bearer access-token")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -416,5 +429,92 @@ class AuthCommandControllerTest {
                                 """))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    void acceptsPasswordResetLinkRequest() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/password/reset-links")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"user@example.com",
+                                  "phoneNumber":"01012345678",
+                                  "phoneVerificationToken":"verification-token"
+                                }
+                                """))
+                .andExpect(status().isAccepted());
+
+        verify(passwordResetService).requestResetLink(
+                new com.b101.dib.auth.command.dto.PasswordResetLinkRequest(
+                        "user@example.com", "01012345678", "verification-token"
+                )
+        );
+    }
+
+    @Test
+    void rejectsPasswordResetLinkRequestWithoutPhoneNumber() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/password/reset-links")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email":"user@example.com",
+                                  "phoneVerificationToken":"verification-token"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT"));
+    }
+
+    @Test
+    void resetsPasswordAndReturnsNoContent() throws Exception {
+        mockMvc.perform(patch("/api/v1/auth/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "resetToken":"reset-token",
+                                  "newPassword":"NewPassword1!"
+                                }
+                                """))
+                .andExpect(status().isNoContent());
+
+        verify(passwordResetService).resetPassword(
+                new com.b101.dib.auth.command.dto.PasswordResetRequest(
+                        "reset-token", "NewPassword1!"
+                )
+        );
+    }
+
+    @Test
+    void rejectsPasswordResetWhenNewPasswordDoesNotMeetPolicy() throws Exception {
+        mockMvc.perform(patch("/api/v1/auth/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "resetToken":"reset-token",
+                                  "newPassword":"weak-password"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_PASSWORD"));
+    }
+
+    @Test
+    void returnsBadRequestForInvalidPasswordResetToken() throws Exception {
+        org.mockito.BDDMockito.willThrow(
+                        new BusinessException(ErrorCode.INVALID_RESET_TOKEN)
+                )
+                .given(passwordResetService)
+                .resetPassword(any());
+
+        mockMvc.perform(patch("/api/v1/auth/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "resetToken":"invalid-token",
+                                  "newPassword":"NewPassword1!"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_RESET_TOKEN"));
     }
 }

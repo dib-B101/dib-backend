@@ -82,12 +82,16 @@ class RedisRefreshSessionStoreIntegrationTest {
         DefaultRedisScript<Long> revokeScript = new DefaultRedisScript<>();
         revokeScript.setLocation(new ClassPathResource("redis/revoke-refresh-session.lua"));
         revokeScript.setResultType(Long.class);
+        DefaultRedisScript<Long> revokeAllScript = new DefaultRedisScript<>();
+        revokeAllScript.setLocation(new ClassPathResource("redis/revoke-all-refresh-sessions.lua"));
+        revokeAllScript.setResultType(Long.class);
         store = new RedisRefreshSessionStore(
                 redisTemplate,
                 properties,
                 saveScript,
                 rotateScript,
-                revokeScript
+                revokeScript,
+                revokeAllScript
         );
     }
 
@@ -207,6 +211,30 @@ class RedisRefreshSessionStoreIntegrationTest {
 
         assertThat(redisTemplate.hasKey("session:refresh:1:device-id")).isFalse();
         assertThat(redisTemplate.opsForHash().entries("session:refresh:lookup:refresh-hash"))
+                .containsEntry("status", "REVOKED");
+        assertThat(redisTemplate.hasKey("session:refresh:index:1")).isFalse();
+    }
+
+    @Test
+    void revokesEverySessionUsingMemberIndex() {
+        Instant issuedAt = Instant.now();
+        store.save(1L, "device-a", tokens("hash-a", "family-a", issuedAt));
+        store.save(1L, "device-b", tokens("hash-b", "family-b", issuedAt));
+
+        assertThat(redisTemplate.opsForSet().members("session:refresh:index:1"))
+                .containsExactlyInAnyOrder(
+                        "session:refresh:1:device-a",
+                        "session:refresh:1:device-b"
+                );
+
+        store.revokeAll(1L);
+
+        assertThat(redisTemplate.hasKey("session:refresh:1:device-a")).isFalse();
+        assertThat(redisTemplate.hasKey("session:refresh:1:device-b")).isFalse();
+        assertThat(redisTemplate.hasKey("session:refresh:index:1")).isFalse();
+        assertThat(redisTemplate.opsForHash().entries("session:refresh:lookup:hash-a"))
+                .containsEntry("status", "REVOKED");
+        assertThat(redisTemplate.opsForHash().entries("session:refresh:lookup:hash-b"))
                 .containsEntry("status", "REVOKED");
     }
 
