@@ -36,7 +36,7 @@ public class ProductCommandController {
 
         Map<String, Object> map = new HashMap<>();
         map.put("message", "상품 등록 성공");
-        map.put("product", product);
+        map.put("data", product);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -51,7 +51,7 @@ public class ProductCommandController {
         Product product = productCommandService.update(myId, productId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 정보 수정 성공");
-        map.put("product", product);
+        map.put("data", product);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(map);
@@ -64,7 +64,7 @@ public class ProductCommandController {
         Product product = productCommandService.delete(myId, productId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 삭제 성공");
-        map.put("data", map);
+        map.put("data", product);
         return ResponseEntity
         		.status(HttpStatus.NO_CONTENT)
         		.body(map);

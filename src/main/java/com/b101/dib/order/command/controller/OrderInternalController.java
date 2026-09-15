@@ -37,8 +37,10 @@ public class OrderInternalController {
         OrderDetailDto current = orderInternalQueryService.find(order.getOrderId());
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "주문 생성 성공");
-        map.put("order", current);
-        map.put("paymentResult", paymentResult);
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("order", current);
+        data.put("paymentResult", paymentResult);
+        map.put("data", data);
         return ResponseEntity.status(HttpStatus.CREATED).body(map);
     }
 }

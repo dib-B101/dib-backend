@@ -25,7 +25,7 @@ public class SettlementAccountCommandController {
         Member member = settlementAccountCommandService.update(memberId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "정산 계좌 등록 성공");
-        map.put("settlementAccount", SettlementAccountDetailDto.from(member));
+        map.put("data", SettlementAccountDetailDto.from(member));
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 }

@@ -24,8 +24,10 @@ public class AdminPaymentCommandController {
         Payment payment = paymentCommandService.refund(paymentId, request.getReason(), request.getAmount());
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "환불 처리 완료");
-        map.put("payment", payment);
-        map.put("refundKey", payment.getRefundKey());
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("payment", payment);
+        data.put("refundKey", payment.getRefundKey());
+        map.put("data", data);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(map);
     }
 }

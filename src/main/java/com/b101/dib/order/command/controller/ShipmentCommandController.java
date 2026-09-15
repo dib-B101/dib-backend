@@ -26,7 +26,7 @@ public class ShipmentCommandController {
         Order order = shipmentCommandService.updateAddress(memberId, orderId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "배송지 등록 성공");
-        map.put("order", order);
+        map.put("data", order);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 
@@ -37,7 +37,7 @@ public class ShipmentCommandController {
         Order order = shipmentCommandService.ship(memberId, orderId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "송장 등록 성공");
-        map.put("order", order);
+        map.put("data", order);
         return ResponseEntity.status(HttpStatus.CREATED).body(map);
     }
 }

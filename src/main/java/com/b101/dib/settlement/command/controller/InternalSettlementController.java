@@ -21,7 +21,7 @@ public class InternalSettlementController {
         Settlement settlement = settlementCommandService.execute(settlementId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "정산 지급 완료");
-        map.put("settlement", settlement);
+        map.put("data", settlement);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(map);
     }
 }

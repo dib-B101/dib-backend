@@ -57,7 +57,7 @@ public class LiveBroadcastCommandController {
 		LiveBroadcast liveBroadcast = liveBroadcastCommandService.create(myId, request);
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("message", "라이브 방송 생성 성공");
-		map.put("liveBroadcast", liveBroadcast);
+		map.put("data", liveBroadcast);
 		return ResponseEntity
 				.status(HttpStatus.CREATED)
 				.body(map);
@@ -73,7 +73,7 @@ public class LiveBroadcastCommandController {
 		LiveBroadcast liveBroadcast = liveBroadcastCommandService.update(myId, liveBroadcastId, request);
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("message", "라이브 방송 수정 성공");
-		map.put("liveBroadcast", liveBroadcast);
+		map.put("data", liveBroadcast);
 		return ResponseEntity
 				.status(HttpStatus.OK)
 				.body(map);
@@ -88,7 +88,7 @@ public class LiveBroadcastCommandController {
 		LiveBroadcast liveBroadcast = liveBroadcastCommandService.delete(myId, liveBroadcastId);
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("message", "라이브 방송 삭제 성공");
-		map.put("liveBroadcast", liveBroadcast);
+		map.put("data", liveBroadcast);
 		return ResponseEntity
 				.status(HttpStatus.OK)
 				.body(map);
