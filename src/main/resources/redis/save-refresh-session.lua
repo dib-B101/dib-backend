@@ -23,4 +23,10 @@ redis.call('HSET', KEYS[2],
     'status', 'ACTIVE',
     'absoluteExpiresAt', ARGV[4])
 redis.call('EXPIRE', KEYS[2], tonumber(ARGV[9]))
+
+redis.call('SADD', KEYS[3], KEYS[1])
+local index_ttl = redis.call('TTL', KEYS[3])
+if index_ttl < tonumber(ARGV[9]) then
+    redis.call('EXPIRE', KEYS[3], tonumber(ARGV[9]))
+end
 return 1

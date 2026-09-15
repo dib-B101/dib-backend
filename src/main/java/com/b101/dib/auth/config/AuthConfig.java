@@ -9,7 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
-@EnableConfigurationProperties(JwtProperties.class)
+@EnableConfigurationProperties({JwtProperties.class, PasswordResetProperties.class})
 public class AuthConfig {
 
     @Bean
@@ -37,6 +37,14 @@ public class AuthConfig {
     public DefaultRedisScript<Long> revokeRefreshSessionScript() {
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
         script.setLocation(new ClassPathResource("redis/revoke-refresh-session.lua"));
+        script.setResultType(Long.class);
+        return script;
+    }
+
+    @Bean
+    public DefaultRedisScript<Long> revokeAllRefreshSessionsScript() {
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setLocation(new ClassPathResource("redis/revoke-all-refresh-sessions.lua"));
         script.setResultType(Long.class);
         return script;
     }

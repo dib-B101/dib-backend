@@ -20,6 +20,7 @@ public class RedisRefreshSessionStore implements RefreshSessionStore {
 
     private static final String SESSION_PREFIX = "session:refresh:";
     private static final String LOOKUP_PREFIX = "session:refresh:lookup:";
+    private static final String INDEX_PREFIX = "session:refresh:index:";
     private static final String ACTIVE = "ACTIVE";
 
     private final StringRedisTemplate redisTemplate;
@@ -27,19 +28,22 @@ public class RedisRefreshSessionStore implements RefreshSessionStore {
     private final DefaultRedisScript<Long> saveScript;
     private final DefaultRedisScript<Long> rotateScript;
     private final DefaultRedisScript<Long> revokeScript;
+    private final DefaultRedisScript<Long> revokeAllScript;
 
     public RedisRefreshSessionStore(
             StringRedisTemplate redisTemplate,
             JwtProperties properties,
             @Qualifier("saveRefreshSessionScript") DefaultRedisScript<Long> saveScript,
             @Qualifier("rotateRefreshSessionScript") DefaultRedisScript<Long> rotateScript,
-            @Qualifier("revokeRefreshSessionScript") DefaultRedisScript<Long> revokeScript
+            @Qualifier("revokeRefreshSessionScript") DefaultRedisScript<Long> revokeScript,
+            @Qualifier("revokeAllRefreshSessionsScript") DefaultRedisScript<Long> revokeAllScript
     ) {
         this.redisTemplate = redisTemplate;
         this.properties = properties;
         this.saveScript = saveScript;
         this.rotateScript = rotateScript;
         this.revokeScript = revokeScript;
+        this.revokeAllScript = revokeAllScript;
     }
 
     @Override
@@ -51,7 +55,7 @@ public class RedisRefreshSessionStore implements RefreshSessionStore {
 
         Long result = redisTemplate.execute(
                 saveScript,
-                List.of(sessionKey, lookupKey),
+                List.of(sessionKey, lookupKey, indexKey(memberId)),
                 tokens.refreshTokenHash(),
                 tokens.familyId(),
                 String.valueOf(tokens.issuedAt().getEpochSecond()),
@@ -135,7 +139,8 @@ public class RedisRefreshSessionStore implements RefreshSessionStore {
                 List.of(
                         lookupKey(presentedTokenHash),
                         lookupKey(tokens.refreshTokenHash()),
-                        sessionKey(session.memberId(), session.deviceId())
+                        sessionKey(session.memberId(), session.deviceId()),
+                        indexKey(session.memberId())
                 ),
                 presentedTokenHash,
                 tokens.refreshTokenHash(),
@@ -168,10 +173,23 @@ public class RedisRefreshSessionStore implements RefreshSessionStore {
         Long result = redisTemplate.execute(
                 revokeScript,
                 List.of(sessionKey(memberId, deviceId)),
-                LOOKUP_PREFIX
+                LOOKUP_PREFIX,
+                INDEX_PREFIX
         );
         if (result == null) {
             throw new IllegalStateException("Redis에서 Refresh Token 세션을 제거하지 못했습니다.");
+        }
+    }
+
+    @Override
+    public void revokeAll(Long memberId) {
+        Long result = redisTemplate.execute(
+                revokeAllScript,
+                List.of(indexKey(memberId)),
+                LOOKUP_PREFIX
+        );
+        if (result == null) {
+            throw new IllegalStateException("Redis에서 회원의 Refresh Token 세션을 제거하지 못했습니다.");
         }
     }
 
@@ -183,6 +201,10 @@ public class RedisRefreshSessionStore implements RefreshSessionStore {
         return LOOKUP_PREFIX + tokenHash;
     }
 
+    private String indexKey(Long memberId) {
+        return INDEX_PREFIX + memberId;
+    }
+
     private void revokeSessionKey(String sessionKey) {
         if (sessionKey == null) {
             return;
@@ -190,7 +212,8 @@ public class RedisRefreshSessionStore implements RefreshSessionStore {
         Long result = redisTemplate.execute(
                 revokeScript,
                 List.of(sessionKey),
-                LOOKUP_PREFIX
+                LOOKUP_PREFIX,
+                INDEX_PREFIX
         );
         if (result == null) {
             throw new IllegalStateException("Redis에서 Refresh Token 세션을 제거하지 못했습니다.");

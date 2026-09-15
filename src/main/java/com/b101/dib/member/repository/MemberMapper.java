@@ -2,6 +2,7 @@ package com.b101.dib.member.repository;
 
 import com.b101.dib.member.domain.MemberStatus;
 import com.b101.dib.member.query.dto.AdminMemberQueryDto;
+import com.b101.dib.member.query.dto.MemberDetailDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -14,4 +15,6 @@ public interface MemberMapper {
                                       @Param("warningCount") Integer warningCount,
                                       @Param("cursor") Long cursor,
                                       @Param("limit") int limit);
+
+    MemberDetailDto findById(@Param("memberId") Long memberId);
 }

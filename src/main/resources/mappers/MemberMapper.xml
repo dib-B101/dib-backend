@@ -18,6 +18,24 @@
         <result property="deletedAt" column="deleted_at" />
     </resultMap>
 
+    <resultMap id="MemberDetailMap"
+        type="com.b101.dib.member.query.dto.MemberDetailDto">
+        <id property="memberId" column="member_id" />
+        <result property="email" column="email" />
+        <result property="name" column="name" />
+        <result property="phoneNumber" column="phone_number" />
+        <result property="nickname" column="nickname" />
+        <result property="gender" column="gender" />
+        <result property="birthDate" column="birth_date" />
+        <result property="status" column="status" />
+        <result property="role" column="role" />
+        <result property="score" column="score" />
+        <result property="lastLoginAt" column="last_login_at" />
+        <result property="bankName" column="bank_name" />
+        <result property="accountHolder" column="account_holder" />
+        <result property="maskedAccountNumber" column="masked_account_number" />
+    </resultMap>
+
     <select id="findAll" resultMap="AdminMemberQueryMap">
         SELECT
             m.member_id,
@@ -48,5 +66,34 @@
         </where>
         ORDER BY m.member_id DESC
         LIMIT #{limit}
+    </select>
+
+    <select id="findById" resultMap="MemberDetailMap">
+        SELECT
+            m.member_id,
+            m.email,
+            m.name,
+            m.phone_number,
+            m.nickname,
+            m.gender,
+            m.birth_date,
+            m.status,
+            m.role,
+            m.score,
+            m.last_login_at,
+            m.bank_name,
+            m.account_holder,
+            CASE
+                WHEN m.account_number IS NULL OR LENGTH(m.account_number) &lt; 5
+                    THEN m.account_number
+                ELSE REGEXP_REPLACE(
+                    LEFT(m.account_number, LENGTH(m.account_number) - 4),
+                    '[0-9]',
+                    '*',
+                    'g'
+                ) || RIGHT(m.account_number, 4)
+            END AS masked_account_number
+        FROM member m
+        WHERE m.member_id = #{memberId}
     </select>
 </mapper>
