@@ -10,4 +10,11 @@
             WHERE email = #{email}
         )
     </select>
+
+    <select id="findEmailByPhoneNumber" resultType="string">
+        SELECT email
+        FROM member
+        WHERE phone_number = #{phoneNumber}
+          AND deleted_at IS NULL
+    </select>
 </mapper>

@@ -2,6 +2,8 @@ package com.b101.dib.auth.query.controller;
 
 import com.b101.dib.auth.query.dto.EmailAvailabilityRequest;
 import com.b101.dib.auth.query.dto.EmailAvailabilityResponse;
+import com.b101.dib.auth.query.dto.EmailLookupRequest;
+import com.b101.dib.auth.query.dto.EmailLookupResponse;
 import com.b101.dib.auth.query.service.AuthQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,5 +25,15 @@ public class AuthQueryController {
             @Valid @ModelAttribute EmailAvailabilityRequest request
     ) {
         return ResponseEntity.ok(authQueryService.checkEmailAvailability(request.email()));
+    }
+
+    @GetMapping("/email")
+    public ResponseEntity<EmailLookupResponse> findEmail(
+            @Valid @ModelAttribute EmailLookupRequest request
+    ) {
+        return ResponseEntity.ok(authQueryService.findEmail(
+                request.verificationToken(),
+                request.phoneNumber()
+        ));
     }
 }
