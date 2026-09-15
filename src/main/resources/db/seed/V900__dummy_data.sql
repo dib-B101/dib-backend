@@ -89,16 +89,28 @@ INSERT INTO bid_deposit (member_id, auction_id, amount, status) VALUES
 (2, 1, 4000, 'REFUNDED');
 
 -- 10. 주문/거래 (Order)
-INSERT INTO "order" (auction_id, seller_id, buyer_id, final_price, status, payment_due, address, tracking_number, chatting_session_id) VALUES
-(1, 1, 2, 60000, 'PAID', NOW() + INTERVAL '24 hours', '{"zip": "46241", "addr": "부산광역시 금정구"}', 'CJ-123456789', 'SESSION-001');
+INSERT INTO "order" (auction_id, seller_id, buyer_id, final_price, status, payment_due, address, carrier, tracking_number, chatting_session_id) VALUES
+(1, 1, 2, 60000, 'PAID', NOW() + INTERVAL '24 hours', '{"zip": "46241", "address": "부산광역시 금정구 부산대학로 63", "detail": "기숙사", "receiverName": "득템요정", "receiverPhone": "01022223333"}', NULL, NULL, 'SESSION-001'),
+(1, 1, 2, 55000, 'DELIEVERED', NOW() - INTERVAL '3 days', '{"zip": "46241", "address": "부산광역시 금정구 부산대학로 63", "detail": "기숙사", "receiverName": "득템요정", "receiverPhone": "01022223333"}', 'CJ', '987654321', 'SESSION-002'),
+(1, 1, 2, 70000, 'PENDING', NOW() + INTERVAL '12 hours', NULL, NULL, NULL, 'SESSION-003');
+
+-- 10-1. 결제 기한 만료·차순위 승계 테스트용 (경매 3, 판매자 1, 낙찰자 3 미결제, 차순위 2)
+INSERT INTO auction (product_id, start_price, current_price, auction_time, started_at, ended_at, status, bid_count, bidder_count, top_bid_id) VALUES
+(3, 40000, 52000, 3600, NOW() - INTERVAL '26 hours', NOW() - INTERVAL '25 hours', 'ENDED', 2, 2, NULL);
+INSERT INTO bid (auction_id, member_id, amount) VALUES
+(3, 2, 48000),
+(3, 3, 52000);
+UPDATE auction SET top_bid_id = (SELECT bid_id FROM bid WHERE auction_id = 3 AND amount = 52000) WHERE auction_id = 3;
+INSERT INTO "order" (auction_id, seller_id, buyer_id, final_price, status, payment_due, address, carrier, tracking_number, chatting_session_id) VALUES
+(3, 1, 3, 52000, 'PENDING', NOW() - INTERVAL '1 hour', NULL, NULL, NULL, 'SESSION-005');
+
 
 -- 11. 결제 (Payment)
 INSERT INTO payment (order_id, buyer_id, amount, type, refund_key, receipt_url) VALUES
 (1, 2, 60000, 'CARD', 'TOSS-KEY-001', 'https://toss.im/receipt/001');
 
--- 12. 정산 (Settlement) - PK가 문자열임에 주의
-INSERT INTO settlement (order_id, seller_id, gross_amount, commision_fee, net_amount, bank_name, account_number, payout_at) VALUES
-(1, 1, 60000, 3000, 57000, '국민은행', '123-456-7890', NOW() + INTERVAL '1 day');
+-- 12. 정산 (Settlement)
+-- 정산 행은 구매 확정(POST /orders/{id}/confirm) 시 서버가 생성한다. order 1 은 PAID 라 더미를 두지 않는다.
 
 -- 13. 채팅 (Chatting)
 INSERT INTO chatting (order_id, member_id, content) VALUES

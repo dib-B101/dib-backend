@@ -60,3 +60,20 @@ auth:
 toss:
   secret-key: ${TOSS_SECRET_KEY:}
   base-url: https://api.tosspayments.com
+
+# 정산 수수료율 (판매가 대비). 팀 합의 값
+dib:
+  settlement:
+    commission-rate: 0.05
+  order:
+    auto-confirm-days: 5   # 배송완료 후 구매확정 없으면 자동 확정
+
+# 배송 조회 구현체 선택: fake(기본, devtools.FakeCarrierClient) | deliverytracker | sweettracker
+carrier:
+  provider: ${CARRIER_PROVIDER:fake}
+  cache-seconds: 300      # 같은 송장 재조회 캐시 (외부 API 쿼터 보호)
+  deliverytracker:
+    client-id: ${DELIVERY_TRACKER_CLIENT_ID:}
+    client-secret: ${DELIVERY_TRACKER_CLIENT_SECRET:}
+  sweettracker:
+    key: ${SWEETTRACKER_KEY:}

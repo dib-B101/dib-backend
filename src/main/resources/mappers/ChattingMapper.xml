@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.b101.dib.chatting.repository.ChattingMapper">
+
+    <resultMap id="ChattingQueryMap" type="com.b101.dib.chatting.query.dto.ChattingQueryDto">
+        <id property="chattingId" column="chatting_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="memberNickname" column="member_nickname"/>
+        <result property="content" column="content"/>
+        <result property="time" column="time"/>
+    </resultMap>
+
+    <!-- 최신 메시지부터 limit 개. beforeChattingId 가 있으면 그보다 오래된 것만 (커서 페이징) -->
+    <select id="findByOrderId" resultMap="ChattingQueryMap">
+        SELECT
+            c.chatting_id,
+            c.order_id,
+            c.member_id,
+            m.nickname AS member_nickname,
+            c.content,
+            c.time
+        FROM chatting c
+        JOIN member m ON m.member_id = c.member_id
+        WHERE c.order_id = #{orderId}
+        <if test="beforeChattingId != null">
+            AND c.chatting_id &lt; #{beforeChattingId}
+        </if>
+        ORDER BY c.chatting_id DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

@@ -15,10 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 
-/**
- * 로컬 테스트 전용. Toss 카드번호 직접 빌링키 발급(/v1/billing/authorizations/card).
- * 실서비스는 카드번호를 서버가 만지지 않는다 — 프론트 SDK의 authKey 경로(PaymentMethodCommandController)만 쓴다.
- */
 @Component
 @Profile("local")
 public class DevTossCardClient {

@@ -1,7 +1,7 @@
 package com.b101.dib.paymentMethod.query.service;
 
-import com.b101.dib.paymentMethod.query.dto.PaymentMethodResponse;
+import com.b101.dib.paymentMethod.query.dto.PaymentMethodDetailDto;
 
 public interface PaymentMethodQueryService {
-    PaymentMethodResponse findMine(Long memberId);
+    PaymentMethodDetailDto findMine(Long memberId);
 }
