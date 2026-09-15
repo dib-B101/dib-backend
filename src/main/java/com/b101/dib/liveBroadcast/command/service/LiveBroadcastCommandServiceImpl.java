@@ -1,6 +1,7 @@
 package com.b101.dib.liveBroadcast.command.service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -9,8 +10,12 @@ import com.b101.dib.common.exception.ErrorCode;
 import com.b101.dib.liveBroadcast.command.dto.CreateRequest;
 import com.b101.dib.liveBroadcast.command.dto.UpdateRequest;
 import com.b101.dib.liveBroadcast.domain.LiveBroadcast;
+import com.b101.dib.liveBroadcast.domain.LiveBroadcastRole;
 import com.b101.dib.liveBroadcast.domain.LiveBroadcastStatus;
 import com.b101.dib.liveBroadcast.repository.LiveBroadcastRepository;
+import com.b101.dib.websocket.livekit.config.LiveKitConfig;
+import com.b101.dib.websocket.livekit.dto.LiveKitTokenResponse;
+import com.b101.dib.websocket.livekit.service.LiveKitService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,13 +30,13 @@ public class LiveBroadcastCommandServiceImpl implements LiveBroadcastCommandServ
 		if(request.getTitle() == null) {
 			throw new BusinessException(ErrorCode.LIVE_BROADCAST_NO_TITLE);
 		}
-		String streamUrl = "random URL";
+		String roomName = "live-broadcast-" + UUID.randomUUID();
 		LiveBroadcast liveBroadcast = LiveBroadcast.builder()
 				.memberId(myId)
 				.title(request.getTitle())
 				.description(request.getDescription())
 				.status(LiveBroadcastStatus.SCHEDULED)
-				.streamUrl(streamUrl)
+				.livekitRoomName(roomName)
 				.startedAt(request.getStartedAt())
 				.endedAt(null)
 				.viewCount(0)

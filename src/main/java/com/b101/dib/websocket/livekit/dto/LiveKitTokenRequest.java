@@ -13,4 +13,5 @@ public class LiveKitTokenRequest {
 
     @NotBlank
     private String participantName;
+
 }

@@ -19,10 +19,10 @@ public class LiveKitController {
 
     private final LiveKitService liveKitService;
 
-    @PostMapping("/token")
-    public LiveKitTokenResponse createToken(
-            @Valid @RequestBody LiveKitTokenRequest request
-    ) {
-        return liveKitService.createToken(request);
-    }
+//    @PostMapping("/token")
+//    public LiveKitTokenResponse createToken(
+//            @Valid @RequestBody LiveKitTokenRequest request
+//    ) {
+//        return liveKitService.createToken(request);
+//    }
 }
