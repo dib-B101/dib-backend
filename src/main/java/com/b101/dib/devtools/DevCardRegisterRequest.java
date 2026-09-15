@@ -1,9 +1,23 @@
 package com.b101.dib.devtools;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+
 import jakarta.validation.constraints.NotBlank;
 
-public record DevCardRegisterRequest(@NotBlank String cardNumber,
-                                     @NotBlank String cardExpirationYear,
-                                     @NotBlank String cardExpirationMonth,
-                                     @NotBlank String customerIdentityNumber) {
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class DevCardRegisterRequest {
+    @NotBlank
+    private String cardNumber;
+    @NotBlank
+    private String cardExpirationYear;
+    @NotBlank
+    private String cardExpirationMonth;
+    @NotBlank
+    private String customerIdentityNumber;
 }

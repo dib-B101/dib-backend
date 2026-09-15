@@ -1,5 +1,7 @@
 package com.b101.dib.paymentMethod.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import com.b101.dib.payment.domain.PaymentType;
 import com.b101.dib.payment.toss.TossBillingKeyResponse;
 import jakarta.persistence.*;
@@ -30,7 +32,9 @@ public class PaymentMethod {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private PaymentType type;
 
+    @JsonIgnore
     private String billingKey;
+    @JsonIgnore
     private String customerKey;
     private String cardCompany;
     private String cardNumber;

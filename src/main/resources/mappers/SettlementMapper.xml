@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.b101.dib.settlement.repository.SettlementMapper">
+
+    <resultMap id="SettlementQueryMap" type="com.b101.dib.settlement.query.dto.SettlementQueryDto">
+        <id property="settlementId" column="settlement_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="sellerId" column="seller_id"/>
+        <result property="productTitle" column="product_title"/>
+        <result property="grossAmount" column="gross_amount"/>
+        <result property="commisionFee" column="commision_fee"/>
+        <result property="netAmount" column="net_amount"/>
+        <result property="payoutAt" column="payout_at"/>
+    </resultMap>
+
+    <select id="findBySellerId" resultMap="SettlementQueryMap">
+        SELECT
+            s.settlement_id,
+            s.order_id,
+            s.seller_id,
+            p.title AS product_title,
+            s.gross_amount,
+            s.commision_fee,
+            s.net_amount,
+            s.payout_at
+        FROM settlement s
+        JOIN "order" o ON o.order_id = s.order_id
+        JOIN auction a ON a.auction_id = o.auction_id
+        JOIN product p ON p.product_id = a.product_id
+        WHERE s.seller_id = #{sellerId}
+        ORDER BY s.settlement_id DESC
+    </select>
+
+    <resultMap id="SettlementDetailMap" type="com.b101.dib.settlement.query.dto.SettlementDetailDto">
+        <id property="settlementId" column="settlement_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="sellerId" column="seller_id"/>
+        <result property="buyerId" column="buyer_id"/>
+        <result property="productTitle" column="product_title"/>
+        <result property="orderStatus" column="order_status"/>
+        <result property="grossAmount" column="gross_amount"/>
+        <result property="commisionFee" column="commision_fee"/>
+        <result property="netAmount" column="net_amount"/>
+        <result property="bankName" column="bank_name"/>
+        <result property="maskedAccountNumber" column="account_number"/>
+        <result property="payoutAt" column="payout_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="SettlementDetailMap">
+        SELECT
+            s.settlement_id,
+            s.order_id,
+            s.seller_id,
+            o.buyer_id,
+            p.title AS product_title,
+            o.status AS order_status,
+            s.gross_amount,
+            s.commision_fee,
+            s.net_amount,
+            s.bank_name,
+            s.account_number,
+            s.payout_at
+        FROM settlement s
+        JOIN "order" o ON o.order_id = s.order_id
+        JOIN auction a ON a.auction_id = o.auction_id
+        JOIN product p ON p.product_id = a.product_id
+        WHERE s.settlement_id = #{settlementId}
+    </select>
+
+</mapper>

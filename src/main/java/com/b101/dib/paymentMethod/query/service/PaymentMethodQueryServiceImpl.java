@@ -2,7 +2,7 @@ package com.b101.dib.paymentMethod.query.service;
 
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
-import com.b101.dib.paymentMethod.query.dto.PaymentMethodResponse;
+import com.b101.dib.paymentMethod.query.dto.PaymentMethodDetailDto;
 import com.b101.dib.paymentMethod.repository.PaymentMethodRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,9 +15,9 @@ public class PaymentMethodQueryServiceImpl implements PaymentMethodQueryService 
     private final PaymentMethodRepository paymentMethodRepository;
 
     @Override
-    public PaymentMethodResponse findMine(Long memberId) {
+    public PaymentMethodDetailDto findMine(Long memberId) {
         return paymentMethodRepository.findByMemberId(memberId)
-                .map(PaymentMethodResponse::from)
+                .map(PaymentMethodDetailDto::from)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_METHOD_NOT_FOUND));
     }
 }

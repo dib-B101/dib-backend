@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Notification {
+    public static final String OFFER_TITLE = "차순위 낙찰 안내";
     private static final int CONTENT_MAX = 500;
 
     @Id
@@ -39,17 +40,35 @@ public class Notification {
     private LocalDateTime createdAt;
 
     public static Notification paymentFailed(Long buyerId, Long orderId, String reason) {
-        String content = "주문 #" + orderId + " 결제에 실패했습니다: " + reason + ". 결제 기한 안에 카드를 확인해 주세요.";
-        if (content.length() > CONTENT_MAX) {
-            content = content.substring(0, CONTENT_MAX);
-        }
+        return system(buyerId, "결제 실패",
+                "주문 #" + orderId + " 결제에 실패했습니다: " + reason + ". 결제 기한 안에 카드를 확인해 주세요.");
+    }
+
+    public static Notification system(Long memberId, String title, String content) {
         return Notification.builder()
-                .memberId(buyerId)
+                .memberId(memberId)
                 .type(NotificationType.SYSTEM)
-                .title("결제 실패")
-                .content(content)
+                .title(title)
+                .content(cut(content))
                 .isRead(false)
                 .createdAt(LocalDateTime.now())
                 .build();
+    }
+
+    public static Notification offer(Long auctionId, Long memberId, Long amount) {
+        return Notification.builder()
+                .auctionId(auctionId)
+                .memberId(memberId)
+                .type(NotificationType.AUCTION_WON)
+                .title(OFFER_TITLE)
+                .content(cut("낙찰자가 결제하지 않아 차순위로 낙찰 기회가 넘어왔습니다. 입찰가 " + amount
+                        + "원으로 24시간 안에 수락하면 주문이 생성됩니다."))
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    private static String cut(String s) {
+        return s.length() > CONTENT_MAX ? s.substring(0, CONTENT_MAX) : s;
     }
 }

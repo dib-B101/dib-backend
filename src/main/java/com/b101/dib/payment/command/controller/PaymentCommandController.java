@@ -22,12 +22,7 @@ public class PaymentCommandController {
         Payment payment = paymentCommandService.retry(memberId, orderId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "결제 성공");
-        map.put("paymentId", payment.getPaymentId());
-        map.put("orderId", payment.getOrderId());
-        map.put("amount", payment.getAmount());
-        map.put("type", payment.getType());
-        map.put("receiptUrl", payment.getReceiptUrl());
-        map.put("paidAt", payment.getPaidAt());
+        map.put("payment", payment);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 }

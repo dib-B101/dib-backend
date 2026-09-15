@@ -92,6 +92,28 @@ public enum ErrorCode {
     TOSS_CONFIRM_FAILED(HttpStatus.BAD_GATEWAY, "결제 승인에 실패했습니다."),
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 정보를 찾을 수 없습니다."),
 
+    // 결제 2탄 (만료·차순위·환불·웹훅)
+    OFFER_EXPIRED(HttpStatus.CONFLICT, "차순위 낙찰 제안 기한이 만료되었습니다."),
+    REFUND_NOT_ALLOWED(HttpStatus.CONFLICT, "현재 상태에서는 환불할 수 없습니다."),
+    INVALID_EVENT(HttpStatus.BAD_REQUEST, "이벤트 형식을 확인해 주세요."),
+
+    // 배송
+    PAYMENT_REQUIRED(HttpStatus.CONFLICT, "결제 완료 후 이용할 수 있습니다."),
+    INVALID_TRACKING(HttpStatus.BAD_REQUEST, "택배사 또는 송장번호를 확인해주세요."),
+    UNSUPPORTED_CARRIER(HttpStatus.BAD_REQUEST, "지원하지 않는 택배사입니다. GET /api/v1/carriers 목록에서 선택해주세요."),
+    CHATTING_CLOSED(HttpStatus.CONFLICT, "종료된 거래의 채팅에는 메시지를 보낼 수 없습니다"),
+    SHIPMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 송장이 등록되었습니다."),
+    SHIPMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "배송 정보를 찾을 수 없습니다."),
+    ADDRESS_REQUIRED(HttpStatus.CONFLICT, "배송지를 먼저 입력해야 합니다."),
+    ADDRESS_NOT_EDITABLE(HttpStatus.CONFLICT, "현재 상태에서는 배송지를 변경할 수 없습니다."),
+
+    // 정산
+    SETTLEMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "정산 정보를 찾을 수 없습니다."),
+    SETTLEMENT_NOT_READY(HttpStatus.CONFLICT, "정산 가능한 상태가 아닙니다."),
+    PAYOUT_FAILED(HttpStatus.BAD_GATEWAY, "판매자 지급에 실패했습니다."),
+    ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "정산 계좌가 등록되지 않았습니다."),
+    ACCOUNT_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "정산 계좌 확인에 실패했습니다."),
+
     // 회원
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
     private final HttpStatus status;

@@ -21,13 +21,10 @@ public class PaymentMethodCommandController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> register(@RequestHeader("X-Member-Id") Long memberId,
                                                         @RequestBody @Valid RegisterPaymentMethodRequest request) {
-        PaymentMethod pm = paymentMethodCommandService.register(memberId, request.authKey(), request.customerKey());
+        PaymentMethod pm = paymentMethodCommandService.register(memberId, request.getAuthKey(), request.getCustomerKey());
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "결제 수단 등록 성공");
-        map.put("paymentMethodId", pm.getPaymentMethodId());
-        map.put("type", pm.getType());
-        map.put("cardCompany", pm.getCardCompany());
-        map.put("cardNumber", pm.getCardNumber());
+        map.put("paymentMethod", pm);
         return ResponseEntity.status(HttpStatus.CREATED).body(map);
     }
 
