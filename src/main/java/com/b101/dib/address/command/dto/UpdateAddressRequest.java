@@ -1,0 +1,30 @@
+package com.b101.dib.address.command.dto;
+
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Size;
+
+public record UpdateAddressRequest(
+        /** 우편번호 */
+        @Size(max = 50) String number,
+
+        /** 도로명 또는 지번 주소 */
+        @Size(max = 500) String address,
+
+        /** 사용자가 지정한 배송지 이름 */
+        @Size(max = 100) String name,
+
+        /** 외부 주소 검색 API의 주소 식별자 */
+        @Size(max = 500) String apiAddressId
+) {
+
+    @AssertTrue
+    public boolean isValidUpdate() {
+        return hasUpdateField()
+                && (name == null || !name.isBlank())
+                && (apiAddressId == null || !apiAddressId.isBlank());
+    }
+
+    private boolean hasUpdateField() {
+        return number != null || address != null || name != null || apiAddressId != null;
+    }
+}

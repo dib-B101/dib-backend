@@ -134,6 +134,7 @@ public enum ErrorCode {
 
     // 회원
     INVALID_ADDRESS(HttpStatus.BAD_REQUEST, "배송지 정보를 확인해 주세요."),
+    ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "배송지를 찾을 수 없습니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
     private final HttpStatus status;
     private final String message;

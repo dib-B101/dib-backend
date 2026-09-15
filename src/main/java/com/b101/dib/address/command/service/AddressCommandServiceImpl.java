@@ -2,6 +2,7 @@ package com.b101.dib.address.command.service;
 
 import com.b101.dib.address.command.dto.AddressResponse;
 import com.b101.dib.address.command.dto.CreateAddressRequest;
+import com.b101.dib.address.command.dto.UpdateAddressRequest;
 import com.b101.dib.address.domain.Address;
 import com.b101.dib.address.repository.AddressRepository;
 import com.b101.dib.common.exception.BusinessException;
@@ -34,6 +35,27 @@ public class AddressCommandServiceImpl implements AddressCommandService {
                 .build();
 
         return toResponse(addressRepository.save(address));
+    }
+
+    @Override
+    public AddressResponse update(Long memberId, Long addressId, UpdateAddressRequest request) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+
+        if (!address.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
+        address.update(
+                request.number() == null ? address.getNumber() : trimToNull(request.number()),
+                request.address() == null ? address.getAddress() : trimToNull(request.address()),
+                request.name() == null ? address.getName() : request.name().trim(),
+                request.apiAddressId() == null
+                        ? address.getApiAddressId()
+                        : request.apiAddressId().trim()
+        );
+
+        return toResponse(address);
     }
 
     private AddressResponse toResponse(Address address) {

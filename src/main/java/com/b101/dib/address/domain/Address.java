@@ -38,4 +38,11 @@ public class Address {
 
     @Column(name = "api_address_id", nullable = false, length = 500)
     private String apiAddressId;
+
+    public void update(String number, String address, String name, String apiAddressId) {
+        this.number = number;
+        this.address = address;
+        this.name = name;
+        this.apiAddressId = apiAddressId;
+    }
 }
