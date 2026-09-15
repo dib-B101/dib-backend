@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.b101.dib.liveBroadcast.repository.LiveBroadcastMapper">
+
+    <resultMap id="LiveBroadcastQueryMap"
+        type="com.b101.dib.liveBroadcast.query.dto.LiveBroadcastQueryDto">
+        <id property="liveBroadcastId" column="live_broadcast_id" />
+        <result property="memberId" column="member_id" />
+        <result property="title" column="title" />
+        <result property="description" column="description" />
+        <result property="status" column="status" />
+        <result property="livekitRoomName" column="livekit_room_name" />
+        <result property="startedAt" column="started_at" />
+        <result property="endedAt" column="ended_at" />
+        <result property="viewCount" column="view_count" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <select id="findAll" resultMap="LiveBroadcastQueryMap">
+        SELECT
+        	lb.live_broadcast_id,
+        	lb.member_id,
+        	lb.title,
+        	lb.description,
+        	lb.status,
+        	lb.livekitRoomName,
+        	lb.started_at,
+        	lb.ended_at,
+        	lb.view_count,
+        	lb.created_at,
+        	lb.updated_at
+    	FROM live_broadcast lb
+    	ORDER BY lb.created_at DESC
+    </select>
+    
+    <select id="findById" resultMap="LiveBroadcastQueryMap">
+        SELECT
+        	lb.live_broadcast_id,
+        	lb.member_id,
+        	lb.title,
+        	lb.description,
+        	lb.status,
+        	lb.livekitRoomName,
+        	lb.started_at,
+        	lb.ended_at,
+        	lb.view_count,
+        	lb.created_at,
+        	lb.updated_at
+    	FROM live_broadcast lb
+    	WHERE lb.live_broadcast_id = #{liveBroadcastId}
+    	ORDER BY lb.created_at DESC
+    </select>
+    
+    <select id="findByMemberId" resultMap="LiveBroadcastQueryMap">
+        SELECT
+        	lb.live_broadcast_id,
+        	lb.member_id,
+        	lb.title,
+        	lb.description,
+        	lb.status,
+        	lb.livekitRoomName,
+        	lb.started_at,
+        	lb.ended_at,
+        	lb.view_count,
+        	lb.created_at,
+        	lb.updated_at
+    	FROM live_broadcast lb
+    	WHERE lb.member_id = #{memberId}
+    	ORDER BY lb.created_at DESC
+    </select>
+    
+</mapper>

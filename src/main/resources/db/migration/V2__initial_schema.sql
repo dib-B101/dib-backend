@@ -78,11 +78,10 @@ CREATE TABLE live_broadcast (
     title VARCHAR(200) NOT NULL,
     description TEXT,
     status LIVE_STATUS NOT NULL DEFAULT 'SCHEDULED',
-    livekit_room_name VARCHAR(200),              -- 방송 스트리밍 URL (또는 Stream Key)
-    scheduled_at TIMESTAMP NOT NULL,             -- 방송 예정 시간
-    started_at TIMESTAMP,                        -- 실제 방송 시작 시간
-    ended_at TIMESTAMP,                          -- 방송 종료 시간
-    view_count INTEGER NOT NULL DEFAULT 0,       -- 누적 시청자 수
+    livekit_room_name VARCHAR(200) NOT NULL UNIQUE,	-- 방송 스트리밍 URL (또는 Stream Key)
+    started_at TIMESTAMP,                        	-- 실제 방송 시작 시간
+    ended_at TIMESTAMP,                          	-- 방송 종료 시간
+    view_count INTEGER NOT NULL DEFAULT 0,       	-- 누적 시청자 수
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );

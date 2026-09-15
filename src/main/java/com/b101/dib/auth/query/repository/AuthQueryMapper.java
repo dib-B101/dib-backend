@@ -7,4 +7,6 @@ import org.apache.ibatis.annotations.Param;
 public interface AuthQueryMapper {
 
     boolean existsByEmail(@Param("email") String email);
+
+    String findEmailByPhoneNumber(@Param("phoneNumber") String phoneNumber);
 }
