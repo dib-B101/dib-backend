@@ -50,6 +50,9 @@ public enum ErrorCode {
     LIVE_BROADCAST_ALREADY_ENDED(HttpStatus.BAD_REQUEST, "라이브 방송이 이미 끝났습니다"),
     LIVE_BROADCAST_ALREADY_CANCELED(HttpStatus.BAD_REQUEST, "라이브 방송이 취소되었습니다"),
     
+    // 라이브 채팅
+    LIVE_CHATTING_NOT_OWNED(HttpStatus.FORBIDDEN, "내가 작성한 대화가 아닙니다"),
+    
     // 회원 가입 및 로그인
     INVALID_EMAIL(HttpStatus.BAD_REQUEST, "이메일 형식이 올바르지 않습니다."),
     EMAIL_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
