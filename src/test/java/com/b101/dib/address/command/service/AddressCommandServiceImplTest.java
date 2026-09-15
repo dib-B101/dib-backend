@@ -1,7 +1,10 @@
 package com.b101.dib.address.command.service;
 
+import java.util.Optional;
+
 import com.b101.dib.address.command.dto.AddressResponse;
 import com.b101.dib.address.command.dto.CreateAddressRequest;
+import com.b101.dib.address.command.dto.UpdateAddressRequest;
 import com.b101.dib.address.domain.Address;
 import com.b101.dib.address.repository.AddressRepository;
 import com.b101.dib.common.exception.BusinessException;
@@ -95,5 +98,81 @@ class AddressCommandServiceImplTest {
         );
 
         verify(addressRepository, never()).save(any(Address.class));
+    }
+
+    @Test
+    void updatesOnlyProvidedAddressFields() {
+        Address address = address(10L, 1L);
+        given(addressRepository.findById(10L)).willReturn(Optional.of(address));
+
+        AddressResponse result = addressCommandService.update(
+                1L,
+                10L,
+                new UpdateAddressRequest(null, null, " 새 회사 ", " new-address-api-id ")
+        );
+
+        assertThat(result).isEqualTo(new AddressResponse(
+                10L,
+                "06236",
+                "서울특별시 강남구 테헤란로",
+                "새 회사",
+                "new-address-api-id"
+        ));
+    }
+
+    @Test
+    void clearsOptionalAddressFieldsWhenBlankValuesAreProvided() {
+        Address address = address(10L, 1L);
+        given(addressRepository.findById(10L)).willReturn(Optional.of(address));
+
+        AddressResponse result = addressCommandService.update(
+                1L,
+                10L,
+                new UpdateAddressRequest(" ", "", null, null)
+        );
+
+        assertThat(result.number()).isNull();
+        assertThat(result.address()).isNull();
+        assertThat(result.name()).isEqualTo("회사");
+        assertThat(result.apiAddressId()).isEqualTo("address-api-10");
+    }
+
+    @Test
+    void rejectsUpdateWhenAddressDoesNotExist() {
+        given(addressRepository.findById(10L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> addressCommandService.update(
+                1L,
+                10L,
+                new UpdateAddressRequest(null, null, "새 회사", null)
+        )).isInstanceOfSatisfying(
+                BusinessException.class,
+                exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ADDRESS_NOT_FOUND)
+        );
+    }
+
+    @Test
+    void rejectsUpdateWhenAddressBelongsToAnotherMember() {
+        given(addressRepository.findById(10L)).willReturn(Optional.of(address(10L, 2L)));
+
+        assertThatThrownBy(() -> addressCommandService.update(
+                1L,
+                10L,
+                new UpdateAddressRequest(null, null, "새 회사", null)
+        )).isInstanceOfSatisfying(
+                BusinessException.class,
+                exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.FORBIDDEN)
+        );
+    }
+
+    private Address address(Long addressId, Long memberId) {
+        return Address.builder()
+                .id(addressId)
+                .memberId(memberId)
+                .number("06236")
+                .address("서울특별시 강남구 테헤란로")
+                .name("회사")
+                .apiAddressId("address-api-10")
+                .build();
     }
 }
