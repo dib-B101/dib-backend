@@ -3,6 +3,7 @@ package com.b101.dib.auth.query.controller;
 import com.b101.dib.auth.query.dto.EmailAvailabilityResponse;
 import com.b101.dib.auth.query.dto.EmailLookupResponse;
 import com.b101.dib.auth.query.service.AuthQueryService;
+import com.b101.dib.auth.token.AccessTokenVerifier;
 import com.b101.dib.common.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ class AuthQueryControllerTest {
 
     @MockitoBean
     private AuthQueryService authQueryService;
+
+    @MockitoBean
+    private AccessTokenVerifier accessTokenVerifier;
 
     @Test
     void returnsAvailabilityForValidEmail() throws Exception {
