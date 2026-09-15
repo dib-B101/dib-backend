@@ -42,6 +42,33 @@ public class ProductQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
     
+    @GetMapping("/members/me")
+    public ResponseEntity<Map<String, Object>> findMyProducts(){
+    	Long myId = 1L;
+    	List<ProductListDto> dtoList = productQueryService.findMyProducts(myId);
+    	HashMap<String, Object> map = new HashMap<>();
+        map.put("message", "내 상품 목록 조회 성공");
+        map.put("data", dtoList);
+        return ResponseEntity
+        		.status(HttpStatus.OK)
+        		.body(map);
+    	
+    }
+    
+    @GetMapping("/members/{memberId}")
+    public ResponseEntity<Map<String, Object>> findByMemberId(
+    		@PathVariable("memberId") Long memberId
+    		){
+    	List<ProductListDto> dtoList = productQueryService.findByMemberId(memberId);
+    	HashMap<String, Object> map = new HashMap<>();
+        map.put("message", "회원 상품 목록 조회 성공");
+        map.put("data", dtoList);
+        return ResponseEntity
+        		.status(HttpStatus.OK)
+        		.body(map);
+    	
+    }
+    
     @GetMapping("/search")
     public ResponseEntity<Map<String, Object>> search(
     		@RequestParam("keyword") String keyword

@@ -13,4 +13,6 @@ public interface ProductQueryService {
 	ProductDetailDto findById(Long productId);
 	List<AdminProductQueryDto> findForModeration(ProductStatus status);
 	List<ProductListDto> search(String keyword);
+	List<ProductListDto> findByMemberId(Long memberId);
+	List<ProductListDto> findMyProducts(Long myId);
 }

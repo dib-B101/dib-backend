@@ -83,6 +83,97 @@
 
 	</resultMap>
 	
+	<select id="findMyProducts" resultMap="ProductListMap">
+		SELECT
+			p.product_id,
+			p.member_id,
+			p.category_id,
+			p.title,
+			p.description,
+			p.condition,
+			p.model_name,
+			p.release_year,
+			p.market_price,
+			p.thumbnail_url,
+			p.status as product_status,
+			p.created_at as product_created_at,
+			p.updated_at as product_updated_at,
+			p.deleted_at as product_deleted_at,
+			
+			a.auction_id,
+			a.start_price,
+			a.current_price,
+			a.auction_time,
+			a.started_at,
+			a.ended_at,
+			a.status as auction_status,
+			a.bid_count,
+			a.bidder_count,
+			a.view_count,
+			a.bookmark_count,
+			a.top_bid_id,
+			a.extension_count,
+			a.created_at as auction_created_at,
+			a.updated_at as auction_updated_at,
+			a.deleted_at as auction_deleted_at,
+			a.live_broadcast_id
+			
+		FROM product p
+		JOIN auction a ON p.product_id = a.auction_id
+		WHERE 
+		(p.title LIKE CONCAT('%', #{keyword}, '%') 
+			OR p.description LIKE CONCAT('%', #{keyword}, '%'))
+		AND p.deleted_at IS NULL
+		AND p.member_id = #{myId}
+		ORDER BY a.created_at DESC
+	</select>
+	
+	<select id="findByMemberId" resultMap="ProductListMap">
+		SELECT
+			p.product_id,
+			p.member_id,
+			p.category_id,
+			p.title,
+			p.description,
+			p.condition,
+			p.model_name,
+			p.release_year,
+			p.market_price,
+			p.thumbnail_url,
+			p.status as product_status,
+			p.created_at as product_created_at,
+			p.updated_at as product_updated_at,
+			p.deleted_at as product_deleted_at,
+			
+			a.auction_id,
+			a.start_price,
+			a.current_price,
+			a.auction_time,
+			a.started_at,
+			a.ended_at,
+			a.status as auction_status,
+			a.bid_count,
+			a.bidder_count,
+			a.view_count,
+			a.bookmark_count,
+			a.top_bid_id,
+			a.extension_count,
+			a.created_at as auction_created_at,
+			a.updated_at as auction_updated_at,
+			a.deleted_at as auction_deleted_at,
+			a.live_broadcast_id
+			
+		FROM product p
+		JOIN auction a ON p.product_id = a.auction_id
+		WHERE 
+		(p.title LIKE CONCAT('%', #{keyword}, '%') 
+			OR p.description LIKE CONCAT('%', #{keyword}, '%'))
+		AND p.deleted_at IS NULL
+		AND p.status IN ('REGISTERED', 'ON_AUCTION')
+		AND p.member_id = #{memberId}
+		ORDER BY a.created_at DESC
+	</select>
+	
 	<select id="search" resultMap="ProductListMap">
 		SELECT
 			p.product_id,
