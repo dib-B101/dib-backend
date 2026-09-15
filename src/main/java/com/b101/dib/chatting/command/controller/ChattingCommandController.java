@@ -26,7 +26,7 @@ public class ChattingCommandController {
         Chatting chatting = chattingCommandService.send(memberId, orderId, request.getContent());
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "메시지 전송 성공");
-        map.put("chatting", chatting);
+        map.put("data", chatting);
         return ResponseEntity.status(HttpStatus.CREATED).body(map);
     }
 }

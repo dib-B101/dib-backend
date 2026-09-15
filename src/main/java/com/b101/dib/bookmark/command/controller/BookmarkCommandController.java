@@ -30,7 +30,7 @@ public class BookmarkCommandController {
 		Bookmark bookmark = bookmarkCommandService.create(myId, productId);
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("message", "북마크 생성 성공");
-		map.put("bookmark", bookmark);
+		map.put("data", bookmark);
 		return ResponseEntity
 				.status(HttpStatus.CREATED)
 				.body(map);
@@ -43,7 +43,7 @@ public class BookmarkCommandController {
 		Bookmark bookmark = bookmarkCommandService.delete(myId, productId);
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("message", "북마크 삭제 성공");
-		map.put("bookmark", bookmark);
+		map.put("data", bookmark);
 		return ResponseEntity
 				.status(HttpStatus.OK)
 				.body(map);

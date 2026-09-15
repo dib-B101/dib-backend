@@ -23,9 +23,11 @@ public class ChattingQueryController {
         ChattingPageDto page = chattingQueryService.findMessages(memberId, orderId, beforeChattingId, size);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "채팅 내역 조회 성공");
-        map.put("items", page.getItems());
-        map.put("hasMore", page.isHasMore());
-        map.put("chattingReadOnly", page.isChattingReadOnly());
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("items", page.getItems());
+        data.put("hasMore", page.isHasMore());
+        data.put("chattingReadOnly", page.isChattingReadOnly());
+        map.put("data", data);
         return ResponseEntity.ok(map);
     }
 }

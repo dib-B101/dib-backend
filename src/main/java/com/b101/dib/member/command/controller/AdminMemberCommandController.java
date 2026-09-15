@@ -24,10 +24,12 @@ public class AdminMemberCommandController {
         Member member = memberCommandService.sanction(memberId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "회원 제재 적용 성공");
-        map.put("memberId", member.getId());
-        map.put("warningCount", member.getWarningCount());
-        map.put("status", member.getStatus());
-        map.put("suspendedAt", member.getSuspendedAt());
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("memberId", member.getId());
+        data.put("warningCount", member.getWarningCount());
+        data.put("status", member.getStatus());
+        data.put("suspendedAt", member.getSuspendedAt());
+        map.put("data", data);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 
@@ -36,9 +38,11 @@ public class AdminMemberCommandController {
         Member member = memberCommandService.releaseSanction(memberId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "회원 정지 해제 성공");
-        map.put("memberId", member.getId());
-        map.put("status", member.getStatus());
-        map.put("suspendedAt", member.getSuspendedAt());
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("memberId", member.getId());
+        data.put("status", member.getStatus());
+        data.put("suspendedAt", member.getSuspendedAt());
+        map.put("data", data);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 }

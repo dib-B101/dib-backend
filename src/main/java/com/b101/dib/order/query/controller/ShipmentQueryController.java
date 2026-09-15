@@ -20,7 +20,7 @@ public class ShipmentQueryController {
                                                            @PathVariable("orderId") Long orderId) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "배송지 조회 성공");
-        map.put("address", shipmentQueryService.findAddress(memberId, orderId));
+        map.put("data", shipmentQueryService.findAddress(memberId, orderId));
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 

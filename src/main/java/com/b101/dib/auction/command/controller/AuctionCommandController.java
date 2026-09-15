@@ -25,7 +25,7 @@ public class AuctionCommandController {
         Auction auction = auctionCommandService.create(myId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "경매 생성 성공");
-        map.put("auction", auction);
+        map.put("data", auction);
         return ResponseEntity
         		.status(HttpStatus.CREATED)
         		.body(map);
@@ -40,7 +40,7 @@ public class AuctionCommandController {
         Auction auction = auctionCommandService.update(myId, auctionId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "경매 수정 성공");
-        map.put("auction", auction);
+        map.put("data", auction);
         return ResponseEntity
         		.status(HttpStatus.OK)
         		.body(map);
@@ -54,7 +54,7 @@ public class AuctionCommandController {
     	Auction auction = auctionCommandService.startAuction(myId, auctionId);
     	HashMap<String, Object> map = new HashMap<>();
         map.put("message", "경매 시작");
-        map.put("auction", auction);
+        map.put("data", auction);
         return ResponseEntity
         		.status(HttpStatus.OK)
         		.body(map);

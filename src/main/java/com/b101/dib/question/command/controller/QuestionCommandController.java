@@ -23,7 +23,7 @@ public class QuestionCommandController {
         Long questionId = questionCommandService.create(memberId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "문의 등록 성공");
-        map.put("questionId", questionId);
+        map.put("data", questionId);
         return ResponseEntity.status(HttpStatus.CREATED).body(map);
     }
 }

@@ -24,8 +24,10 @@ public class OrderReportCommandController {
         Long reportId = reportCommandService.reportOrder(memberId, orderId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "거래 신고 접수");
-        map.put("reportId", reportId);
-        map.put("status", "PENDING");
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("reportId", reportId);
+        data.put("status", "PENDING");
+        map.put("data", data);
         return ResponseEntity.status(HttpStatus.CREATED).body(map);
     }
 }
