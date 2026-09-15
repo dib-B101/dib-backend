@@ -61,6 +61,7 @@ public enum ErrorCode {
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "로그인이 만료되었습니다."),
     SESSION_REVOKED(HttpStatus.UNAUTHORIZED, "다른 기기 로그인 또는 보안 변경으로 세션이 종료되었습니다."),
     DEVICE_MISMATCH(HttpStatus.BAD_REQUEST, "등록된 기기 정보와 일치하지 않습니다."),
+    INVALID_RESET_TOKEN(HttpStatus.BAD_REQUEST, "비밀번호 재설정 링크가 유효하지 않습니다."),
 
     // 본인 인증
     INVALID_PHONE(HttpStatus.BAD_REQUEST, "휴대전화번호 형식이 올바르지 않습니다."),

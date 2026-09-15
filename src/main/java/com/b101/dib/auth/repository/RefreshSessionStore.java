@@ -13,4 +13,6 @@ public interface RefreshSessionStore {
     void rotate(RefreshSession session, String presentedTokenHash, AuthTokenPair tokens);
 
     void revoke(Long memberId, String deviceId);
+
+    void revokeAll(Long memberId);
 }

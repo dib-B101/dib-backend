@@ -3,6 +3,8 @@ package com.b101.dib.auth.command.controller;
 import com.b101.dib.auth.command.dto.LoginRequest;
 import com.b101.dib.auth.command.dto.LoginResponse;
 import com.b101.dib.auth.command.dto.LogoutRequest;
+import com.b101.dib.auth.command.dto.PasswordResetLinkRequest;
+import com.b101.dib.auth.command.dto.PasswordResetRequest;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmRequest;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationRequest;
@@ -12,6 +14,7 @@ import com.b101.dib.auth.command.dto.SignupResponse;
 import com.b101.dib.auth.command.dto.TokenRefreshRequest;
 import com.b101.dib.auth.command.dto.TokenRefreshResponse;
 import com.b101.dib.auth.command.service.LoginService;
+import com.b101.dib.auth.command.service.PasswordResetService;
 import com.b101.dib.auth.command.service.PhoneVerificationService;
 import com.b101.dib.auth.command.service.SignupService;
 import com.b101.dib.auth.command.service.TokenSessionService;
@@ -21,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +39,7 @@ public class AuthCommandController {
     private final SignupService signupService;
     private final LoginService loginService;
     private final TokenSessionService tokenSessionService;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/phone-verifications")
     public ResponseEntity<PhoneVerificationResponse> requestPhoneVerification(
@@ -75,6 +80,22 @@ public class AuthCommandController {
             @Valid @RequestBody LogoutRequest request
     ) {
         tokenSessionService.logout(authorizationHeader, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/password/reset-links")
+    public ResponseEntity<Void> requestPasswordResetLink(
+            @Valid @RequestBody PasswordResetLinkRequest request
+    ) {
+        passwordResetService.requestResetLink(request);
+        return ResponseEntity.accepted().build();
+    }
+
+    @PatchMapping("/password")
+    public ResponseEntity<Void> resetPassword(
+            @Valid @RequestBody PasswordResetRequest request
+    ) {
+        passwordResetService.resetPassword(request);
         return ResponseEntity.noContent().build();
     }
 }
