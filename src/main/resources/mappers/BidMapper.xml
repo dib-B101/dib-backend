@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.b101.dib.bid.repository.BidMapper">
+
+    <resultMap id="BidHistoryQueryMap" type="com.b101.dib.bid.query.dto.BidHistoryQueryDto">
+        <id property="bidId" column="bid_id"/>
+        <result property="auctionId" column="auction_id"/>
+        <result property="bidderId" column="member_id"/>
+        <result property="amount" column="amount"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 경매 입찰 내역 (최신순, 커서 = bid_id) -->
+    <select id="findByAuctionId" resultMap="BidHistoryQueryMap">
+        SELECT
+            b.bid_id,
+            b.auction_id,
+            b.member_id,
+            b.amount,
+            b.created_at
+        FROM bid b
+        WHERE b.auction_id = #{auctionId}
+        <if test="cursor != null">
+            AND b.bid_id &lt; #{cursor}
+        </if>
+        ORDER BY b.bid_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <resultMap id="MyBidQueryMap" type="com.b101.dib.bid.query.dto.MyBidQueryDto">
+        <id property="bidId" column="bid_id"/>
+        <result property="auctionId" column="auction_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="productTitle" column="product_title"/>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="amount" column="amount"/>
+        <result property="currentPrice" column="current_price"/>
+        <result property="auctionStatus" column="auction_status"/>
+        <result property="highest" column="highest"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 내 입찰 내역 (최신순) -->
+    <select id="findByMemberId" resultMap="MyBidQueryMap">
+        SELECT
+            b.bid_id,
+            b.auction_id,
+            a.product_id,
+            p.title AS product_title,
+            p.thumbnail_url,
+            b.amount,
+            a.current_price,
+            a.status AS auction_status,
+            (a.top_bid_id = b.bid_id) AS highest,
+            b.created_at
+        FROM bid b
+        JOIN auction a ON a.auction_id = b.auction_id
+        JOIN product p ON p.product_id = a.product_id
+        WHERE b.member_id = #{memberId}
+        <if test="cursor != null">
+            AND b.bid_id &lt; #{cursor}
+        </if>
+        ORDER BY b.bid_id DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

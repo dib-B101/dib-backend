@@ -42,7 +42,11 @@
             <if test="warningCount != null">
                 AND m.warning_count <![CDATA[ >= ]]> #{warningCount}
             </if>
+            <if test="cursor != null">
+                AND m.member_id &lt; #{cursor}
+            </if>
         </where>
-        ORDER BY m.member_id
+        ORDER BY m.member_id DESC
+        LIMIT #{limit}
     </select>
 </mapper>

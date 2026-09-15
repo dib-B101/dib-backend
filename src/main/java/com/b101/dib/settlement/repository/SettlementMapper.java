@@ -9,6 +9,8 @@ import java.util.List;
 
 @Mapper
 public interface SettlementMapper {
-    List<SettlementQueryDto> findBySellerId(@Param("sellerId") Long sellerId);
+    List<SettlementQueryDto> findBySellerId(@Param("sellerId") Long sellerId,
+                                            @Param("cursor") Long cursor,
+                                            @Param("limit") int limit);
     SettlementDetailDto findById(@Param("settlementId") Long settlementId);
 }

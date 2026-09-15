@@ -13,7 +13,11 @@ import java.util.List;
 public interface ReportMapper {
     List<ReportQueryDto> findByMemberId(@Param("memberId") Long memberId,
                                         @Param("type") ReportType type,
-                                        @Param("status") ReportStatus status);
+                                        @Param("status") ReportStatus status,
+                                        @Param("cursor") Long cursor,
+                                        @Param("limit") int limit);
     List<AdminReportQueryDto> findAll(@Param("type") ReportType type,
-            @Param("status") ReportStatus status);
+                                      @Param("status") ReportStatus status,
+                                      @Param("cursor") Long cursor,
+                                      @Param("limit") int limit);
 }

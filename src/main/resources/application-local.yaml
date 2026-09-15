@@ -34,3 +34,7 @@ livekit:
 auth:
   phone-verification:
     hmac-secret: ${PHONE_VERIFICATION_HMAC_SECRET:local-development-secret-change-me}
+
+dib:
+  auth:
+    header-fallback: true   # Postman / flow_test 가 토큰 없이 X-Member-Id 로 호출

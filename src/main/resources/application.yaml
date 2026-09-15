@@ -63,6 +63,8 @@ toss:
 
 # 정산 수수료율 (판매가 대비). 팀 합의 값
 dib:
+  auth:
+    header-fallback: false   # true 면 토큰 없이 X-Member-Id 헤더만으로 인증 (local 전용)
   settlement:
     commission-rate: 0.05
   order:

@@ -25,7 +25,11 @@
         <if test="answered != null and !answered">
             AND q.answered_at IS NULL
         </if>
-        ORDER BY q.created_at DESC, q.question_id DESC
+        <if test="cursor != null">
+            AND q.question_id &lt; #{cursor}
+        </if>
+        ORDER BY q.question_id DESC
+        LIMIT #{limit}
     </select>
 
     <resultMap id="QuestionDetailMap"
@@ -79,7 +83,11 @@
             <if test="answered != null and !answered">
                 q.answered_at IS NULL
             </if>
+            <if test="cursor != null">
+                AND q.question_id &lt; #{cursor}
+            </if>
         </where>
-        ORDER BY q.answered_at NULLS FIRST, q.created_at DESC
+        ORDER BY q.question_id DESC
+        LIMIT #{limit}
     </select>
 </mapper>

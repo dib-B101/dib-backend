@@ -1,5 +1,6 @@
 package com.b101.dib.order.query.controller;
 
+import com.b101.dib.order.query.dto.ShippingAddressDto;
 import com.b101.dib.order.query.service.ShipmentQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,9 +19,11 @@ public class ShipmentQueryController {
     @GetMapping("/{orderId}/shipping-address")
     public ResponseEntity<Map<String, Object>> findAddress(@RequestHeader("X-Member-Id") Long memberId,
                                                            @PathVariable("orderId") Long orderId) {
+        ShippingAddressDto dto = new ShippingAddressDto();
+        dto.setAddress(shipmentQueryService.findAddress(memberId, orderId));
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "배송지 조회 성공");
-        map.put("data", shipmentQueryService.findAddress(memberId, orderId));
+        map.put("data", dto);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 

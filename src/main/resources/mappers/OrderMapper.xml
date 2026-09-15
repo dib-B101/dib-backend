@@ -57,8 +57,12 @@
             <if test="status != null">
                 AND o.status = #{status}::order_status
             </if>
+            <if test="cursor != null">
+                AND o.order_id &lt; #{cursor}
+            </if>
         </where>
-        ORDER BY o.created_at DESC, o.order_id DESC
+        ORDER BY o.order_id DESC
+        LIMIT #{limit}
     </select>
 
     <resultMap id="OrderDetailMap"
@@ -72,6 +76,7 @@
         <result property="status" column="status" />
         <result property="paymentDue" column="payment_due" />
         <result property="address" column="address" />
+        <result property="carrier" column="carrier" />
         <result property="trackingNumber" column="tracking_number" />
         <result property="chattingSessionId" column="chatting_session_id" />
         <result property="createdAt" column="created_at" />
@@ -106,6 +111,7 @@
             o.status,
             o.payment_due,
             o.address::text AS address,
+            o.carrier,
             o.tracking_number,
             o.chatting_session_id,
             o.created_at,

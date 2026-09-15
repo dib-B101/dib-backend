@@ -18,9 +18,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CreateRequest {
 	@NotNull()
-	private Long memberId;
-	
-	@NotNull()
     private Long categoryId;
 
 	@NotBlank(message = "제목은 필수입니다")

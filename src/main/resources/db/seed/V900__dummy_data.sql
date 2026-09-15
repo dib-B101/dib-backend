@@ -57,8 +57,8 @@ INSERT INTO auction (
     50000,                  -- start_price
     75000,                  -- current_price
     3600,					-- auction_time (1시간)
-    '2026-09-07 13:00:00',  -- started_at
-    NULL,                   -- ended_at
+    NOW() - INTERVAL '1 hour',       -- started_at
+    NOW() + INTERVAL '7 days',       -- ended_at (ACTIVE 는 마감 시각 필수 — 지나면 스케줄러가 종료)
     'ACTIVE',               -- status
     5,                      -- bid_count
     3,                      -- bidder_count
@@ -110,6 +110,7 @@ INSERT INTO bid (auction_id, member_id, amount) VALUES
 UPDATE auction SET top_bid_id = (SELECT bid_id FROM bid WHERE auction_id = 3 AND amount = 52000) WHERE auction_id = 3;
 INSERT INTO "order" (auction_id, seller_id, buyer_id, final_price, status, payment_due, address, carrier, tracking_number, chatting_session_id) VALUES
 (3, 1, 3, 52000, 'PENDING', NOW() - INTERVAL '1 hour', NULL, NULL, NULL, 'SESSION-005');
+
 
 -- 11. 결제 (Payment)
 INSERT INTO payment (order_id, buyer_id, amount, type, payment_key, refund_key, receipt_url) VALUES

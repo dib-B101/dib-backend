@@ -1,5 +1,6 @@
 package com.b101.dib.settlement.query.service;
 
+import com.b101.dib.common.dto.CursorPageDto;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
 import com.b101.dib.common.util.AccountMasker;
@@ -19,8 +20,10 @@ public class SettlementQueryServiceImpl implements SettlementQueryService {
     private final SettlementMapper settlementMapper;
 
     @Override
-    public List<SettlementQueryDto> findMine(Long sellerId) {
-        return settlementMapper.findBySellerId(sellerId);
+    public CursorPageDto<SettlementQueryDto> findMine(Long sellerId, String cursor, int size) {
+        int limit = CursorPageDto.limit(size);
+        List<SettlementQueryDto> rows = settlementMapper.findBySellerId(sellerId, CursorPageDto.parseCursor(cursor), limit + 1);
+        return CursorPageDto.of(rows, limit, SettlementQueryDto::getSettlementId);
     }
 
     @Override

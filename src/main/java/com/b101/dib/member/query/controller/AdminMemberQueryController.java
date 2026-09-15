@@ -1,5 +1,6 @@
 package com.b101.dib.member.query.controller;
 
+import com.b101.dib.common.dto.CursorPageDto;
 import com.b101.dib.member.domain.MemberStatus;
 import com.b101.dib.member.query.dto.AdminMemberQueryDto;
 import com.b101.dib.member.query.service.MemberQueryService;
@@ -9,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -21,11 +21,13 @@ public class AdminMemberQueryController {
     @GetMapping
     public ResponseEntity<Map<String, Object>> findAll(@RequestParam(name = "q", required = false) String q,
                                                        @RequestParam(name = "status", required = false) MemberStatus status,
-                                                       @RequestParam(name = "warningCount", required = false) Integer warningCount) {
-        List<AdminMemberQueryDto> dtoList = memberQueryService.findAll(q, status, warningCount);
+                                                       @RequestParam(name = "warningCount", required = false) Integer warningCount,
+                                                       @RequestParam(name = "cursor", required = false) String cursor,
+                                                       @RequestParam(name = "size", defaultValue = "20") int size) {
+        CursorPageDto<AdminMemberQueryDto> page = memberQueryService.findAll(q, status, warningCount, cursor, size);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "회원 목록 조회 성공");
-        map.put("data", dtoList);
+        map.put("data", page);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 }
