@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,8 +35,7 @@ public class BookmarkQueryController {
 	}
 	
 	@GetMapping("/me")
-	public ResponseEntity<Map<String, Object>> findByMemberId(){
-		Long myId = 1L;
+	public ResponseEntity<Map<String, Object>> findByMemberId(@RequestHeader("X-Member-Id") Long myId){
 		List<BookmarkQueryDto> dtoList = bookamrkQueryService.findByMemberId(myId);
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("message", "내 북마크 목록 조회 성공");

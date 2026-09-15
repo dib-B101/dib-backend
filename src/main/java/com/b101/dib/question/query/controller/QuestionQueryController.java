@@ -1,5 +1,6 @@
 package com.b101.dib.question.query.controller;
 
+import com.b101.dib.common.dto.CursorPageDto;
 import com.b101.dib.question.query.dto.QuestionDetailDto;
 import com.b101.dib.question.query.dto.QuestionQueryDto;
 import com.b101.dib.question.query.service.QuestionQueryService;
@@ -9,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -20,11 +20,13 @@ public class QuestionQueryController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> findMine(@RequestHeader("X-Member-Id") Long memberId,
-                                                        @RequestParam(name = "answered", required = false) Boolean answered) {
-        List<QuestionQueryDto> dtoList = questionQueryService.findMine(memberId, answered);
+                                                        @RequestParam(name = "answered", required = false) Boolean answered,
+                                                        @RequestParam(name = "cursor", required = false) String cursor,
+                                                        @RequestParam(name = "size", defaultValue = "20") int size) {
+        CursorPageDto<QuestionQueryDto> page = questionQueryService.findMine(memberId, answered, cursor, size);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "내 문의 목록 조회 성공");
-        map.put("data", dtoList);
+        map.put("data", page);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 

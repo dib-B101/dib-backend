@@ -19,14 +19,14 @@ public class QuestionCommandServiceImpl implements QuestionCommandService {
     private final QuestionRepository questionRepository;
 
     @Override
-    public Long create(Long memberId, CreateQuestionRequest request) {
+    public Question create(Long memberId, CreateQuestionRequest request) {
         Question question = Question.builder()
                 .memberId(memberId)
                 .title(request.getTitle())
                 .content(request.getContent())
                 .createdAt(LocalDateTime.now())
                 .build();
-        return questionRepository.save(question).getQuestionId();
+        return questionRepository.save(question);
     }
 
     @Override

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,9 +32,9 @@ public class LiveBroadcastCommandController {
 	@Transactional
 	@PostMapping
 	public ResponseEntity<Map<String, Object>> create(
+			@RequestHeader("X-Member-Id") Long myId,
 			@RequestBody CreateRequest request
 			){
-		Long myId = 1L;
 		LiveBroadcast liveBroadcast = liveBroadcastCommandService.create(myId, request);
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("message", "라이브 방송 생성 성공");
@@ -46,10 +47,10 @@ public class LiveBroadcastCommandController {
 	@Transactional
 	@PatchMapping("/{liveBroadcastId}")
 	public ResponseEntity<Map<String, Object>> update(
+			@RequestHeader("X-Member-Id") Long myId,
 			@PathVariable("liveBroadcastId") Long liveBroadcastId,
 			@RequestBody UpdateRequest request
 			){
-		Long myId = 1L;
 		LiveBroadcast liveBroadcast = liveBroadcastCommandService.update(myId, liveBroadcastId, request);
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("message", "라이브 방송 수정 성공");
@@ -62,9 +63,9 @@ public class LiveBroadcastCommandController {
 	@Transactional
 	@DeleteMapping("/{liveBroadcastId}")
 	public ResponseEntity<Map<String, Object>> delete(
+			@RequestHeader("X-Member-Id") Long myId,
 			@PathVariable("liveBroadcastId") Long liveBroadcastId
 			){
-		Long myId = 1L;
 		LiveBroadcast liveBroadcast = liveBroadcastCommandService.delete(myId, liveBroadcastId);
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("message", "라이브 방송 삭제 성공");

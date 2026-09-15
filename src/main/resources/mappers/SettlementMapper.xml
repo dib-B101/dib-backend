@@ -28,7 +28,11 @@
         JOIN auction a ON a.auction_id = o.auction_id
         JOIN product p ON p.product_id = a.product_id
         WHERE s.seller_id = #{sellerId}
+        <if test="cursor != null">
+            AND s.settlement_id &lt; #{cursor}
+        </if>
         ORDER BY s.settlement_id DESC
+        LIMIT #{limit}
     </select>
 
     <resultMap id="SettlementDetailMap" type="com.b101.dib.settlement.query.dto.SettlementDetailDto">

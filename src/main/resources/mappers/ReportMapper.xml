@@ -35,7 +35,11 @@
         <if test="status != null">
             AND r.status = #{status}::report_status
         </if>
-        ORDER BY r.created_at DESC, r.report_id DESC
+        <if test="cursor != null">
+            AND r.report_id &lt; #{cursor}
+        </if>
+        ORDER BY r.report_id DESC
+        LIMIT #{limit}
     </select>
     
         <resultMap id="AdminReportQueryMap"
@@ -78,9 +82,11 @@
             <if test="status != null">
                 AND r.status = #{status}::report_status
             </if>
+            <if test="cursor != null">
+                AND r.report_id &lt; #{cursor}
+            </if>
         </where>
-        ORDER BY
-            CASE r.status WHEN 'PENDING' THEN 0 ELSE 1 END,
-            r.created_at DESC
+        ORDER BY r.report_id DESC
+        LIMIT #{limit}
     </select>
 </mapper>

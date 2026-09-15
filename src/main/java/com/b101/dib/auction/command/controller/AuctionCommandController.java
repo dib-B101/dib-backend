@@ -20,8 +20,7 @@ public class AuctionCommandController {
     private final AuctionCommandService auctionCommandService;
     
     @PostMapping
-    public ResponseEntity<Map<String, Object>> create(@RequestBody CreateAuctionRequest request) {
-    	Long myId = 1L;
+    public ResponseEntity<Map<String, Object>> create(@RequestHeader("X-Member-Id") Long myId, @RequestBody CreateAuctionRequest request) {
         Auction auction = auctionCommandService.create(myId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "경매 생성 성공");
@@ -33,10 +32,10 @@ public class AuctionCommandController {
     
     @PatchMapping("/{auctionId}")
     public ResponseEntity<Map<String, Object>> update(
+    		@RequestHeader("X-Member-Id") Long myId,
     		@PathVariable("auctionId") Long auctionId,
     		@RequestBody UpdateAuctionRequest request
     		) {
-    	Long myId = 1L;
         Auction auction = auctionCommandService.update(myId, auctionId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "경매 수정 성공");
@@ -48,9 +47,9 @@ public class AuctionCommandController {
     
     @PatchMapping("/{auctionId}/start")
     public ResponseEntity<Map<String, Object>> startAuction(
+    		@RequestHeader("X-Member-Id") Long myId,
     		@PathVariable("auctionId") Long auctionId
     		){
-    	Long myId = 1L;
     	Auction auction = auctionCommandService.startAuction(myId, auctionId);
     	HashMap<String, Object> map = new HashMap<>();
         map.put("message", "경매 시작");
@@ -62,9 +61,9 @@ public class AuctionCommandController {
     
     @DeleteMapping("/{auctionId}")
     public ResponseEntity<Map<String, Object>> delete(
+    		@RequestHeader("X-Member-Id") Long myId,
     		@PathVariable("auctionId") Long auctionId
     		) {
-    	Long myId = 1L;
         Auction auction = auctionCommandService.delete(myId, auctionId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "경매 삭제 성공");

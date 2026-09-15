@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,8 +26,8 @@ public class BookmarkCommandController {
 	
 	@PostMapping("/bookmark")
 	public ResponseEntity<Map<String, Object>> create(
+			@RequestHeader("X-Member-Id") Long myId,
 			@PathVariable("productId") Long productId){
-		Long myId = 1L;
 		Bookmark bookmark = bookmarkCommandService.create(myId, productId);
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("message", "북마크 생성 성공");
@@ -38,8 +39,8 @@ public class BookmarkCommandController {
 	
 	@DeleteMapping("/bookmark")
 	public ResponseEntity<Map<String, Object>> delete(
+			@RequestHeader("X-Member-Id") Long myId,
 			@PathVariable("productId") Long productId){
-		Long myId = 1L;
 		Bookmark bookmark = bookmarkCommandService.delete(myId, productId);
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("message", "북마크 삭제 성공");

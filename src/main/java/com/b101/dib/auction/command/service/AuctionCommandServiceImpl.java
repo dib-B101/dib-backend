@@ -81,14 +81,13 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 	@Override
 	public Auction startAuction(Long myId, Long auctionId) {
 		Auction auction = checkAuction(myId, auctionId);
-		auction.setStatus(AuctionStatus.ACTIVE);
-		auction.setStartedAt(LocalDateTime.now());
-		auction.setUpdatedAt(LocalDateTime.now());
+		LocalDateTime now = LocalDateTime.now();
+		auction.start(now);   // ACTIVE + endedAt = now + auctionTime(초)
 		
 		Long productId = auction.getProductId();
 		Product product = checkProduct(myId, productId);
 		product.setStatus(ProductStatus.ON_AUCTION);
-		product.setUpdatedAt(LocalDateTime.now());
+		product.setUpdatedAt(now);
 		
 		return auction;
 	}

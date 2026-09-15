@@ -22,6 +22,7 @@ public class OrderDetailDto {
     private OrderStatus status;
     private LocalDateTime paymentDue;
     private String address;
+    private String carrier;
     private String trackingNumber;
     private String chattingSessionId;
     private LocalDateTime createdAt;

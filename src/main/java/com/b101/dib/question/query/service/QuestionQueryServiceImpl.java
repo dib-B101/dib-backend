@@ -1,5 +1,6 @@
 package com.b101.dib.question.query.service;
 
+import com.b101.dib.common.dto.CursorPageDto;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
 import com.b101.dib.question.query.dto.AdminQuestionQueryDto;
@@ -19,8 +20,10 @@ public class QuestionQueryServiceImpl implements QuestionQueryService {
     private final QuestionMapper questionMapper;
 
     @Override
-    public List<QuestionQueryDto> findMine(Long memberId, Boolean answered) {
-        return questionMapper.findByMemberId(memberId, answered);
+    public CursorPageDto<QuestionQueryDto> findMine(Long memberId, Boolean answered, String cursor, int size) {
+        int limit = CursorPageDto.limit(size);
+        List<QuestionQueryDto> rows = questionMapper.findByMemberId(memberId, answered, CursorPageDto.parseCursor(cursor), limit + 1);
+        return CursorPageDto.of(rows, limit, QuestionQueryDto::getQuestionId);
     }
 
     @Override
@@ -36,7 +39,9 @@ public class QuestionQueryServiceImpl implements QuestionQueryService {
     }
 
     @Override
-    public List<AdminQuestionQueryDto> findAll(Boolean answered) {
-        return questionMapper.findAll(answered);
+    public CursorPageDto<AdminQuestionQueryDto> findAll(Boolean answered, String cursor, int size) {
+        int limit = CursorPageDto.limit(size);
+        List<AdminQuestionQueryDto> rows = questionMapper.findAll(answered, CursorPageDto.parseCursor(cursor), limit + 1);
+        return CursorPageDto.of(rows, limit, AdminQuestionQueryDto::getQuestionId);
     }
 }

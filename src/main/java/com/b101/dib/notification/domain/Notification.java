@@ -68,6 +68,32 @@ public class Notification {
                 .build();
     }
 
+    public static Notification won(Long auctionId, Long memberId, Long bidId, Long amount) {
+        return Notification.builder()
+                .auctionId(auctionId)
+                .memberId(memberId)
+                .bidId(bidId)
+                .type(NotificationType.AUCTION_WON)
+                .title("낙찰 안내")
+                .content(cut(amount + "원에 낙찰되었습니다. 등록된 카드로 자동 결제가 진행됩니다."))
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static Notification outbid(Long auctionId, Long memberId, Long bidId, Long newPrice) {
+        return Notification.builder()
+                .auctionId(auctionId)
+                .memberId(memberId)
+                .bidId(bidId)
+                .type(NotificationType.OUTBID)
+                .title("상위 입찰 발생")
+                .content(cut("다른 참가자가 " + newPrice + "원으로 입찰했습니다. 다시 입찰해 보세요."))
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
     private static String cut(String s) {
         return s.length() > CONTENT_MAX ? s.substring(0, CONTENT_MAX) : s;
     }

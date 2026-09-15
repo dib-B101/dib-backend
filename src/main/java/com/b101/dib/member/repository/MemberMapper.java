@@ -12,7 +12,9 @@ import java.util.List;
 public interface MemberMapper {
     List<AdminMemberQueryDto> findAll(@Param("q") String q,
                                       @Param("status") MemberStatus status,
-                                      @Param("warningCount") Integer warningCount);
+                                      @Param("warningCount") Integer warningCount,
+                                      @Param("cursor") Long cursor,
+                                      @Param("limit") int limit);
 
     MemberDetailDto findById(@Param("memberId") Long memberId);
 }

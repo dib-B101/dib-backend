@@ -11,7 +11,11 @@ import java.util.List;
 @Mapper
 public interface QuestionMapper {
     List<QuestionQueryDto> findByMemberId(@Param("memberId") Long memberId,
-                                          @Param("answered") Boolean answered);
+                                          @Param("answered") Boolean answered,
+                                          @Param("cursor") Long cursor,
+                                          @Param("limit") int limit);
     QuestionDetailDto findById(@Param("questionId") Long questionId);
-    List<AdminQuestionQueryDto> findAll(@Param("answered") Boolean answered);
+    List<AdminQuestionQueryDto> findAll(@Param("answered") Boolean answered,
+                                        @Param("cursor") Long cursor,
+                                        @Param("limit") int limit);
 }

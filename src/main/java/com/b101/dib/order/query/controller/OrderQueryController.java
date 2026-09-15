@@ -1,8 +1,9 @@
 package com.b101.dib.order.query.controller;
 
+import com.b101.dib.common.dto.CursorPageDto;
 import com.b101.dib.order.domain.OrderRole;
 import com.b101.dib.order.domain.OrderStatus;
-import com.b101.dib.order.query.dto.OrderDetailDto;
+import com.b101.dib.order.query.dto.OrderDetailViewDto;
 import com.b101.dib.order.query.dto.OrderQueryDto;
 import com.b101.dib.order.query.service.OrderQueryService;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,18 +23,20 @@ public class OrderQueryController {
     @GetMapping
     public ResponseEntity<Map<String, Object>> findMine(@RequestHeader("X-Member-Id") Long memberId,
                                                         @RequestParam(name = "role", required = false) OrderRole role,
-                                                        @RequestParam(name = "status", required = false) OrderStatus status) {
-        List<OrderQueryDto> dtoList = orderQueryService.findMine(memberId, role, status);
+                                                        @RequestParam(name = "status", required = false) OrderStatus status,
+                                                        @RequestParam(name = "cursor", required = false) String cursor,
+                                                        @RequestParam(name = "size", defaultValue = "20") int size) {
+        CursorPageDto<OrderQueryDto> page = orderQueryService.findMine(memberId, role, status, cursor, size);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "내 주문 목록 조회 성공");
-        map.put("data", dtoList);
+        map.put("data", page);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 
     @GetMapping("/{orderId}")
     public ResponseEntity<Map<String, Object>> findDetail(@RequestHeader("X-Member-Id") Long memberId,
                                                           @PathVariable("orderId") Long orderId) {
-        OrderDetailDto dto = orderQueryService.findDetail(memberId, orderId);
+        OrderDetailViewDto dto = orderQueryService.findDetail(memberId, orderId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "주문 상세 조회 성공");
         map.put("data", dto);

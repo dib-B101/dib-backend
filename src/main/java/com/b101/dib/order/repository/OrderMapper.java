@@ -15,7 +15,9 @@ import java.util.List;
 public interface OrderMapper {
     List<OrderQueryDto> findByMemberId(@Param("memberId") Long memberId,
                                        @Param("role") OrderRole role,
-                                       @Param("status") OrderStatus status);
+                                       @Param("status") OrderStatus status,
+                                       @Param("cursor") Long cursor,
+                                       @Param("limit") int limit);
     OrderDetailDto findById(@Param("orderId") Long orderId);
     Long findWinnerId(@Param("auctionId") Long auctionId);
     Long findRunnerUpId(@Param("auctionId") Long auctionId);
