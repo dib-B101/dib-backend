@@ -20,6 +20,7 @@ public class MemberDetailDto {
     private String name;
     private String phoneNumber;
     private String nickname;
+    private String profileImageUrl;
     private Gender gender;
     private LocalDate birthDate;
     private MemberStatus status;

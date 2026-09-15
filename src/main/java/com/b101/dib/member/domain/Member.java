@@ -42,6 +42,9 @@ public class Member {
     @Column(nullable = false, length = 50)
     private String nickname;
 
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
+
     @Column(nullable = false, length = 10)
     private String name;
 
