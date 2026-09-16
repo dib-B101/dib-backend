@@ -165,6 +165,44 @@ class AddressCommandServiceImplTest {
         );
     }
 
+    @Test
+    void deletesAddressOwnedByAuthenticatedMember() {
+        Address address = address(10L, 1L);
+        given(addressRepository.findById(10L)).willReturn(Optional.of(address));
+
+        addressCommandService.delete(1L, 10L);
+
+        verify(addressRepository).delete(address);
+    }
+
+    @Test
+    void rejectsDeleteWhenAddressDoesNotExist() {
+        given(addressRepository.findById(10L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> addressCommandService.delete(1L, 10L))
+                .isInstanceOfSatisfying(
+                        BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.ADDRESS_NOT_FOUND)
+                );
+
+        verify(addressRepository, never()).delete(any(Address.class));
+    }
+
+    @Test
+    void rejectsDeleteWhenAddressBelongsToAnotherMember() {
+        given(addressRepository.findById(10L)).willReturn(Optional.of(address(10L, 2L)));
+
+        assertThatThrownBy(() -> addressCommandService.delete(1L, 10L))
+                .isInstanceOfSatisfying(
+                        BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.FORBIDDEN)
+                );
+
+        verify(addressRepository, never()).delete(any(Address.class));
+    }
+
     private Address address(Long addressId, Long memberId) {
         return Address.builder()
                 .id(addressId)
