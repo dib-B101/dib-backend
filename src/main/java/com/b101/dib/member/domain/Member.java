@@ -100,4 +100,9 @@ public class Member {
     @Column(nullable = false)
     private Integer warningCount;
 
+    public void scheduleWithdrawal(LocalDateTime scheduledAt, LocalDateTime updatedAt) {
+        this.deletedAt = scheduledAt;
+        this.updatedAt = updatedAt;
+    }
+
 }

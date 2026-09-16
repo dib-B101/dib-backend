@@ -74,6 +74,10 @@ dependencies {
     // Redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
+    // ShedLock — 다중 인스턴스 스케줄러 중복 실행 방지
+    implementation("net.javacrumbs.shedlock:shedlock-spring:7.10.1")
+    implementation("net.javacrumbs.shedlock:shedlock-provider-redis-spring:7.10.1")
+
     // Swagger UI — http://localhost:8080/swagger-ui.html (springdoc 3.x = Spring Boot 4 대응)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")
 
