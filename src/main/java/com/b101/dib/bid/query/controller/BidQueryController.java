@@ -1,9 +1,14 @@
 package com.b101.dib.bid.query.controller;
 
+import com.b101.dib.auction.domain.AuctionStatus;
+import com.b101.dib.auth.token.AccessTokenClaims;
+import com.b101.dib.bid.query.dto.MyBidQueryDto;
 import com.b101.dib.bid.query.service.BidQueryService;
+import com.b101.dib.common.dto.CursorPageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -36,12 +41,14 @@ public class BidQueryController {
     }
 
     @GetMapping("/members/me/bids")
-    public ResponseEntity<Map<String, Object>> findMine(@RequestHeader("X-Member-Id") Long memberId,
-                                                        @RequestParam(name = "cursor", required = false) String cursor,
-                                                        @RequestParam(name = "size", defaultValue = "20") int size) {
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("message", "내 입찰 내역 조회 성공");
-        map.put("data", bidQueryService.findMine(memberId, cursor, size));
-        return ResponseEntity.status(HttpStatus.OK).body(map);
+    public ResponseEntity<CursorPageDto<MyBidQueryDto>> findMine(
+            @AuthenticationPrincipal AccessTokenClaims claims,
+            @RequestParam(name = "status", required = false) AuctionStatus status,
+            @RequestParam(name = "cursor", required = false) String cursor,
+            @RequestParam(name = "size", defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(
+                bidQueryService.findMine(claims.memberId(), status, cursor, size)
+        );
     }
 }

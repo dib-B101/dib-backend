@@ -31,13 +31,7 @@
     <resultMap id="MyBidQueryMap" type="com.b101.dib.bid.query.dto.MyBidQueryDto">
         <id property="bidId" column="bid_id"/>
         <result property="auctionId" column="auction_id"/>
-        <result property="productId" column="product_id"/>
-        <result property="productTitle" column="product_title"/>
-        <result property="thumbnailUrl" column="thumbnail_url"/>
         <result property="amount" column="amount"/>
-        <result property="currentPrice" column="current_price"/>
-        <result property="auctionStatus" column="auction_status"/>
-        <result property="highest" column="highest"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
@@ -46,18 +40,14 @@
         SELECT
             b.bid_id,
             b.auction_id,
-            a.product_id,
-            p.title AS product_title,
-            p.thumbnail_url,
             b.amount,
-            a.current_price,
-            a.status AS auction_status,
-            (a.top_bid_id = b.bid_id) AS highest,
             b.created_at
         FROM bid b
         JOIN auction a ON a.auction_id = b.auction_id
-        JOIN product p ON p.product_id = a.product_id
         WHERE b.member_id = #{memberId}
+        <if test="status != null">
+            AND a.status = #{status}::auction_status
+        </if>
         <if test="cursor != null">
             AND b.bid_id &lt; #{cursor}
         </if>
