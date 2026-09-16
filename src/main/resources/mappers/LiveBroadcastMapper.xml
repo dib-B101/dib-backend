@@ -10,7 +10,7 @@
         <result property="title" column="title" />
         <result property="description" column="description" />
         <result property="status" column="status" />
-        <result property="streamUrl" column="stream_url" />
+        <result property="livekitRoomName" column="livekit_room_name" />
         <result property="startedAt" column="started_at" />
         <result property="endedAt" column="ended_at" />
         <result property="viewCount" column="view_count" />
@@ -25,7 +25,7 @@
         	lb.title,
         	lb.description,
         	lb.status,
-        	lb.stream_url,
+        	lb.livekit_room_name,
         	lb.started_at,
         	lb.ended_at,
         	lb.view_count,
@@ -42,7 +42,7 @@
         	lb.title,
         	lb.description,
         	lb.status,
-        	lb.stream_url,
+        	lb.livekit_room_name,
         	lb.started_at,
         	lb.ended_at,
         	lb.view_count,
@@ -60,7 +60,7 @@
         	lb.title,
         	lb.description,
         	lb.status,
-        	lb.stream_url,
+        	lb.livekit_room_name,
         	lb.started_at,
         	lb.ended_at,
         	lb.view_count,

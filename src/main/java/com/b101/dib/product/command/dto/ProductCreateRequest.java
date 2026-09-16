@@ -5,6 +5,7 @@ import com.b101.dib.product.domain.ProductStatus;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -14,26 +15,16 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class CreateRequest {
-	@NotNull()
-    private Long categoryId;
+public class ProductCreateRequest {
 
-	@NotBlank(message = "제목은 필수입니다")
-    @Size(max = 200)
+	private Long categoryId;
     private String title;
-
     private String description;
-
-    @NotNull
     private ProductCondition condition;
-
-    @Size(max = 200)
     private String modelName;
     private Integer releaseYear;
-
-    @PositiveOrZero
     private Long marketPrice;
 
+    private Long startPrice;
+    private Integer auctionTime;
 }

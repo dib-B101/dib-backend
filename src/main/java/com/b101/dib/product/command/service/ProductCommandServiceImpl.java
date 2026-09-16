@@ -1,12 +1,15 @@
 package com.b101.dib.product.command.service;
-import com.b101.dib.product.command.dto.CreateRequest;
+import com.b101.dib.product.command.dto.ProductCreateRequest;
 import com.b101.dib.product.command.dto.ModerateProductRequest;
-import com.b101.dib.product.command.dto.UpdateRequest;
+import com.b101.dib.product.command.dto.ProductUpdateRequest;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.product.repository.ProductRepository;
 import com.b101.dib.productImage.domain.ProductImage;
 import com.b101.dib.productImage.repository.ProductImageRepository;
+import com.b101.dib.auction.domain.Auction;
+import com.b101.dib.auction.domain.AuctionStatus;
+import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
 
@@ -25,26 +28,31 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
+    private final AuctionRepository auctionRepository;
     
     @Override
-    public Product create(Long myId, CreateRequest request, List<MultipartFile> images) {
+    public Product create(Long myId, ProductCreateRequest request, List<MultipartFile> images) {
     	if(images != null && images.size() > 10) {
     		throw new BusinessException(ErrorCode.TOO_MUCH_IMAGES);
     	}
-    	String thumbnailUrl = "thumbnail-url";
+    	String thumbnailUrl = images.get(0).toString();
+    	
         Product product = Product.builder()
-                .memberId(myId)
-                .categoryId(request.getCategoryId())
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .condition(request.getCondition())
-                .modelName(request.getModelName())
-                .releaseYear(request.getReleaseYear())
-                .marketPrice(request.getMarketPrice())
-                .thumbnailUrl(thumbnailUrl)
-                .status(ProductStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .build();
+        		.memberId(myId)
+        		.categoryId(request.getCategoryId())
+        		.title(request.getTitle())
+        		.description(request.getDescription())
+        		.condition(request.getCondition())
+        		.modelName(request.getModelName())
+        		.releaseYear(request.getAuctionTime())
+        		.marketPrice(request.getMarketPrice())
+        		.thumbnailUrl(thumbnailUrl)
+        		.status(ProductStatus.PENDING)
+        		.embedding(null)
+        		.createdAt(LocalDateTime.now())
+        		.updatedAt(null)
+        		.deletedAt(null)
+        		.build();
         productRepository.save(product);
         
         // 이미지들을 업로드한다.
@@ -63,11 +71,27 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         
         // 상품 정보, 상품 이미지 AI 검수 요청을 Kafka를 통해 진행
         
+        Auction auction = Auction.builder()
+        		.productId(product.getProductId())
+        		.startPrice(request.getStartPrice())
+        		.currentPrice(request.getStartPrice())
+        		.topBidId(null)
+        		.auctionTime(request.getAuctionTime())
+        		.startedAt(null)
+        		.endedAt(null)
+        		.status(AuctionStatus.PENDING)
+        		.bidCount(0).bidderCount(0).viewCount(0).bookmarkCount(0).extensionCount(0)
+        		.createdAt(LocalDateTime.now())
+        		.updatedAt(null)
+        		.deletedAt(null)
+        		.build();
+        auctionRepository.save(auction);
+        
         return product;
     }
 
     @Override
-    public Product update(Long myId, Long productId, UpdateRequest request) {
+    public Product update(Long myId, Long productId, ProductUpdateRequest request) {
     	
         Product product = checkProduct(myId, productId);
         
@@ -100,11 +124,28 @@ public class ProductCommandServiceImpl implements ProductCommandService {
             product.setMarketPrice(request.getMarketPrice());
             updated = true;
         }
+        
         if(updated) {
         	product.setStatus(ProductStatus.PENDING);
         	product.setUpdatedAt(LocalDateTime.now());
         }
         
+        Auction auction = checkAuction(myId, productId);
+		
+		updated = false;
+		if (request.getStartPrice() != null) {
+			auction.setStartPrice(request.getStartPrice());
+			auction.setCurrentPrice(request.getStartPrice());
+			updated = true;
+		}
+		if (request.getAuctionTime() != null) {
+			auction.setAuctionTime(request.getAuctionTime());
+			updated = true;
+		}
+		if(updated) {
+			auction.setUpdatedAt(LocalDateTime.now());			
+		}
+
         return product;
     }
     
@@ -120,8 +161,25 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         for(ProductImage productImage : productImages) {
         	productImageRepository.delete(productImage);
         }
+        
+        Auction auction = checkAuction(myId, productId);
+        auctionRepository.delete(auction);
+        
         return product;
     }
+    
+	@Override
+	public Product startAuction(Long myId, Long productId) {
+		Product product = checkProduct(myId, productId);
+		LocalDateTime now = LocalDateTime.now();
+		product.setStatus(ProductStatus.ON_AUCTION);
+		product.setUpdatedAt(now);
+		
+		Auction auction = checkAuction(myId, productId);
+		auction.start(now);
+		
+		return product;
+	}
     
     private Product checkProduct(Long myId, Long productId) {
     	Product product = productRepository.findById(productId)
@@ -141,6 +199,22 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         
         return product;
     }
+    
+    private Auction checkAuction(Long myId, Long productId) {
+		Auction auction = auctionRepository.findByProductId(productId);
+		if(auction == null) {
+			throw new BusinessException(ErrorCode.AUCTION_NOT_FOUND);
+		}
+		if (auction.getDeletedAt() != null) {
+			throw new BusinessException(ErrorCode.AUCTION_ALREADY_DELETED);
+		}
+		if (auction.getStatus() != AuctionStatus.SCHEDULED) {
+			throw new BusinessException(ErrorCode.AUCTION_NOT_EDITABLE);
+		}
+		return auction;
+	}
+    
+
 
 
     @Override
@@ -160,4 +234,5 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         product.setUpdatedAt(LocalDateTime.now());
         return product;
     }
+
 }

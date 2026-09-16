@@ -5,6 +5,7 @@ import com.b101.dib.order.domain.OrderStatus;
 import com.b101.dib.order.query.dto.OrderDetailDto;
 import com.b101.dib.order.query.dto.OrderQueryDto;
 import com.b101.dib.order.query.dto.OrderShipmentDto;
+import com.b101.dib.order.query.dto.PurchaseHistoryRowDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -18,6 +19,12 @@ public interface OrderMapper {
                                        @Param("status") OrderStatus status,
                                        @Param("cursor") Long cursor,
                                        @Param("limit") int limit);
+    List<PurchaseHistoryRowDto> findPurchasesByBuyerId(
+            @Param("buyerId") Long buyerId,
+            @Param("orderStatus") OrderStatus orderStatus,
+            @Param("cursor") Long cursor,
+            @Param("limit") int limit
+    );
     OrderDetailDto findById(@Param("orderId") Long orderId);
     Long findWinnerId(@Param("auctionId") Long auctionId);
     Long findRunnerUpId(@Param("auctionId") Long auctionId);

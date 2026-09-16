@@ -12,12 +12,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.b101.dib.liveBroadcast.command.dto.CreateRequest;
 import com.b101.dib.liveBroadcast.command.dto.UpdateRequest;
 import com.b101.dib.liveBroadcast.command.service.LiveBroadcastCommandService;
 import com.b101.dib.liveBroadcast.domain.LiveBroadcast;
+import com.b101.dib.liveBroadcast.domain.LiveBroadcastRole;
+import com.b101.dib.websocket.livekit.config.LiveKitConfig;
+import com.b101.dib.websocket.livekit.dto.LiveKitTokenResponse;
+import com.b101.dib.websocket.livekit.service.LiveKitService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +33,21 @@ import lombok.RequiredArgsConstructor;
 public class LiveBroadcastCommandController {
 	
 	private final LiveBroadcastCommandService liveBroadcastCommandService;
+	private final LiveKitService liveKitService;
+	
+	@PostMapping("/{liveBroadcastId}/token")
+    public ResponseEntity<Map<String, Object>> issueToken(
+            @PathVariable("liveBroadcastId") Long liveBroadcastId
+    ) {
+		Long myId = 1L;
+		LiveKitTokenResponse response = liveKitService.issueToken(myId, liveBroadcastId);
+		HashMap<String, Object> map = new HashMap<>();
+		map.put("message", "라이브 방송 토큰 발급 성공");
+		map.put("response", response);
+		return ResponseEntity
+				.status(HttpStatus.OK)
+				.body(map);
+    }
 	
 	@Transactional
 	@PostMapping

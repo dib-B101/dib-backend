@@ -38,7 +38,7 @@ public class LiveBroadcast {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
 	LiveBroadcastStatus status;
     
-	String streamUrl;
+	String livekitRoomName;
 	LocalDateTime startedAt;
 	LocalDateTime endedAt;
 	Integer viewCount;

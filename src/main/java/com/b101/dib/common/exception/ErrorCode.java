@@ -56,6 +56,9 @@ public enum ErrorCode {
     LIVE_BROADCAST_ALREADY_ENDED(HttpStatus.BAD_REQUEST, "라이브 방송이 이미 끝났습니다"),
     LIVE_BROADCAST_ALREADY_CANCELED(HttpStatus.BAD_REQUEST, "라이브 방송이 취소되었습니다"),
     
+    // 라이브 채팅
+    LIVE_CHATTING_NOT_OWNED(HttpStatus.FORBIDDEN, "내가 작성한 대화가 아닙니다"),
+    
     // 회원 가입 및 로그인
     INVALID_EMAIL(HttpStatus.BAD_REQUEST, "이메일 형식이 올바르지 않습니다."),
     EMAIL_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
@@ -135,6 +138,10 @@ public enum ErrorCode {
     ACCOUNT_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "정산 계좌 확인에 실패했습니다."),
 
     // 회원
+    INVALID_ADDRESS(HttpStatus.BAD_REQUEST, "배송지 정보를 확인해 주세요."),
+    ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "배송지를 찾을 수 없습니다."),
+    ACTIVE_ORDER_EXISTS(HttpStatus.CONFLICT, "진행 중인 주문이 있어 탈퇴할 수 없습니다."),
+    ACTIVE_AUCTION_EXISTS(HttpStatus.CONFLICT, "진행 중인 입찰 또는 판매가 있어 탈퇴할 수 없습니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
     private final HttpStatus status;
     private final String message;

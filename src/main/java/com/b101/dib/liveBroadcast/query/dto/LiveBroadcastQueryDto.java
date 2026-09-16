@@ -15,7 +15,7 @@ public class LiveBroadcastQueryDto {
 	String title;
 	String description;
 	LiveBroadcastStatus status;
-	String streamUrl;
+	String livekitRoomName;
 	LocalDateTime startedAt;
 	LocalDateTime endedAt;
 	Integer viewCount;

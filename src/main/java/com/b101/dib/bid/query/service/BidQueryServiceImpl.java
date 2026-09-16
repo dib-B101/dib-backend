@@ -1,6 +1,7 @@
 package com.b101.dib.bid.query.service;
 
 import com.b101.dib.auction.domain.Auction;
+import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.bid.domain.Bid;
 import com.b101.dib.bid.query.dto.BidHistoryQueryDto;
@@ -44,9 +45,19 @@ public class BidQueryServiceImpl implements BidQueryService {
     }
 
     @Override
-    public CursorPageDto<MyBidQueryDto> findMine(Long memberId, String cursor, int size) {
+    public CursorPageDto<MyBidQueryDto> findMine(
+            Long memberId,
+            AuctionStatus status,
+            String cursor,
+            int size
+    ) {
         int limit = CursorPageDto.limit(size);
-        List<MyBidQueryDto> rows = bidMapper.findByMemberId(memberId, CursorPageDto.parseCursor(cursor), limit + 1);
+        List<MyBidQueryDto> rows = bidMapper.findByMemberId(
+                memberId,
+                status,
+                CursorPageDto.parseCursor(cursor),
+                limit + 1
+        );
         return CursorPageDto.of(rows, limit, MyBidQueryDto::getBidId);
     }
 

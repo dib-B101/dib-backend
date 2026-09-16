@@ -1,10 +1,9 @@
 package com.b101.dib.auction.domain;
 
 public enum AuctionStatus {
+	PENDING,
     SCHEDULED,
-    DEPOSITED,
     ACTIVE,
     ENDED,
-    REFUNDED,
     CANCELED
 }

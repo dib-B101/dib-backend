@@ -1,7 +1,7 @@
 package com.b101.dib.product.command.controller;
 
-import com.b101.dib.product.command.dto.CreateRequest;
-import com.b101.dib.product.command.dto.UpdateRequest;
+import com.b101.dib.product.command.dto.ProductCreateRequest;
+import com.b101.dib.product.command.dto.ProductUpdateRequest;
 import com.b101.dib.product.command.service.ProductCommandService;
 import com.b101.dib.product.domain.Product;
 
@@ -26,18 +26,16 @@ public class ProductCommandController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> create(
-            @RequestHeader("X-Member-Id") Long myId,
-            @Valid @RequestPart("request") CreateRequest createRequest,
-
+//            @RequestHeader("X-Member-Id") Long myId,
+            @Valid @RequestPart("request") ProductCreateRequest createRequest,
             @RequestPart(value = "images", required = false)
             List<MultipartFile> images
     ) {
+    	Long myId = 1L;
         Product product = productCommandService.create(myId, createRequest, images);
-
         Map<String, Object> map = new HashMap<>();
         map.put("message", "상품 등록 성공");
         map.put("data", product);
-
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(map);
@@ -45,9 +43,10 @@ public class ProductCommandController {
 
     @PatchMapping("/{productId}")
     public ResponseEntity<Map<String, Object>> update(
-          @RequestHeader("X-Member-Id") Long myId,
+//          @RequestHeader("X-Member-Id") Long myId,
           @PathVariable("productId") Long productId,
-          @RequestBody UpdateRequest request){
+          @RequestBody ProductUpdateRequest request){
+    	Long myId = 1L;
         Product product = productCommandService.update(myId, productId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 정보 수정 성공");
@@ -59,11 +58,25 @@ public class ProductCommandController {
     
     @DeleteMapping("/{productId}")
     public ResponseEntity<Map<String, Object>> delete(
-    		@RequestHeader("X-Member-Id") Long myId,
+//    		@RequestHeader("X-Member-Id") Long myId,
     		@PathVariable("productId") Long productId){
+    	Long myId = 1L;
         Product product = productCommandService.delete(myId, productId);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 삭제 성공");
+        map.put("data", product);
+        return ResponseEntity
+        		.status(HttpStatus.NO_CONTENT)
+        		.body(map);
+    }
+    
+    @PatchMapping("/{productId}/auctions/start")
+    public ResponseEntity<Map<String, Object>> auctionStart(
+    		@RequestHeader("X-Member-Id") Long myId,
+    		@PathVariable("productId") Long productId){
+        Product product = productCommandService.startAuction(myId, productId);
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("message", "상품 경매 시작");
         map.put("data", product);
         return ResponseEntity
         		.status(HttpStatus.NO_CONTENT)

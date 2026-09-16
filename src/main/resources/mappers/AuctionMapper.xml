@@ -27,6 +27,28 @@
 
 	</resultMap>
 
+	<resultMap id="SaleHistoryRowMap"
+		type="com.b101.dib.auction.query.dto.SaleHistoryRowDto">
+		<id property="auctionId" column="auction_id" />
+		<result property="startPrice" column="start_price" />
+		<result property="currentPrice" column="current_price" />
+		<result property="auctionStatus" column="auction_status" />
+		<result property="bidCount" column="bid_count" />
+		<result property="bidderCount" column="bidder_count" />
+		<result property="startedAt" column="started_at" />
+		<result property="endedAt" column="ended_at" />
+		<result property="productId" column="product_id" />
+		<result property="productTitle" column="product_title" />
+		<result property="thumbnailUrl" column="thumbnail_url" />
+		<result property="productStatus" column="product_status" />
+		<result property="orderId" column="order_id" />
+		<result property="buyerId" column="buyer_id" />
+		<result property="buyerNickname" column="buyer_nickname" />
+		<result property="finalPrice" column="final_price" />
+		<result property="orderStatus" column="order_status" />
+		<result property="orderCreatedAt" column="order_created_at" />
+	</resultMap>
+
 	<select id="findAll" resultMap="AuctionQueryMap">
 		SELECT
 			a.auction_id,
@@ -102,6 +124,72 @@
 	</select>
 	
 	<select id="findActive" resultMap="AuctionQueryMap">
+		SELECT
+			a.auction_id,
+			a.product_id,
+			a.start_price,
+			a.current_price,
+			a.auction_time,
+			a.started_at,
+			a.ended_at,
+			a.status,
+			a.bid_count,
+			a.bidder_count,
+			a.view_count,
+			a.bookmark_count,
+			a.top_bid_id,
+			a.extension_count,
+			a.created_at,
+			a.updated_at,
+			a.deleted_at,
+			a.live_broadcast_id
+		FROM auction a
+		WHERE a.status = 'ACTIVE'
+		ORDER BY created_at DESC	
+	</select>
+
+	<select id="findSalesByMemberId" resultMap="SaleHistoryRowMap">
+		SELECT
+			a.auction_id,
+			a.start_price,
+			a.current_price,
+			a.status AS auction_status,
+			a.bid_count,
+			a.bidder_count,
+			a.started_at,
+			a.ended_at,
+			p.product_id,
+			p.title AS product_title,
+			p.thumbnail_url,
+			p.status AS product_status,
+			o.order_id,
+			o.buyer_id,
+			buyer.nickname AS buyer_nickname,
+			o.final_price,
+			o.status AS order_status,
+			o.created_at AS order_created_at
+		FROM auction a
+		JOIN product p ON p.product_id = a.product_id
+		LEFT JOIN LATERAL (
+			SELECT latest_order.*
+			FROM "order" latest_order
+			WHERE latest_order.auction_id = a.auction_id
+			ORDER BY latest_order.order_id DESC
+			LIMIT 1
+		) o ON TRUE
+		LEFT JOIN member buyer ON buyer.member_id = o.buyer_id
+		WHERE p.member_id = #{memberId}
+		<if test="auctionStatus != null">
+			AND a.status = #{auctionStatus}::auction_status
+		</if>
+		<if test="cursor != null">
+			AND a.auction_id &lt; #{cursor}
+		</if>
+		ORDER BY a.auction_id DESC
+		LIMIT #{limit}
+	</select>
+	
+	<select id="findRecommendations" resultMap="AuctionQueryMap">
 		SELECT
 			a.auction_id,
 			a.product_id,

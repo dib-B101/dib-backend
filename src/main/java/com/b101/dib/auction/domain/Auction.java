@@ -22,6 +22,7 @@ public class Auction {
     private Long productId;
     private Long startPrice;
     private Long currentPrice;
+    private Long topBidId;
     private Integer auctionTime;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
@@ -34,7 +35,6 @@ public class Auction {
     private Integer bidderCount;
     private Integer viewCount;
     private Integer bookmarkCount;
-    private Long topBidId;
     private Integer extensionCount;
     
     private LocalDateTime createdAt;
@@ -78,7 +78,6 @@ public class Auction {
         }
         status = AuctionStatus.ACTIVE;
         startedAt = now;
-        endedAt = now.plusSeconds(auctionTime);   // auction_time 은 초 단위 (더미 3600 = 1시간)
         updatedAt = now;
     }
 
