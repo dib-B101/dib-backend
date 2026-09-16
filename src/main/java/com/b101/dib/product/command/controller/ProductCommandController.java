@@ -1,7 +1,7 @@
 package com.b101.dib.product.command.controller;
 
-import com.b101.dib.product.command.dto.CreateRequest;
-import com.b101.dib.product.command.dto.UpdateRequest;
+import com.b101.dib.product.command.dto.ProductCreateRequest;
+import com.b101.dib.product.command.dto.ProductUpdateRequest;
 import com.b101.dib.product.command.service.ProductCommandService;
 import com.b101.dib.product.domain.Product;
 
@@ -27,17 +27,14 @@ public class ProductCommandController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> create(
             @RequestHeader("X-Member-Id") Long myId,
-            @Valid @RequestPart("request") CreateRequest createRequest,
-
+            @Valid @RequestPart("request") ProductCreateRequest createRequest,
             @RequestPart(value = "images", required = false)
             List<MultipartFile> images
     ) {
         Product product = productCommandService.create(myId, createRequest, images);
-
         Map<String, Object> map = new HashMap<>();
         map.put("message", "상품 등록 성공");
         map.put("data", product);
-
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(map);
@@ -47,7 +44,7 @@ public class ProductCommandController {
     public ResponseEntity<Map<String, Object>> update(
           @RequestHeader("X-Member-Id") Long myId,
           @PathVariable("productId") Long productId,
-          @RequestBody UpdateRequest request){
+          @RequestBody ProductUpdateRequest request){
         Product product = productCommandService.update(myId, productId, request);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 정보 수정 성공");

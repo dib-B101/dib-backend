@@ -37,6 +37,13 @@ public class AuctionQueryController {
     public ResponseEntity<Map<String, Object>> findActive() {
         return ok("진행 중 경매 조회 성공", auctionQueryService.findActive());
     }
+    
+    @GetMapping("/recommendation")
+    public ResponseEntity<Map<String, Object>> findRecommendations(){
+    	Long myId = 1L;
+    	return ok("추천 경매 목록 조회 성공", auctionQueryService.findRecommendations());
+    	
+    }
 
     private ResponseEntity<Map<String, Object>> ok(String message, Object data) {
     	HashMap<String, Object> map = new HashMap<>();

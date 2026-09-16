@@ -12,7 +12,11 @@ spring:
       host: localhost
       port: 6379
   kafka:
-    bootstrap-servers: localhost:9092
+      bootstrap-servers: localhost:9092
+
+      producer:
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
   flyway:
     locations: classpath:db/migration,classpath:db/seed   # 로컬에서만 더미데이터(V900) 같이 적용
     out-of-order: true
