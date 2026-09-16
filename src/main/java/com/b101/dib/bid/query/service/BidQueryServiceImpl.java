@@ -4,6 +4,7 @@ import com.b101.dib.auction.domain.Auction;
 import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.bid.domain.Bid;
 import com.b101.dib.bid.query.dto.BidHistoryQueryDto;
+import com.b101.dib.bid.query.dto.BidSnapshotCacheEntry;
 import com.b101.dib.bid.query.dto.BidSnapshotDto;
 import com.b101.dib.bid.query.dto.MyBidQueryDto;
 import com.b101.dib.bid.repository.BidMapper;
@@ -16,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -25,6 +28,7 @@ public class BidQueryServiceImpl implements BidQueryService {
     private final BidMapper bidMapper;
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
+    private final BidSnapshotCache bidSnapshotCache;
 
     @Override
     public CursorPageDto<BidHistoryQueryDto> findByAuctionId(Long auctionId, String cursor, int size) {
@@ -46,14 +50,30 @@ public class BidQueryServiceImpl implements BidQueryService {
         return CursorPageDto.of(rows, limit, MyBidQueryDto::getBidId);
     }
 
+    // Cache-Aside: Redis hit 면 DB 를 안 친다. miss 면 DB → Redis 저장
     @Override
     public BidSnapshotDto snapshot(Long auctionId, Long memberId) {
+        BidSnapshotCacheEntry entry = bidSnapshotCache.get(auctionId).orElseGet(() -> loadAndCache(auctionId));
+        BidSnapshotDto dto = entry.getSnapshot();
+        dto.setHighestBidder(memberId != null && memberId.equals(entry.getTopBidderId()));
+        dto.setServerTime(Times.now());
+        return dto;
+    }
+
+    @Override
+    public void refreshSnapshot(Long auctionId) {
+        if (auctionRepository.existsById(auctionId)) {
+            loadAndCache(auctionId);
+        }
+    }
+
+    private BidSnapshotCacheEntry loadAndCache(Long auctionId) {
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.AUCTION_NOT_FOUND));
-        boolean highest = false;
-        if (memberId != null && auction.getTopBidId() != null) {
+        Long topBidderId = null;
+        if (auction.getTopBidId() != null) {
             Bid top = bidRepository.findById(auction.getTopBidId()).orElse(null);
-            highest = top != null && top.getMemberId().equals(memberId);
+            topBidderId = top == null ? null : top.getMemberId();
         }
         BidSnapshotDto dto = new BidSnapshotDto();
         dto.setAuctionId(auction.getAuctionId());
@@ -67,9 +87,21 @@ public class BidQueryServiceImpl implements BidQueryService {
         dto.setBidCount(auction.getBidCount());
         dto.setBidderCount(auction.getBidderCount());
         dto.setExtensionCount(auction.getExtensionCount());
-        dto.setHighestBidder(highest);
-        dto.setServerTime(Times.now());
-        return dto;
+
+        BidSnapshotCacheEntry entry = new BidSnapshotCacheEntry();
+        entry.setSnapshot(dto);
+        entry.setTopBidderId(topBidderId);
+        bidSnapshotCache.put(auctionId, entry, ttlFor(auction));
+        return entry;
+    }
+
+    // 마감까지 + 1시간. 마감이 없거나 지났으면 1시간
+    private static Duration ttlFor(Auction auction) {
+        LocalDateTime now = LocalDateTime.now();
+        if (auction.getEndedAt() == null || !auction.getEndedAt().isAfter(now)) {
+            return BidSnapshotCache.AFTER_END_TTL;
+        }
+        return Duration.between(now, auction.getEndedAt()).plus(BidSnapshotCache.AFTER_END_TTL);
     }
 
     // 다른 사람 id 는 뒤 두 자리만: "입찰자 **07"

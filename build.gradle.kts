@@ -56,7 +56,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // Kafka
-    implementation("org.springframework.kafka:spring-kafka")
+    implementation("org.springframework.boot:spring-boot-starter-kafka")   // Boot 4 는 스타터가 있어야 KafkaTemplate 자동설정
 
     // Flyway — 스키마의 유일한 관리 주체 (로컬/배포 동일 스키마 재현)
     // Spring Boot 4 부터는 flyway-core 만으로는 자동설정이 안 붙는다 → starter 필수
@@ -73,6 +73,8 @@ dependencies {
 
     // Redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    // Redisson — 경매 분산락 전용 (Spring Data Redis 연결은 Lettuce 그대로, 스타터 대신 core 만)
+    implementation("org.redisson:redisson:4.7.0")
 
     // Swagger UI — http://localhost:8080/swagger-ui.html (springdoc 3.x = Spring Boot 4 대응)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")

@@ -259,3 +259,134 @@
   소유자 검사는 `product.getMemberId().equals(memberId)`처럼 ID 비교로 한다. (`Long`은 `==`가 아니라 `equals`.)
 
 ---
+
+## 입찰 트랜잭션에는 입찰 성패를 결정하는 쓰기만 넣는다
+
+- **상태:** 제안
+- **적용 범위:** `BidCommandService.place()`, `AuctionEndTxService.endOne()` 등 경매·입찰 Command 트랜잭션과 그 안에서 호출되는 모든 코드
+- **결정:** 락을 잡은 트랜잭션 안에서는 `bid` INSERT, `auction` 갱신(현재가·최고입찰·마감), 그리고 `outbox_event` INSERT 만 수행한다. 알림 저장, 행동 로그(`member_event`), 외부 API 호출(결제·알림톡·AI), 통계는 트랜잭션 밖에서 Kafka Consumer 가 처리한다.
+- **이유:** "누가 먼저 입찰했는가"는 동기로 직렬화해야 하지만, 그 뒤에 일어나는 일은 입찰 성패와 무관하다. 락 구간에 부수 작업이 들어가면 락 보유 시간이 늘어 경쟁 입찰 처리량이 떨어지고, 알림 저장 실패 같은 부수 작업 오류가 입찰 자체를 롤백시킨다. 아키텍처 문서의 "실시간 입찰은 Kafka 를 거치지 않고, 후속 처리는 Kafka 로 분리한다"를 코드 규칙으로 옮긴 것이다.
+- **예외:** 낙찰 주문(`order`) 생성은 낙찰 결과의 일부이므로 종료 트랜잭션 안에서 한다. 자동결제(외부 토스 API)는 트랜잭션 밖이며 `dib.auction.closed` Consumer 가 수행한다.
+- **예시:**
+
+  ```java
+  @Transactional
+  public BidPlacedDto place(Long auctionId, Long memberId, Long amount) {
+      Auction auction = auctionRepository.findByIdForUpdate(auctionId).orElseThrow(...);
+      // 검증 → bid 저장 → auction.applyBid()
+      outboxEventRepository.save(OutboxEvent.of("AUCTION", auctionId, "BID_PLACED", payload));
+      return BidPlacedDto.from(bid, auction);      // Notification.outbid(...) 저장 금지 → Consumer 로
+  }
+  ```
+
+---
+
+## 유실되면 안 되는 비동기 이벤트는 Outbox 를 거쳐 Kafka 로 보낸다
+
+- **상태:** 제안
+- **적용 범위:** 도메인 상태 변경 뒤에 다른 도메인·외부 시스템이 반응해야 하는 모든 이벤트. 현재 대상: `BID_PLACED`, `AUCTION_CLOSED`, `ORDER_PAID`, `ORDER_CONFIRMED`
+- **결정:** 이벤트는 비즈니스 데이터와 같은 트랜잭션에서 `outbox_event` 테이블에 INSERT 한다. `OutboxPublisher`(스케줄러, `FOR UPDATE SKIP LOCKED`)가 커밋된 행을 Kafka 토픽 `dib.<aggregate>.<event>` 로 발행하고 `published_at` 을 채운다. Spring `ApplicationEventPublisher` 는 같은 Pod 안에서 즉시 반응해야 하는 것(소켓 푸시 트리거)에만 쓴다. Consumer 는 `event_id` 로 중복 처리를 막는다(같은 이벤트가 두 번 와도 결과가 같아야 함).
+- **이유:** `@TransactionalEventListener(AFTER_COMMIT)` 는 Pod 가 그 순간 죽으면 이벤트가 사라지고, 커밋 전에 Kafka 로 보내면 롤백된 트랜잭션의 이벤트가 소비된다. Outbox 는 "DB 커밋 = 이벤트 발행 확정"을 보장하고 재처리가 가능하다.
+- **예외:** 채팅 메시지 소켓 전달, `HIGHEST_BID_UPDATED` 같은 실시간 화면 갱신은 유실을 허용하고(재연결 시 Snapshot 으로 복구) Outbox·Kafka 를 거치지 않는다.
+- **예시:**
+
+  ```text
+  Kafka 토픽                 발행 시점                       Consumer (각각 별도 @KafkaListener, groupId 다르게)
+  dib.bid.placed            입찰 커밋                        notification(OUTBID 저장), memberEvent(BID 로그)
+  dib.auction.closed        종료 커밋(주문 생성 포함)          payment(autoCharge), notification(AUCTION_WON), fraud(이상입찰 분석 요청), stats
+  dib.order.paid            결제 확정 커밋                    notification(판매자 결제완료), stats
+  dib.order.confirmed       구매 확정 커밋                    settlement(정산 지급), notification
+  ```
+
+  메시지 봉투는 소켓과 동일한 `{eventType, eventId, occurredAt, payload}` 를 쓰고, 메시지 키는 `aggregateId`(같은 경매의 이벤트가 순서대로 한 파티션에 들어가도록).
+
+---
+
+## 소켓 브로드캐스트는 Redis Pub/Sub 을 거쳐 모든 Pod 에 전파한다
+
+- **상태:** 제안
+- **적용 범위:** `AuctionWebSocketService`, `OrderChatWebSocketService`, `NotificationPushEventListener` 등 `SimpMessagingTemplate` 을 호출하는 모든 코드
+- **결정:** 서비스 코드는 `SimpMessagingTemplate` 을 직접 호출하지 않고 `RealtimePublisher.publish(destination, envelope)` 를 호출한다. `RealtimePublisher` 는 Redis 채널 `dib:realtime` 에 발행하고, 각 Pod 의 `RedisMessageListener` 가 수신해 자기 Pod 에 붙은 세션으로 `SimpMessagingTemplate` 을 호출한다. 개인 큐(`/user/queue/**`)도 같은 경로를 탄다(각 Pod 가 `convertAndSendToUser` 를 시도하면 세션이 있는 Pod 만 실제 전달).
+- **이유:** 현재 `SimpMessagingTemplate` 직접 호출은 그 Pod 에 연결된 클라이언트에게만 간다. Pod 가 2개 이상이면 다른 Pod 에 붙은 사용자는 `HIGHEST_BID_UPDATED` 를 못 받는다. Redis Pub/Sub 은 영속하지 않으므로 실시간 전달 전용이고, 놓친 메시지는 Snapshot 으로 복구한다(아키텍처 문서 5장).
+- **예외:** `@SubscribeMapping` 으로 구독 직후 1회 응답하는 Snapshot 은 요청한 세션이 그 Pod 에 있으므로 직접 반환한다.
+- **예시:**
+
+  ```text
+  BidPlacedEvent(AFTER_COMMIT)
+   → RealtimePublisher.publish("/topic/auctions/1", envelope)
+   → Redis PUBLISH dib:realtime {destination, envelope}
+   → Pod A, Pod B 각각 SUBSCRIBE 수신 → SimpMessagingTemplate.convertAndSend(destination, envelope)
+  ```
+
+  Redis 가 죽으면 소켓 갱신만 멈추고 입찰·주문은 정상 동작해야 한다(발행 실패는 로그만 남기고 예외를 전파하지 않는다).
+
+---
+
+## 동시 입찰은 Redis 분산락 안에서 DB 행 락으로 확정한다
+
+- **상태:** 제안 (구현 완료 — `common/lock/AuctionLock`, 팀 리뷰 후 적용)
+- **적용 범위:** 같은 경매 행을 갱신하는 모든 Command (`place`, `endOne`, 시작·취소)
+- **결정:** 경매 단위 Redis 락 `lock:auction:{auctionId}`(Redisson `tryLock(wait 1s, lease 3s)`) 을 먼저 잡고, 그 안에서 `findByIdForUpdate`(PESSIMISTIC_WRITE) 로 행을 다시 잠근 뒤 검증·갱신한다. 최종 정합성은 DB 락과 `UNIQUE(auction_id, amount)` 제약이 보장하고, Redis 락은 여러 Pod 의 요청이 DB 락 대기열에 몰리는 것을 줄이는 수단이다. Redis 락 획득 실패는 `409 AUCTION_BUSY` 로 응답해 클라이언트가 재시도한다.
+- **이유:** DB 락만 쓰면 커넥션 풀이 락 대기로 소진될 수 있고, Redis 락만 쓰면 lease 만료·네트워크 분할 시 두 요청이 동시에 통과할 수 있다. 둘을 겹쳐 "빠른 거절 + 확실한 정합성"을 얻는다.
+- **예외:** local 프로필에서 Redis 가 없을 때는 DB 락만으로 동작해야 한다(`dib.lock.redis-enabled=false`).
+- **예시:**
+
+  ```java
+  RLock lock = redissonClient.getLock("lock:auction:" + auctionId);
+  if (!lock.tryLock(1, 3, TimeUnit.SECONDS)) throw new BusinessException(ErrorCode.AUCTION_BUSY);
+  try { return bidTxService.place(auctionId, memberId, amount); }   // 안에서 findByIdForUpdate
+  finally { if (lock.isHeldByCurrentThread()) lock.unlock(); }
+  ```
+
+  락 해제는 트랜잭션 커밋 **후** 여야 하므로 락 획득 메서드와 `@Transactional` 메서드를 분리한다(같은 클래스 self-invocation 금지). 실제 코드: `BidCommandServiceImpl`(락) → `BidTxServiceImpl`(트랜잭션). Redisson 은 스타터 대신 core(`org.redisson:redisson`) 만 넣고 `RedisLockConfig` 에서 클라이언트를 직접 만든다 — 스타터는 Spring Data Redis 연결 팩토리를 Redisson 으로 갈아끼워 auth 의 Lua 스크립트 저장소에 영향을 줄 수 있어서.
+
+---
+
+## AI 서버(FastAPI)와는 명세 92~95 비동기 계약으로만 통신한다
+
+- **상태:** 적용
+- **적용 범위:** `components/ai`(FastAPI, `python -m uvicorn serve:app --port 8000`) 를 호출하거나 그 콜백을 받는 백엔드 코드 전부. 현재 `common/ai/AiServerClient`, `fraudDetection/command/**`
+- **결정:** 백엔드는 AI 의 **비동기 내부 API(202 접수 → 콜백)** 만 호출한다. 동기 엔드포인트(`/internal/fraud/detect`, `/internal/reco/home`, `/internal/reco/similar`, `/internal/moderation/review`) 는 AI 쪽 개발·시연용이므로 서비스 코드에서 부르지 않는다. 호출은 Kafka Consumer 안에서만 한다(도메인 트랜잭션·스케줄러 스레드에서 외부 호출 금지). 요청·콜백 모두 HMAC 서명을 붙이고 검증한다.
+- **이유:** AI 가 명세대로 "요청 즉시 202, 결과는 `callbackUrl` 로 POST" 구조라 백엔드가 응답을 기다리며 스레드를 묶지 않는다. 동기 엔드포인트는 snake_case·응답 구조가 다르고 AI 담당이 "계약은 비동기 쪽"이라고 명시했다. AI 장애가 경매 종료·낙찰을 막지 않아야 하므로 요청 실패는 로그만 남긴다.
+- **예외:** 없음. AI 서버가 꺼져 있으면 `dib.ai.enabled=false` 로 두고 요청을 생략한다.
+- **예시:**
+
+  **AI 가 받는 것 (백엔드 → AI, `Authorization` 없음, HMAC 헤더 2개)**
+
+  | 명세 | 요청 | 본문 (camelCase) | 응답 |
+  |---|---|---|---|
+  | 92 | `POST {ai}/internal/v1/ai/bid-anomalies` | `{jobId, auctionId, memberId(분석 대상 입찰자 1명), bidId?, bids:[{bidId, memberId, amount, createdAt}], callbackUrl}` | `202 {jobId, status:"ACCEPTED"}` |
+  | 94 | `POST {ai}/internal/v1/ai/recommendations` | `{jobId, memberId, behaviorWindow?(미사용), candidateAuctionIds:[…](비면 전체 ACTIVE), callbackUrl}` | `202 {jobId, status:"ACCEPTED"}` |
+
+  - 92 는 **입찰자 1명 = 요청 1건**. 경매 종료 후 입찰자 수만큼 보낸다. `bids[]` 를 보내면 AI 는 그것을 입찰 목록으로 쓴다(방금 끝난 경매의 마지막 입찰을 AI 조회기가 못 봤을 수 있어서). 경매 정보·과거 이력은 AI 조회기가 봐야 하므로 AI 가 그 경매를 모르면 `503 MODEL_UNAVAILABLE`.
+  - `jobId` 가 같으면 AI 는 재분석하지 않는다(프로세스 메모리 기준). 백엔드는 `"bid-anomaly-{auctionId}-{memberId}"` 처럼 결정적으로 만든다.
+  - 거절: `400 INVALID_PAYLOAD`(본문·callbackUrl 형식), `401`(서명 불일치), `503 MODEL_UNAVAILABLE`(엔진 미준비·경매 없음). 202 이후 실패(추론 예외·콜백 실패)는 AI 로그에만 남고 우리는 알 수 없다 → 콜백이 안 오면 그냥 결과 없음.
+  - `callbackUrl` 호스트는 AI 의 `DIB_CALLBACK_ALLOWED_HOSTS` 에 있어야 한다(비어 있으면 검사 안 함 — 로컬).
+
+  **AI 가 주는 것 (AI → 백엔드 콜백, HMAC 서명 있음, 4xx 면 재시도 안 함 / 5xx·연결 실패는 3회 지수 백오프)**
+
+  | 명세 | 우리 엔드포인트 | 본문 |
+  |---|---|---|
+  | 93 | `POST {backend}/internal/v1/ai/callbacks/bid-anomalies` | `{jobId, auctionId, memberId, bidId, features:{bidderTendency, biddingRatio, lastBidding, auctionBids, startingPriceAverage, earlyBidding, winningRatio, auctionDuration(항상 null), ruleScore, mlScore(모델 미가동 시 null), riskScore}, predictedLabel(0/1), decisionThreshold, modelVersion(null 가능), featureVersion}` → `fraud_detection` 1행 |
+  | 95 | (미구현 — 추천 담당) | `{jobId, memberId, items:[{auctionId, score, reason}]}` |
+
+  - 판정 대상이 아닌 입찰자(이력 부족 등)는 **콜백이 오지 않는다**. "판단하지 않음"을 0점으로 저장하지 않기 위해서다. 그래서 `fraud_detection` 에 행이 없는 입찰자는 "정상"이 아니라 "미판정"으로 읽어야 한다.
+  - `features` 의 null 을 저장하기 위해 V6 에서 `fraud_detection` 피처 컬럼·`ml_score`·`model_version` 의 NOT NULL 을 풀었다.
+
+  **HMAC 규약 (양방향 동일, `common/ai/HmacSigner`)**
+
+  ```text
+  서명 대상   "{unix초}." + 요청 본문 원문(bytes)      ← JSON 을 다시 직렬화하지 말고 보낸 바이트 그대로
+  서명        HMAC-SHA256(secret, 서명 대상) → 16진수
+  헤더        X-DIB-Timestamp: <unix초>
+              X-DIB-Signature: sha256=<hex>
+  허용 오차   300초
+  시크릿      백엔드→AI : dib.ai.service-hmac-secret  == AI 의 DIB_SERVICE_HMAC_SECRET
+              AI→백엔드 : dib.ai.ai-hmac-secret       == AI 의 DIB_AI_HMAC_SECRET
+  ```
+
+  AI 는 시크릿이 비어 있으면 요청을 **막는다**(503). 우리도 `ai-hmac-secret` 이 비어 있으면 콜백을 401 로 거절한다.
+
+  **AI 가 지금 못 하는 것 (AI 담당 확인 사항)**: 탐지·추천 조회기가 `InMemoryProvider`(합성 데이터) 라 실제 경매 id 로 92 를 보내면 `503 MODEL_UNAVAILABLE` 이 온다. `PostgresProvider`(읽기 전용 DB 계정) 가 붙어야 실데이터 분석이 된다. 상품 검수(`/internal/moderation/review`) 는 동기만 있고 비동기 계약이 없다 → 상품 등록 담당(민종)과 AI 담당이 정할 것.
+
+---
