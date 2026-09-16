@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.b101.dib.category.repository.CategoryMapper">
+
+    <resultMap id="CategoryQueryMap"
+        type="com.b101.dib.category.query.dto.CategoryQueryDto">
+        <id property="categoryId" column="category_id" />
+        <result property="name" column="name" />
+    </resultMap>
+
+    <select id="findAll" resultMap="CategoryQueryMap">
+        SELECT
+        	c.category_id,
+        	c.name
+    	FROM category c
+    </select>
+
+    
+</mapper>

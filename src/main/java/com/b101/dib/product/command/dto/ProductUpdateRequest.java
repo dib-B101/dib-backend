@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor  
-public class UpdateRequest {
+public class ProductUpdateRequest {
 	private Long categoryId;
     private String title;
     private String description;

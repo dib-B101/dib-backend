@@ -1,7 +1,7 @@
 package com.b101.dib.product.command.service;
-import com.b101.dib.product.command.dto.CreateRequest;
+import com.b101.dib.product.command.dto.ProductCreateRequest;
 import com.b101.dib.product.command.dto.ModerateProductRequest;
-import com.b101.dib.product.command.dto.UpdateRequest;
+import com.b101.dib.product.command.dto.ProductUpdateRequest;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.product.repository.ProductRepository;
@@ -27,25 +27,15 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     private final ProductImageRepository productImageRepository;
     
     @Override
-    public Product create(Long myId, CreateRequest request, List<MultipartFile> images) {
+    @Transactional
+    public Product create(Long myId, ProductCreateRequest request, List<MultipartFile> images) {
     	if(images != null && images.size() > 10) {
     		throw new BusinessException(ErrorCode.TOO_MUCH_IMAGES);
     	}
-    	String thumbnailUrl = "thumbnail-url";
-        Product product = Product.builder()
-                .memberId(myId)
-                .categoryId(request.getCategoryId())
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .condition(request.getCondition())
-                .modelName(request.getModelName())
-                .releaseYear(request.getReleaseYear())
-                .marketPrice(request.getMarketPrice())
-                .thumbnailUrl(thumbnailUrl)
-                .status(ProductStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .build();
-        productRepository.save(product);
+    	String thumbnailUrl = images.get(0).toString();
+    	
+        Product product = null;
+//        productRepository.save(product);
         
         // 이미지들을 업로드한다.
         // S3 서비스로 구현할 예정
@@ -67,7 +57,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     }
 
     @Override
-    public Product update(Long myId, Long productId, UpdateRequest request) {
+    public Product update(Long myId, Long productId, ProductUpdateRequest request) {
     	
         Product product = checkProduct(myId, productId);
         
