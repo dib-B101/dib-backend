@@ -65,6 +65,8 @@ public class SecurityConfig {
                         .hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/members/me/addresses/{addressId}")
                         .hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/members/me/bids")
+                        .hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/members/me/profile")
                         .hasAnyRole("USER", "ADMIN")
                         .anyRequest().permitAll()

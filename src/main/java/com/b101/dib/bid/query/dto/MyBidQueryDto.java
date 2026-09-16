@@ -1,7 +1,5 @@
 package com.b101.dib.bid.query.dto;
 
-import com.b101.dib.auction.domain.AuctionStatus;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,15 +10,15 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class MyBidQueryDto {
+    /** 입찰 식별자 */
     private Long bidId;
+
+    /** 입찰한 경매 식별자 */
     private Long auctionId;
-    private Long productId;
-    private String productTitle;
-    private String thumbnailUrl;
+
+    /** 입찰 금액 */
     private Long amount;
-    private Long currentPrice;
-    private AuctionStatus auctionStatus;
-    @JsonProperty("isHighestBidder")
-    private boolean highest;
+
+    /** 입찰 생성 시각 */
     private LocalDateTime createdAt;
 }
