@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -169,6 +170,25 @@ class AddressCommandControllerTest {
                                   "name":"새 회사"
                                 }
                                 """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    void deletesAddressOwnedByAuthenticatedMember() throws Exception {
+        AccessTokenClaims claims = new AccessTokenClaims(1L, MemberRole.USER);
+        given(accessTokenVerifier.verifyBearer("Bearer access-token")).willReturn(claims);
+
+        mockMvc.perform(delete("/api/v1/members/me/addresses/10")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
+                .andExpect(status().isNoContent());
+
+        verify(addressCommandService).delete(1L, 10L);
+    }
+
+    @Test
+    void rejectsAddressDeleteWithoutAccessToken() throws Exception {
+        mockMvc.perform(delete("/api/v1/members/me/addresses/10"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
     }

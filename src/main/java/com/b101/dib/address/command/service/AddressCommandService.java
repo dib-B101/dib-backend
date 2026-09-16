@@ -9,4 +9,6 @@ public interface AddressCommandService {
     AddressResponse create(Long memberId, CreateAddressRequest request);
 
     AddressResponse update(Long memberId, Long addressId, UpdateAddressRequest request);
+
+    void delete(Long memberId, Long addressId);
 }

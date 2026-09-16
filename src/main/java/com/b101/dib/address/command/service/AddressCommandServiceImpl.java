@@ -58,6 +58,18 @@ public class AddressCommandServiceImpl implements AddressCommandService {
         return toResponse(address);
     }
 
+    @Override
+    public void delete(Long memberId, Long addressId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+
+        if (!address.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
+        addressRepository.delete(address);
+    }
+
     private AddressResponse toResponse(Address address) {
         return new AddressResponse(
                 address.getId(),
