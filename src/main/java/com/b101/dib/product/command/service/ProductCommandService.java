@@ -16,4 +16,6 @@ public interface ProductCommandService {
     Product update(Long myId, Long productId, ProductUpdateRequest request);
     Product delete(Long myId, Long productId);
     Product moderate(Long productId, ModerateProductRequest request);
+
+	Product startAuction(Long myId, Long productId);
 }

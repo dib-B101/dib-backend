@@ -38,4 +38,6 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
             @Param("memberId") Long memberId,
             @Param("statuses") Set<AuctionStatus> statuses
     );
+
+	Auction findByProductId(Long productId);
 }

@@ -36,7 +36,7 @@ public class MemberWithdrawalServiceImpl implements MemberWithdrawalService {
     );
     private static final Set<AuctionStatus> ACTIVE_AUCTION_STATUSES = EnumSet.of(
             AuctionStatus.SCHEDULED,
-            AuctionStatus.DEPOSITED,
+//            AuctionStatus.DEPOSITED,
             AuctionStatus.ACTIVE
     );
 

@@ -17,23 +17,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProductCreateRequest {
 
-    @NotBlank(message = "상품명은 필수입니다.")
+	private Long categoryId;
     private String title;
-
-    @NotNull(message = "카테고리는 필수입니다.")
-    private Long categoryId;
-
-    @NotNull(message = "상품 상태는 필수입니다.")
-    private ProductStatus condition;
-
-    @NotBlank(message = "상품 설명은 필수입니다.")
     private String description;
+    private ProductCondition condition;
+    private String modelName;
+    private Integer releaseYear;
+    private Long marketPrice;
 
-    @NotNull(message = "시작가는 필수입니다.")
-    @Positive(message = "시작가는 0보다 커야 합니다.")
     private Long startPrice;
-
-    @NotNull(message = "경매 시간은 필수입니다.")
-    @Positive(message = "경매 시간은 0보다 커야 합니다.")
     private Integer auctionTime;
 }
