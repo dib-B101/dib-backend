@@ -96,6 +96,7 @@ public enum ErrorCode {
     DUPLICATE_LABEL(HttpStatus.CONFLICT, "이미 라벨이 확정된 입찰자입니다"),
 
     // 주문
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다"),
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다"),
     DELIVERY_NOT_COMPLETED(HttpStatus.CONFLICT, "배송이 완료된 주문만 구매 확정할 수 있습니다"),
     ALREADY_CONFIRMED(HttpStatus.CONFLICT, "이미 구매 확정된 주문입니다"),
