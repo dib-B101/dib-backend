@@ -17,7 +17,11 @@ spring:
   kafka:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer   # Boot 4 = Jackson 3. JsonSerializer(Jackson 2) 는 4.0 부터 deprecated
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer   # Consumer 가 EventEnvelope 로 직접 파싱
+      auto-offset-reset: earliest
 
 # CQRS Query 측 — MyBatis 매퍼 XML 위치
 mybatis:
@@ -76,6 +80,22 @@ dib:
     commission-rate: 0.05
   order:
     auto-confirm-days: 5   # 배송완료 후 구매확정 없으면 자동 확정
+  outbox:
+    poll-ms: 500           # outbox_event → Kafka 발행 주기
+    batch-size: 100
+  realtime:
+    redis-enabled: true    # 소켓 브로드캐스트를 Redis Pub/Sub 으로 모든 Pod 에 전파. false 면 이 Pod 에만 직접 전송
+  lock:
+    redis-enabled: true    # 경매 단위 Redisson 분산락 lock:auction:{id}. false 면 DB 행 락만
+  cache:
+    snapshot-enabled: true # 입찰 스냅샷 Redis Hot State auction:{id}:snapshot
+  ai:
+    enabled: ${DIB_AI_ENABLED:false}                 # true 면 경매 종료 후 AI 서버에 이상입찰 분석 요청
+    base-url: ${DIB_AI_BASE_URL:http://localhost:8000}
+    callback-base-url: ${DIB_AI_CALLBACK_BASE_URL:http://localhost:8080}
+    service-hmac-secret: ${DIB_SERVICE_HMAC_SECRET:}  # AI 의 DIB_SERVICE_HMAC_SECRET 과 같은 값
+    ai-hmac-secret: ${DIB_AI_HMAC_SECRET:}            # AI 의 DIB_AI_HMAC_SECRET 과 같은 값
+    max-skew-seconds: 300
 
 # 배송 조회 구현체 선택: fake(기본, devtools.FakeCarrierClient) | deliverytracker | sweettracker
 carrier:

@@ -4,7 +4,6 @@ import com.b101.dib.chatting.domain.Chatting;
 import com.b101.dib.common.util.Times;
 import com.b101.dib.websocket.dto.SocketEnvelope;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -16,7 +15,7 @@ public class OrderChatWebSocketService {
     public static final String ORDER_TOPIC = "/topic/orders/";   // 구독: /topic/orders/{orderId}
     public static final String USER_QUEUE = "/queue/orders";     // 개인: /user/queue/orders
 
-    private final SimpMessagingTemplate messagingTemplate;
+    private final RealtimePublisher realtimePublisher;
 
     // 새 메시지 → 주문 참여자 모두 (REST 로 보낸 것도 여기로 흘려서 소켓 클라이언트가 같이 본다)
     public void broadcastCreated(Chatting chatting, String memberNickname) {
@@ -27,10 +26,10 @@ public class OrderChatWebSocketService {
         payload.put("memberNickname", memberNickname);
         payload.put("content", chatting.getContent());
         payload.put("time", Times.iso(chatting.getTime()));
-        messagingTemplate.convertAndSend(ORDER_TOPIC + chatting.getOrderId(), SocketEnvelope.of("CHAT_MESSAGE_CREATED", null, payload));
+        realtimePublisher.broadcast(ORDER_TOPIC + chatting.getOrderId(), SocketEnvelope.of("CHAT_MESSAGE_CREATED", null, payload));
     }
 
     public void sendToMember(Long memberId, String eventType, String commandId, Map<String, Object> payload) {
-        messagingTemplate.convertAndSendToUser(String.valueOf(memberId), USER_QUEUE, SocketEnvelope.of(eventType, commandId, payload));
+        realtimePublisher.sendToUser(String.valueOf(memberId), USER_QUEUE, SocketEnvelope.of(eventType, commandId, payload));
     }
 }

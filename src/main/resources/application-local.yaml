@@ -42,3 +42,7 @@ auth:
 dib:
   auth:
     header-fallback: true   # Postman / flow_test 가 토큰 없이 X-Member-Id 로 호출
+  ai:
+    enabled: ${DIB_AI_ENABLED:false}   # AI 서버(uvicorn serve:app --port 8000) 켜고 true 로. 시크릿은 .env 에 AI 와 같은 값으로
+    service-hmac-secret: ${DIB_SERVICE_HMAC_SECRET:local-service-hmac}
+    ai-hmac-secret: ${DIB_AI_HMAC_SECRET:local-ai-hmac}

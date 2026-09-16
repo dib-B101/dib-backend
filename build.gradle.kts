@@ -73,6 +73,8 @@ dependencies {
 
     // Redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    // Redisson — 경매 분산락 전용 (Spring Data Redis 연결은 Lettuce 그대로, 스타터 대신 core 만)
+    implementation("org.redisson:redisson:4.7.0")
 
     // ShedLock — 다중 인스턴스 스케줄러 중복 실행 방지
     implementation("net.javacrumbs.shedlock:shedlock-spring:7.10.1")

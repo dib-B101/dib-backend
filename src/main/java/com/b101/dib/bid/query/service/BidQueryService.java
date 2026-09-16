@@ -21,4 +21,7 @@ public interface BidQueryService {
 
     /** 특정 경매와 회원의 입찰 스냅샷을 조회한다. */
     BidSnapshotDto snapshot(Long auctionId, Long memberId);
+
+    // DB 에서 다시 읽어 Redis Hot State 를 덮어쓴다 (입찰·종료 커밋 후)
+    void refreshSnapshot(Long auctionId);
 }
