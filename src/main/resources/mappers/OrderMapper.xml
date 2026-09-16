@@ -21,6 +21,34 @@
         <result property="createdAt" column="created_at" />
     </resultMap>
 
+    <resultMap id="PurchaseHistoryRowMap"
+        type="com.b101.dib.order.query.dto.PurchaseHistoryRowDto">
+        <id property="orderId" column="order_id" />
+        <result property="sellerId" column="seller_id" />
+        <result property="sellerNickname" column="seller_nickname" />
+        <result property="finalPrice" column="final_price" />
+        <result property="orderStatus" column="order_status" />
+        <result property="paymentDue" column="payment_due" />
+        <result property="carrier" column="carrier" />
+        <result property="trackingNumber" column="tracking_number" />
+        <result property="orderCreatedAt" column="order_created_at" />
+        <result property="auctionId" column="auction_id" />
+        <result property="startPrice" column="start_price" />
+        <result property="currentPrice" column="current_price" />
+        <result property="auctionStatus" column="auction_status" />
+        <result property="auctionEndedAt" column="auction_ended_at" />
+        <result property="productId" column="product_id" />
+        <result property="productTitle" column="product_title" />
+        <result property="thumbnailUrl" column="thumbnail_url" />
+        <result property="condition" column="condition" />
+        <result property="modelName" column="model_name" />
+        <result property="paymentId" column="payment_id" />
+        <result property="paymentAmount" column="payment_amount" />
+        <result property="paymentType" column="payment_type" />
+        <result property="receiptUrl" column="receipt_url" />
+        <result property="paidAt" column="paid_at" />
+    </resultMap>
+
     <select id="findByMemberId" resultMap="OrderQueryMap">
         SELECT
             o.order_id,
@@ -61,6 +89,54 @@
                 AND o.order_id &lt; #{cursor}
             </if>
         </where>
+        ORDER BY o.order_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findPurchasesByBuyerId" resultMap="PurchaseHistoryRowMap">
+        SELECT
+            o.order_id,
+            o.seller_id,
+            seller.nickname AS seller_nickname,
+            o.final_price,
+            o.status AS order_status,
+            o.payment_due,
+            o.carrier,
+            o.tracking_number,
+            o.created_at AS order_created_at,
+            a.auction_id,
+            a.start_price,
+            a.current_price,
+            a.status AS auction_status,
+            a.ended_at AS auction_ended_at,
+            p.product_id,
+            p.title AS product_title,
+            p.thumbnail_url,
+            p.condition,
+            p.model_name,
+            pay.payment_id,
+            pay.amount AS payment_amount,
+            pay.type AS payment_type,
+            pay.receipt_url,
+            pay.paid_at
+        FROM "order" o
+        JOIN member seller ON seller.member_id = o.seller_id
+        JOIN auction a ON a.auction_id = o.auction_id
+        JOIN product p ON p.product_id = a.product_id
+        LEFT JOIN LATERAL (
+            SELECT latest_payment.*
+            FROM payment latest_payment
+            WHERE latest_payment.order_id = o.order_id
+            ORDER BY latest_payment.payment_id DESC
+            LIMIT 1
+        ) pay ON TRUE
+        WHERE o.buyer_id = #{buyerId}
+        <if test="orderStatus != null">
+            AND o.status = #{orderStatus}::order_status
+        </if>
+        <if test="cursor != null">
+            AND o.order_id &lt; #{cursor}
+        </if>
         ORDER BY o.order_id DESC
         LIMIT #{limit}
     </select>
