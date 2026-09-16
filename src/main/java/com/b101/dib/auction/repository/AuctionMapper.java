@@ -11,4 +11,5 @@ public interface AuctionMapper {
     List<AuctionQueryDto> findBySellerId(@Param("sellerId") Long sellerId);
     List<AuctionQueryDto> findActive();
 	AuctionQueryDto findById(Long auctionId);
+	List<AuctionQueryDto> findRecommendations();
 }

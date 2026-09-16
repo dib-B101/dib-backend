@@ -36,4 +36,10 @@ public class AuctionQueryServiceImpl implements AuctionQueryService {
 		}
 		return dto;
 	}
+
+	@Override
+	public List<AuctionQueryDto> findRecommendations() {
+		List<AuctionQueryDto> dtoList = auctionQueryMapper.findRecommendations();
+		return dtoList;
+	}
 }
