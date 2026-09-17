@@ -25,4 +25,5 @@ public class OrderQueryDto {
     private LocalDateTime paymentDue;
     private String trackingNumber;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

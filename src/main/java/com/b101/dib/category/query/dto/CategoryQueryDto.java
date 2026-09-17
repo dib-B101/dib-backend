@@ -1,11 +1,13 @@
 package com.b101.dib.category.query.dto;
 
-import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@Builder
+@Setter
+@NoArgsConstructor
 public class CategoryQueryDto {
-	private Long categoryId;
-	private String name;
+    private Long categoryId;
+    private String name;
 }

@@ -11,6 +11,7 @@
         <result property="auctionId" column="auction_id" />
         <result property="orderId" column="order_id" />
         <result property="reportTargetId" column="report_target_id" />
+        <result property="reportTargetNickname" column="report_target_nickname" />
         <result property="status" column="status" />
         <result property="createdAt" column="created_at" />
         <result property="processedAt" column="processed_at" />
@@ -24,10 +25,12 @@
             r.auction_id,
             r.order_id,
             r.report_target_id,
+            target.nickname AS report_target_nickname,
             r.status,
             r.created_at,
             r.processed_at
         FROM report r
+        LEFT JOIN member target ON target.member_id = r.report_target_id
         WHERE r.member_id = #{memberId}
         <if test="type != null">
             AND r.type = #{type}::report_type

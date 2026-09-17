@@ -15,6 +15,7 @@ public enum ErrorCode {
     // 상품
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다"),
     PRODUCT_PENDING(HttpStatus.BAD_REQUEST, "상품이 아직 심사 중입니다."),
+    PRODUCT_NOT_APPROVED(HttpStatus.CONFLICT, "승인된 상품만 경매를 시작할 수 있습니다."),
     PRODUCT_ON_AUCTION(HttpStatus.BAD_REQUEST, "이미 경매가 진행 중인 상품입니다."),
     PRODUCT_ALREADY_SOLD(HttpStatus.CONFLICT, "판매 완료된 상품은 삭제할 수 없습니다"),
     PRODUCT_ALREADY_DELETED(HttpStatus.NOT_FOUND, "이미 삭제된 상품입니다"),
@@ -24,6 +25,10 @@ public enum ErrorCode {
     INVALID_FILTER(HttpStatus.BAD_REQUEST, "필터 값이 올바르지 않습니다"),
     INVALID_CURSOR(HttpStatus.BAD_REQUEST, "커서 값이 올바르지 않습니다"),
     TOO_MUCH_IMAGES(HttpStatus.BAD_REQUEST, "이미지는 10장까지만 등록할 수 있습니다."),
+    IMAGE_REQUIRED(HttpStatus.BAD_REQUEST, "상품 이미지를 한 장 이상 등록해야 합니다."),
+    INVALID_CONTENT_TYPE(HttpStatus.BAD_REQUEST, "JPG, PNG, WEBP 이미지만 등록할 수 있습니다."),
+    FILE_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "이미지는 장당 10MB까지만 등록할 수 있습니다."),
+    FILE_COUNT_EXCEEDED(HttpStatus.BAD_REQUEST, "이미지는 10장까지만 등록할 수 있습니다."),
     
     // 검색
     INVALID_SEARCH(HttpStatus.BAD_REQUEST, "검색 조건과 키워드가 유효하지 않습니다"),
@@ -34,6 +39,7 @@ public enum ErrorCode {
 
     // 경매
     AUCTION_NOT_FOUND(HttpStatus.NOT_FOUND, "경매를 찾을 수 없습니다"),
+    AUCTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "상품에 이미 경매가 등록되어 있습니다"),
     AUCTION_ALREADY_DELETED(HttpStatus.NOT_FOUND, "이미 삭제된 경매입니다"),
     AUCTION_NOT_EDITABLE(HttpStatus.CONFLICT, "SCHEDULED 상태의 경매만 수정하거나 삭제할 수 있습니다"),
     AUCTION_SCHEDULE_INVALID(HttpStatus.BAD_REQUEST, "경매 시작 및 종료 시간이 올바르지 않습니다"),

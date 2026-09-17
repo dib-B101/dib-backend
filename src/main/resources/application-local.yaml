@@ -16,7 +16,7 @@ spring:
 
       producer:
         key-serializer: org.apache.kafka.common.serialization.StringSerializer
-        value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+        value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer   # Boot 4 = Jackson 3 (JsonSerializer 는 Jackson 2 용, deprecated)
   flyway:
     locations: classpath:db/migration,classpath:db/seed   # 로컬에서만 더미데이터(V900) 같이 적용
     out-of-order: true
@@ -29,6 +29,8 @@ jwt:
 logging:
   level:
     com.b101.dib: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: DEBUG   # 요청마다 GET "/api/v1/..." / Completed 200 한 줄 — 앱 요청이 서버까지 오는지 확인용
+    org.springframework.web.socket: DEBUG                      # STOMP CONNECT/SUBSCRIBE 프레임 확인용
 
 livekit:
   url: ${LIVEKIT_URL}

@@ -58,13 +58,13 @@ class MemberSaleQueryControllerTest {
                         .param("cursor", "31")
                         .param("size", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[0].auction.auctionId").value(30))
-                .andExpect(jsonPath("$.items[0].auction.status").value("ACTIVE"))
-                .andExpect(jsonPath("$.items[0].product.productId").value(10))
-                .andExpect(jsonPath("$.items[0].product.title").value("판매 상품"))
-                .andExpect(jsonPath("$.items[0].order").doesNotExist())
-                .andExpect(jsonPath("$.nextCursor").value("30"))
-                .andExpect(jsonPath("$.hasNext").value(true));
+                .andExpect(jsonPath("$.data.items[0].auction.auctionId").value(30))
+                .andExpect(jsonPath("$.data.items[0].auction.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.items[0].product.productId").value(10))
+                .andExpect(jsonPath("$.data.items[0].product.title").value("판매 상품"))
+                .andExpect(jsonPath("$.data.items[0].order").doesNotExist())
+                .andExpect(jsonPath("$.data.nextCursor").value("30"))
+                .andExpect(jsonPath("$.data.hasNext").value(true));
 
         verify(memberSaleQueryService).findMine(1L, AuctionStatus.ACTIVE, "31", 1);
     }

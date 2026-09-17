@@ -14,10 +14,14 @@ import java.util.List;
 
 @Mapper
 public interface ProductMapper {
-	List<ProductQueryDto> findAll();
+	List<ProductQueryDto> findAll(@Param("cursor") Long cursor, @Param("limit") int limit);
 	ProductDetailDto findById(@Param("productId") Long productId);
 	List<AdminProductQueryDto> findForModeration(@Param("status") ProductStatus status);
-	List<ProductListDto> findMyProducts(Long myId);
-	List<ProductListDto> findByMemberId(Long memberId);
-	List<ProductListDto> search(String keyword);
+	List<ProductListDto> findMyProducts(@Param("myId") Long myId,
+										@Param("cursor") Long cursor,
+										@Param("limit") int limit);
+	List<ProductListDto> findByMemberId(@Param("memberId") Long memberId);
+	List<ProductListDto> search(@Param("keyword") String keyword,
+								@Param("cursor") Long cursor,
+								@Param("limit") int limit);
 }

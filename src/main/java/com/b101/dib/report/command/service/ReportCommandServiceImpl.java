@@ -59,7 +59,8 @@ public class ReportCommandServiceImpl implements ReportCommandService {
     
     @Override
     public Long reportOrder(Long memberId, Long orderId, CreateOrderReportRequest request) {
-        if (request.getType() == ReportType.AUCTION) {
+        // 거래 신고는 ORDER/CHATTING만 다룬다. MEMBER가 이 경로로 들어오면 order_id가 붙은 회원 신고가 생겨 중복 기준과 대상 표기가 어긋난다.
+        if (request.getType() != ReportType.ORDER && request.getType() != ReportType.CHATTING) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);
         }
         Order order = orderRepository.findById(orderId)
@@ -98,14 +99,15 @@ public class ReportCommandServiceImpl implements ReportCommandService {
         if (!memberRepository.existsById(targetMemberId)) {
             throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
         }
-        if (reportRepository.existsByMemberIdAndReportTargetIdAndTypeAndOrderId(memberId, targetMemberId, ReportType.CHATTING, null)) {
+        // 같은 대상이라도 이미 처리된 신고는 별개 사안이므로, 아직 미처리(PENDING)인 신고가 있을 때만 중복으로 본다.
+        if (reportRepository.existsByMemberIdAndReportTargetIdAndTypeAndStatus(memberId, targetMemberId, ReportType.MEMBER, ReportStatus.PENDING)) {
             throw new BusinessException(ErrorCode.DUPLICATE_REPORT);
         }
 
         Report report = Report.builder()
                 .memberId(memberId)
                 .content(request.getContent())
-                .type(ReportType.CHATTING)
+                .type(ReportType.MEMBER)
                 .reportTargetId(targetMemberId)
                 .status(ReportStatus.PENDING)
                 .createdAt(LocalDateTime.now())

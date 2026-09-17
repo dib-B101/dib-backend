@@ -13,10 +13,10 @@ public class CreateAuctionRequest {
     private Long productId;
     
     @NotNull
-    @PositiveOrZero
+    @Min(1000)
     private Long startPrice;
     
     @NotNull
-    @PositiveOrZero
+    @Min(300)
     private Integer auctionTime;
 }

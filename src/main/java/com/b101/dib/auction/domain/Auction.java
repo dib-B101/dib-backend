@@ -76,8 +76,12 @@ public class Auction {
         if (status != AuctionStatus.SCHEDULED) {
             throw new BusinessException(ErrorCode.AUCTION_STARTED);
         }
+        if (auctionTime == null || auctionTime < 300) {
+            throw new BusinessException(ErrorCode.AUCTION_SCHEDULE_INVALID);
+        }
         status = AuctionStatus.ACTIVE;
         startedAt = now;
+        endedAt = now.plusSeconds(auctionTime);
         updatedAt = now;
     }
 

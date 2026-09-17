@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.b101.dib.liveBroadcast.repository.LiveFeedMapper">
+
+	<resultMap id="LiveFeedRowMap" type="com.b101.dib.liveBroadcast.query.dto.LiveBroadcastQueryDto">
+		<id property="liveBroadcastId" column="live_broadcast_id" />
+		<result property="memberId" column="member_id" />
+		<result property="title" column="title" />
+		<result property="description" column="description" />
+		<result property="status" column="status" />
+		<result property="livekitRoomName" column="livekit_room_name" />
+		<result property="startedAt" column="started_at" />
+		<result property="endedAt" column="ended_at" />
+		<result property="viewCount" column="view_count" />
+		<result property="createdAt" column="created_at" />
+		<result property="updatedAt" column="updated_at" />
+	</resultMap>
+
+	<sql id="liveColumns">
+		l.live_broadcast_id, l.member_id, l.title, l.description, l.status, l.livekit_room_name,
+		l.started_at, l.ended_at, l.view_count, l.created_at, l.updated_at
+	</sql>
+
+	<select id="findFeed" resultMap="LiveFeedRowMap">
+		SELECT <include refid="liveColumns" />
+		FROM live_broadcast l
+		WHERE l.status IN ('LIVE', 'SCHEDULED')
+		ORDER BY CASE l.status WHEN 'LIVE' THEN 0 ELSE 1 END, l.view_count DESC, l.live_broadcast_id DESC
+		LIMIT #{limit} OFFSET #{offset}
+	</select>
+
+	<select id="findLive" resultMap="LiveFeedRowMap">
+		SELECT <include refid="liveColumns" />
+		FROM live_broadcast l
+		WHERE l.status = 'LIVE'
+		ORDER BY l.view_count DESC, l.live_broadcast_id DESC
+		LIMIT #{limit}
+	</select>
+</mapper>

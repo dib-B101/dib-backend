@@ -27,6 +27,9 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 	public Auction create(Long myId, CreateAuctionRequest request) {
 		Long productId = request.getProductId();
 		Product product = checkProduct(myId, productId);
+		if (auctionRepository.findByProductId(productId) != null) {
+			throw new BusinessException(ErrorCode.AUCTION_ALREADY_EXISTS);
+		}
 		
 		Auction auction = Auction.builder()
 				.productId(productId)
@@ -81,11 +84,10 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 	@Override
 	public Auction startAuction(Long myId, Long auctionId) {
 		Auction auction = checkAuction(myId, auctionId);
-		LocalDateTime now = LocalDateTime.now();
-		auction.start(now);   // ACTIVE + endedAt = now + auctionTime(초)
-		
 		Long productId = auction.getProductId();
 		Product product = checkProduct(myId, productId);
+		LocalDateTime now = LocalDateTime.now();
+		auction.start(now);
 		product.setStatus(ProductStatus.ON_AUCTION);
 		product.setUpdatedAt(now);
 		
@@ -107,6 +109,9 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 		if (!product.getMemberId().equals(myId)) {
             throw new BusinessException(ErrorCode.NOT_MY_PRODUCT);
         }
+		if (product.getDeletedAt() != null) {
+			throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
+		}
 		if(product.getStatus() == ProductStatus.PENDING) {
 			throw new BusinessException(ErrorCode.PRODUCT_PENDING);
 		}
@@ -116,9 +121,9 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
         if(product.getStatus() == ProductStatus.SOLD) {
         	throw new BusinessException(ErrorCode.PRODUCT_ALREADY_SOLD);
         }
-        if (product.getDeletedAt() != null) {
-        	throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
-        }
+		if (product.getStatus() != ProductStatus.REGISTERED) {
+			throw new BusinessException(ErrorCode.PRODUCT_NOT_APPROVED);
+		}
         return product;
 	}
 	
@@ -130,6 +135,11 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 		}
 		if (auction.getStatus() != AuctionStatus.SCHEDULED) {
 			throw new BusinessException(ErrorCode.AUCTION_NOT_EDITABLE);
+		}
+		Product product = productRepository.findById(auction.getProductId())
+				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+		if (!product.getMemberId().equals(myId)) {
+			throw new BusinessException(ErrorCode.NOT_MY_PRODUCT);
 		}
 		return auction;
 	}

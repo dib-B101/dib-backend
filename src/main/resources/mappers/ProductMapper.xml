@@ -42,7 +42,12 @@
 		FROM product p
 		WHERE p.deleted_at IS NULL
 		AND p.status in ('REGISTERED', 'ON_AUCTION')
-		ORDER BY p.created_at DESC, p.product_id DESC
+		<if test="cursor != null">
+			AND p.product_id &lt; #{cursor}
+		</if>
+		<!-- product_id 는 단조 증가 시퀀스라 created_at DESC 와 순서가 같다. 단일 컬럼 커서가 복합 커서보다 단순해 이쪽을 택했다 -->
+		ORDER BY p.product_id DESC
+		LIMIT #{limit}
 	</select>
 	
 	<resultMap id="ProductListMap"
@@ -78,7 +83,7 @@
 		<result property="extensionCount" column="extension_count" />
 		<result property="auctionCreatedAt" column="auction_created_at" />
 		<result property="auctionUpdatedAt" column="auction_updated_at" />
-		<result property="auctionDeletedAt" column="auctino_deleted_at" />
+		<result property="auctionDeletedAt" column="auction_deleted_at" />
 		<result property="liveBroadcastId" column="live_broadcast_id" />
 
 	</resultMap>
@@ -119,13 +124,15 @@
 			a.live_broadcast_id
 			
 		FROM product p
-		JOIN auction a ON p.product_id = a.auction_id
-		WHERE 
-		(p.title LIKE CONCAT('%', #{keyword}, '%') 
-			OR p.description LIKE CONCAT('%', #{keyword}, '%'))
-		AND p.deleted_at IS NULL
+		JOIN auction a ON p.product_id = a.product_id
+		WHERE p.deleted_at IS NULL
 		AND p.member_id = #{myId}
-		ORDER BY a.created_at DESC
+		<if test="cursor != null">
+			AND p.product_id &lt; #{cursor}
+		</if>
+		<!-- 커서 컬럼과 정렬 기준을 일치시키려 a.created_at DESC 대신 p.product_id DESC 로 바꿨다 -->
+		ORDER BY p.product_id DESC
+		LIMIT #{limit}
 	</select>
 	
 	<select id="findByMemberId" resultMap="ProductListMap">
@@ -164,11 +171,8 @@
 			a.live_broadcast_id
 			
 		FROM product p
-		JOIN auction a ON p.product_id = a.auction_id
-		WHERE 
-		(p.title LIKE CONCAT('%', #{keyword}, '%') 
-			OR p.description LIKE CONCAT('%', #{keyword}, '%'))
-		AND p.deleted_at IS NULL
+		JOIN auction a ON p.product_id = a.product_id
+		WHERE p.deleted_at IS NULL
 		AND p.status IN ('REGISTERED', 'ON_AUCTION')
 		AND p.member_id = #{memberId}
 		ORDER BY a.created_at DESC
@@ -210,13 +214,18 @@
 			a.live_broadcast_id
 			
 		FROM product p
-		JOIN auction a ON p.product_id = a.auction_id
+		JOIN auction a ON p.product_id = a.product_id
 		WHERE 
 		(p.title LIKE CONCAT('%', #{keyword}, '%') 
 			OR p.description LIKE CONCAT('%', #{keyword}, '%'))
 		AND p.deleted_at IS NULL
 		AND p.status IN ('REGISTERED', 'ON_AUCTION')
-		ORDER BY a.created_at DESC
+		<if test="cursor != null">
+			AND p.product_id &lt; #{cursor}
+		</if>
+		<!-- 커서 컬럼과 정렬 기준을 일치시키려 a.created_at DESC 대신 p.product_id DESC 로 바꿨다 -->
+		ORDER BY p.product_id DESC
+		LIMIT #{limit}
 	</select>
 
 	<resultMap id="ProductDetailMap"

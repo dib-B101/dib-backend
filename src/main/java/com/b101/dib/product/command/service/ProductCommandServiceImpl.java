@@ -18,13 +18,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class ProductCommandServiceImpl implements ProductCommandService {
+
+    private static final long MAX_IMAGE_BYTES = 10L * 1024L * 1024L;
 
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
@@ -32,9 +38,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     
     @Override
     public Product create(Long myId, ProductCreateRequest request, List<MultipartFile> images) {
-    	if(images != null && images.size() > 10) {
-    		throw new BusinessException(ErrorCode.TOO_MUCH_IMAGES);
-    	}
+		validateImages(images);
     	String thumbnailUrl = images.get(0).toString();
     	
         Product product = Product.builder()
@@ -44,10 +48,11 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         		.description(request.getDescription())
         		.condition(request.getCondition())
         		.modelName(request.getModelName())
-        		.releaseYear(request.getAuctionTime())
+				.releaseYear(request.getReleaseYear())
         		.marketPrice(request.getMarketPrice())
         		.thumbnailUrl(thumbnailUrl)
-        		.status(ProductStatus.PENDING)
+				// AI 검수 미연동 기간: 등록 즉시 승인 처리한다.
+				.status(ProductStatus.REGISTERED)
         		.embedding(null)
         		.createdAt(LocalDateTime.now())
         		.updatedAt(null)
@@ -69,7 +74,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     		productImageRepository.save(productImage);
     	}
         
-        // 상품 정보, 상품 이미지 AI 검수 요청을 Kafka를 통해 진행
+        // 실제 AI 검수 연결 시 REGISTERED 전이를 비동기 검수 결과로 교체한다.
         
         Auction auction = Auction.builder()
         		.productId(product.getProductId())
@@ -79,7 +84,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         		.auctionTime(request.getAuctionTime())
         		.startedAt(null)
         		.endedAt(null)
-        		.status(AuctionStatus.PENDING)
+				.status(AuctionStatus.SCHEDULED)
         		.bidCount(0).bidderCount(0).viewCount(0).bookmarkCount(0).extensionCount(0)
         		.createdAt(LocalDateTime.now())
         		.updatedAt(null)
@@ -88,6 +93,71 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         auctionRepository.save(auction);
         
         return product;
+    }
+
+    private void validateImages(List<MultipartFile> images) {
+        if (images == null || images.isEmpty()) {
+            throw new BusinessException(ErrorCode.IMAGE_REQUIRED);
+        }
+        if (images.size() > 10) {
+            throw new BusinessException(ErrorCode.FILE_COUNT_EXCEEDED);
+        }
+        for (MultipartFile image : images) {
+            if (image == null || image.isEmpty()) {
+                throw new BusinessException(ErrorCode.INVALID_CONTENT_TYPE);
+            }
+            if (image.getSize() > MAX_IMAGE_BYTES) {
+                throw new BusinessException(ErrorCode.FILE_TOO_LARGE);
+            }
+            String declaredType = normalizeContentType(image.getContentType());
+            String detectedType = detectContentType(image);
+            if (declaredType == null || !declaredType.equals(detectedType)) {
+                throw new BusinessException(ErrorCode.INVALID_CONTENT_TYPE);
+            }
+        }
+    }
+
+    private String normalizeContentType(String contentType) {
+        if (contentType == null) return null;
+        String normalized = contentType.toLowerCase(Locale.ROOT);
+        if ("image/jpg".equals(normalized)) return "image/jpeg";
+        return switch (normalized) {
+            case "image/jpeg", "image/png", "image/webp" -> normalized;
+            default -> null;
+        };
+    }
+
+    private String detectContentType(MultipartFile image) {
+        try (InputStream input = image.getInputStream()) {
+            byte[] header = input.readNBytes(12);
+            if (header.length >= 3
+                    && (header[0] & 0xff) == 0xff
+                    && (header[1] & 0xff) == 0xd8
+                    && (header[2] & 0xff) == 0xff) {
+                return "image/jpeg";
+            }
+            byte[] pngSignature = new byte[] {
+                    (byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
+            };
+            if (header.length >= 8 && Arrays.equals(Arrays.copyOf(header, 8), pngSignature)) {
+                return "image/png";
+            }
+            if (header.length >= 12
+                    && matchesAscii(header, 0, "RIFF")
+                    && matchesAscii(header, 8, "WEBP")) {
+                return "image/webp";
+            }
+            return null;
+        } catch (IOException exception) {
+            return null;
+        }
+    }
+
+    private boolean matchesAscii(byte[] bytes, int offset, String expected) {
+        for (int index = 0; index < expected.length(); index++) {
+            if (bytes[offset + index] != (byte) expected.charAt(index)) return false;
+        }
+        return true;
     }
 
     @Override
@@ -126,7 +196,8 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         }
         
         if(updated) {
-        	product.setStatus(ProductStatus.PENDING);
+			// AI 검수 미연동 기간: 수정 상품도 즉시 재승인 처리한다.
+			product.setStatus(ProductStatus.REGISTERED);
         	product.setUpdatedAt(LocalDateTime.now());
         }
         
@@ -171,12 +242,14 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 	@Override
 	public Product startAuction(Long myId, Long productId) {
 		Product product = checkProduct(myId, productId);
+		if (product.getStatus() != ProductStatus.REGISTERED) {
+			throw new BusinessException(ErrorCode.PRODUCT_NOT_APPROVED);
+		}
+		Auction auction = checkAuction(myId, productId);
 		LocalDateTime now = LocalDateTime.now();
+		auction.start(now);
 		product.setStatus(ProductStatus.ON_AUCTION);
 		product.setUpdatedAt(now);
-		
-		Auction auction = checkAuction(myId, productId);
-		auction.start(now);
 		
 		return product;
 	}

@@ -520,15 +520,15 @@ INSERT INTO address (address_id, member_id, number, address, name, api_address_i
 (30,27,'10027','부산광역시 해운대구 센텀중앙로 47','기본배송지','API-ADDR-030');
 
 -- B-5. 라이브 방송 8개
-INSERT INTO live_broadcast (live_broadcast_id, member_id, title, description, status, stream_url, started_at, ended_at, view_count) OVERRIDING SYSTEM VALUE VALUES
-(4,1,'김철수의 오늘의 디지털 경매','디지털 인기 매물을 실시간으로 확인하세요.','LIVE','https://stream.example.com/live/dib-4',NOW() - INTERVAL '35 minutes',NULL,842),
-(5,4,'당근먹는토끼의 창고 정리','상태 좋은 중고 물품만 모았습니다.','LIVE','https://stream.example.com/live/dib-5',NOW() - INTERVAL '18 minutes',NULL,317),
-(6,5,'강남폰수집가 전자기기 라이브','전자기기 실물 상태를 보여드립니다.','LIVE','https://stream.example.com/live/dib-6',NOW() - INTERVAL '72 minutes',NULL,1280),
-(7,1,'주말 한정 라이브 경매','주말 저녁에 시작합니다.','SCHEDULED',NULL,NULL,NULL,0),
-(8,2,'득템요정 추천 매물 라이브','찜 많은 상품 위주로 진행합니다.','SCHEDULED',NULL,NULL,NULL,0),
-(9,6,'레트로상점 취미용품 특집','게임과 취미용품을 모았습니다.','SCHEDULED',NULL,NULL,NULL,0),
-(10,1,'지난 디지털 특가 라이브','종료된 방송 다시보기입니다.','ENDED','https://stream.example.com/vod/dib-10',NOW() - INTERVAL '5 days 2 hours',NOW() - INTERVAL '5 days',654),
-(11,2,'지난 생활용품 라이브','종료된 방송 다시보기입니다.','ENDED','https://stream.example.com/vod/dib-11',NOW() - INTERVAL '12 days 3 hours',NOW() - INTERVAL '12 days',401);
+INSERT INTO live_broadcast (live_broadcast_id, member_id, title, description, status, livekit_room_name, started_at, ended_at, view_count) OVERRIDING SYSTEM VALUE VALUES
+(4,1,'김철수의 오늘의 디지털 경매','디지털 인기 매물을 실시간으로 확인하세요.','LIVE','live-broadcast-dib-4',NOW() - INTERVAL '35 minutes',NULL,842),
+(5,4,'당근먹는토끼의 창고 정리','상태 좋은 중고 물품만 모았습니다.','LIVE','live-broadcast-dib-5',NOW() - INTERVAL '18 minutes',NULL,317),
+(6,5,'강남폰수집가 전자기기 라이브','전자기기 실물 상태를 보여드립니다.','LIVE','live-broadcast-dib-6',NOW() - INTERVAL '72 minutes',NULL,1280),
+(7,1,'주말 한정 라이브 경매','주말 저녁에 시작합니다.','SCHEDULED','live-broadcast-dib-7',NULL,NULL,0),
+(8,2,'득템요정 추천 매물 라이브','찜 많은 상품 위주로 진행합니다.','SCHEDULED','live-broadcast-dib-8',NULL,NULL,0),
+(9,6,'레트로상점 취미용품 특집','게임과 취미용품을 모았습니다.','SCHEDULED','live-broadcast-dib-9',NULL,NULL,0),
+(10,1,'지난 디지털 특가 라이브','종료된 방송 다시보기입니다.','ENDED','live-broadcast-dib-10',NOW() - INTERVAL '5 days 2 hours',NOW() - INTERVAL '5 days',654),
+(11,2,'지난 생활용품 라이브','종료된 방송 다시보기입니다.','ENDED','live-broadcast-dib-11',NOW() - INTERVAL '12 days 3 hours',NOW() - INTERVAL '12 days',401);
 
 -- B-6. 경매 90개: ACTIVE 55 / SCHEDULED 12 / ENDED 21 / CANCELED 2
 INSERT INTO auction (auction_id, product_id, start_price, current_price, auction_time, started_at, ended_at, status, bid_count, bidder_count, view_count, bookmark_count, top_bid_id, extension_count, created_at, updated_at, deleted_at, live_broadcast_id) OVERRIDING SYSTEM VALUE VALUES
@@ -1387,11 +1387,9 @@ INSERT INTO payment_method (payment_method_id, member_id, billing_key, customer_
 
 -- B-14. 구독 35건
 INSERT INTO subscription (subscription_id, subscriber_id, broadcaster_id) OVERRIDING SYSTEM VALUE VALUES
-(4,1,2),
 (5,1,4),
 (6,1,5),
 (7,1,6),
-(8,2,1),
 (9,2,4),
 (10,2,5),
 (11,2,6),

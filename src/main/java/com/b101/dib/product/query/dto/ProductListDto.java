@@ -6,10 +6,16 @@ import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.product.domain.ProductCondition;
 import com.b101.dib.product.domain.ProductStatus;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class ProductListDto {
 	private Long productId;

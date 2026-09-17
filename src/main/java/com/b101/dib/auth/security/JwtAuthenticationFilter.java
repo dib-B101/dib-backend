@@ -25,6 +25,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String ROLE_PREFIX = "ROLE_";
+    // 토큰 재발급은 만료된 액세스 토큰을 들고 오는 게 정상이다. 여기서 401 을 내면 리프레시 토큰이
+    // 살아 있어도 갱신이 막혀 사용자가 강제 로그아웃된다
+    private static final String TOKEN_REFRESH_PATH = "/api/v1/auth/token/refresh";
 
     private final AccessTokenVerifier accessTokenVerifier;
     private final AuthenticationEntryPoint authenticationEntryPoint;
@@ -36,6 +39,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (TOKEN_REFRESH_PATH.equals(request.getRequestURI())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         if (authorizationHeader == null || SecurityContextHolder.getContext().getAuthentication() != null) {
             filterChain.doFilter(request, response);
             return;

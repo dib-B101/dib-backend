@@ -19,6 +19,7 @@
         <result property="paymentDue" column="payment_due" />
         <result property="trackingNumber" column="tracking_number" />
         <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
     </resultMap>
 
     <resultMap id="PurchaseHistoryRowMap"
@@ -64,7 +65,8 @@
             o.status,
             o.payment_due,
             o.tracking_number,
-            o.created_at
+            o.created_at,
+            o.updated_at
         FROM "order" o
         JOIN auction a ON a.auction_id = o.auction_id
         JOIN product p ON p.product_id = a.product_id
