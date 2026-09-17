@@ -43,6 +43,7 @@ public enum ErrorCode {
     BID_AMOUNT_TAKEN(HttpStatus.CONFLICT, "같은 금액의 입찰이 먼저 들어왔습니다"),
     SELLER_CANNOT_BID(HttpStatus.FORBIDDEN, "판매자는 자신의 경매에 입찰할 수 없습니다"),
     ALREADY_HIGHEST_BIDDER(HttpStatus.CONFLICT, "이미 최고 입찰자입니다"),
+    AUCTION_BUSY(HttpStatus.CONFLICT, "다른 입찰이 처리 중입니다. 잠시 후 다시 시도해 주세요"),
     VERSION_CONFLICT(HttpStatus.CONFLICT, "경매 정보가 변경되었습니다. 최신 정보를 다시 조회해 주세요"),
     PRODUCT_NOT_OWNED(HttpStatus.FORBIDDEN, "본인 소유의 상품만 경매에 등록할 수 있습니다"),
     INVALID_AUCTION(HttpStatus.BAD_REQUEST, "일반 경매 요청이 올바르지 않습니다"),
