@@ -4,11 +4,14 @@ import java.time.OffsetDateTime;
 
 import com.b101.dib.auth.command.dto.LoginMemberResponse;
 import com.b101.dib.auth.command.dto.LoginResponse;
+import com.b101.dib.auth.command.dto.KakaoAuthResponse;
+import com.b101.dib.auth.command.dto.KakaoProfileResponse;
 import com.b101.dib.auth.command.dto.TokenRefreshResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
 import com.b101.dib.auth.command.dto.SignupResponse;
 import com.b101.dib.auth.command.service.LoginService;
+import com.b101.dib.auth.command.service.KakaoAuthService;
 import com.b101.dib.auth.command.service.PasswordResetService;
 import com.b101.dib.auth.command.service.PhoneVerificationService;
 import com.b101.dib.auth.command.service.SignupService;
@@ -54,6 +57,9 @@ class AuthCommandControllerTest {
 
     @MockitoBean
     private LoginService loginService;
+
+    @MockitoBean
+    private KakaoAuthService kakaoAuthService;
 
     @MockitoBean
     private TokenSessionService tokenSessionService;
@@ -298,6 +304,92 @@ class AuthCommandControllerTest {
                 .andExpect(jsonPath("$.accessToken").value("access-token"))
                 .andExpect(jsonPath("$.refreshToken").value("refresh-token"))
                 .andExpect(jsonPath("$.accessExpiresIn").value(1800));
+    }
+
+    @Test
+    void returnsSignupTokenForUnlinkedKakaoMember() throws Exception {
+        given(kakaoAuthService.authenticate(any()))
+                .willReturn(new KakaoAuthResponse(
+                        true,
+                        null,
+                        "signup-token",
+                        new KakaoProfileResponse(
+                                "카카오닉네임",
+                                "https://image.example/profile.jpg"
+                        ),
+                        null,
+                        null,
+                        null
+                ));
+
+        mockMvc.perform(post("/api/v1/auth/oauth/kakao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "authorizationCode":"authorization-code",
+                                  "redirectUri":"http://localhost:5173/oauth/kakao/callback",
+                                  "deviceId":"device-id"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isNewMember").value(true))
+                .andExpect(jsonPath("$.signupToken").value("signup-token"))
+                .andExpect(jsonPath("$.kakaoProfile.nickname").value("카카오닉네임"))
+                .andExpect(jsonPath("$.accessToken").doesNotExist());
+    }
+
+    @Test
+    void completesKakaoSignupAndReturnsTokens() throws Exception {
+        given(kakaoAuthService.signup(any()))
+                .willReturn(new KakaoAuthResponse(
+                        true,
+                        new LoginMemberResponse(
+                                1L,
+                                "user@example.com",
+                                "길동이",
+                                MemberStatus.ACTIVE,
+                                MemberRole.USER
+                        ),
+                        null,
+                        null,
+                        "access-token",
+                        "refresh-token",
+                        1800L
+                ));
+
+        mockMvc.perform(post("/api/v1/auth/oauth/kakao/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "signupToken":"signup-token",
+                                  "email":"user@example.com",
+                                  "name":"홍길동",
+                                  "nickname":"길동이",
+                                  "gender":"MALE",
+                                  "birthDate":"2000-01-01",
+                                  "phoneNumber":"01012345678",
+                                  "phoneVerificationToken":"verification-token",
+                                  "deviceId":"device-id"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.member.memberId").value(1))
+                .andExpect(jsonPath("$.accessToken").value("access-token"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
+    }
+
+    @Test
+    void rejectsKakaoAuthenticationWithoutDeviceId() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/oauth/kakao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "authorizationCode":"authorization-code",
+                                  "redirectUri":"http://localhost:5173/oauth/kakao/callback"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT"));
     }
 
     @Test

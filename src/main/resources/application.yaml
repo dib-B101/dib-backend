@@ -66,6 +66,12 @@ auth:
   password-reset:
     token-ttl: 30m
     reset-page-url: ${PASSWORD_RESET_PAGE_URL:http://localhost:5173/password/reset}
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID:}
+    client-secret: ${KAKAO_CLIENT_SECRET:}
+    token-url: https://kauth.kakao.com/oauth/token
+    user-info-url: https://kapi.kakao.com/v2/user/me
+    signup-token-ttl: 10m
 
 # TossPayments 자동결제(빌링). 키는 프로필/환경변수에서 — 없으면 결제 호출 시점에만 실패
 toss:
