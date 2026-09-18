@@ -1,11 +1,8 @@
 package com.b101.dib.auth.external.kakao;
 
-import java.time.LocalDate;
+import java.time.Duration;
 
 import com.b101.dib.auth.config.KakaoProperties;
-import com.b101.dib.common.exception.BusinessException;
-import com.b101.dib.common.exception.ErrorCode;
-import com.b101.dib.member.domain.Gender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -15,7 +12,6 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.client.ExpectedCount.once;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
@@ -38,7 +34,8 @@ class KakaoRestOAuthClientTest {
                         "client-id",
                         "client-secret",
                         "https://kauth.kakao.test/oauth/token",
-                        "https://kapi.kakao.test/v2/user/me"
+                        "https://kapi.kakao.test/v2/user/me",
+                        Duration.ofMinutes(10)
                 ),
                 builder.build()
         );
@@ -59,17 +56,10 @@ class KakaoRestOAuthClientTest {
                         {
                           "id":12345,
                           "kakao_account":{
-                            "email_needs_agreement":false,
-                            "email":"user@example.com",
                             "profile":{
                               "nickname":"카카오닉네임",
                               "profile_image_url":"https://image.example/profile.jpg"
-                            },
-                            "name":"홍길동",
-                            "gender":"male",
-                            "birthyear":"2000",
-                            "birthday":"0101",
-                            "phone_number":"+82 10-1234-5678"
+                            }
                           }
                         }
                         """, MediaType.APPLICATION_JSON));
@@ -79,31 +69,22 @@ class KakaoRestOAuthClientTest {
         );
 
         assertThat(profile.providerUserId()).isEqualTo("12345");
-        assertThat(profile.email()).isEqualTo("user@example.com");
-        assertThat(profile.gender()).isEqualTo(Gender.MALE);
-        assertThat(profile.phoneNumber()).isEqualTo("01012345678");
-        assertThat(profile.birthDate()).isEqualTo(LocalDate.of(2000, 1, 1));
+        assertThat(profile.nickname()).isEqualTo("카카오닉네임");
+        assertThat(profile.profileImageUrl()).isEqualTo("https://image.example/profile.jpg");
         server.verify();
     }
 
     @Test
-    void requiresKakaoEmailConsent() {
+    void authenticatesWithOnlyKakaoUserId() {
         server.expect(requestTo("https://kauth.kakao.test/oauth/token"))
                 .andRespond(withSuccess("{\"access_token\":\"token\"}", MediaType.APPLICATION_JSON));
         server.expect(requestTo("https://kapi.kakao.test/v2/user/me"))
-                .andRespond(withSuccess("""
-                        {
-                          "id":12345,
-                          "kakao_account":{
-                            "email_needs_agreement":true,
-                            "profile":{"nickname":"닉네임"}
-                          }
-                        }
-                        """, MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess("{\"id\":12345}", MediaType.APPLICATION_JSON));
 
-        assertThatThrownBy(() -> client.authenticate("code", "http://localhost/callback"))
-                .isInstanceOfSatisfying(BusinessException.class,
-                        exception -> assertThat(exception.getErrorCode())
-                                .isEqualTo(ErrorCode.EMAIL_CONSENT_REQUIRED));
+        KakaoProfile profile = client.authenticate("code", "http://localhost/callback");
+
+        assertThat(profile.providerUserId()).isEqualTo("12345");
+        assertThat(profile.nickname()).isNull();
+        assertThat(profile.profileImageUrl()).isNull();
     }
 }

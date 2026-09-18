@@ -1,14 +1,8 @@
 package com.b101.dib.auth.external.kakao;
 
-import java.time.DateTimeException;
-import java.time.LocalDate;
-import java.util.Locale;
-
 import com.b101.dib.auth.config.KakaoProperties;
-import com.b101.dib.auth.domain.PhoneNumber;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
-import com.b101.dib.member.domain.Gender;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -78,7 +72,7 @@ public class KakaoRestOAuthClient implements KakaoOAuthClient {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                 .retrieve()
                 .body(KakaoUserResponse.class);
-        if (response == null || response.id() == null || response.account() == null) {
+        if (response == null || response.id() == null) {
             throw new BusinessException(ErrorCode.KAKAO_AUTH_FAILED);
         }
         return response;
@@ -86,68 +80,14 @@ public class KakaoRestOAuthClient implements KakaoOAuthClient {
 
     private KakaoProfile toProfile(KakaoUserResponse user) {
         KakaoAccount account = user.account();
-        if (Boolean.TRUE.equals(account.emailNeedsAgreement()) || !hasText(account.email())) {
-            throw new BusinessException(ErrorCode.EMAIL_CONSENT_REQUIRED);
-        }
-
-        Profile profile = account.profile();
+        Profile profile = account == null ? null : account.profile();
         String nickname = profile == null ? null : profile.nickname();
         String imageUrl = profile == null ? null : profile.profileImageUrl();
-        Gender gender = parseGender(account.gender());
-        LocalDate birthDate = parseBirthDate(account.birthyear(), account.birthday());
-        String phoneNumber = normalizeKakaoPhone(account.phoneNumber());
-        if (!hasText(nickname) || !hasText(account.name()) || gender == null
-                || birthDate == null || phoneNumber == null) {
-            throw new BusinessException(ErrorCode.KAKAO_AUTH_FAILED);
-        }
-
         return new KakaoProfile(
                 String.valueOf(user.id()),
-                account.email().trim().toLowerCase(Locale.ROOT),
-                nickname.trim(),
-                imageUrl,
-                account.name().trim(),
-                gender,
-                birthDate,
-                phoneNumber
+                hasText(nickname) ? nickname.trim() : null,
+                imageUrl
         );
-    }
-
-    private Gender parseGender(String gender) {
-        if ("male".equalsIgnoreCase(gender)) {
-            return Gender.MALE;
-        }
-        if ("female".equalsIgnoreCase(gender)) {
-            return Gender.FEMALE;
-        }
-        return null;
-    }
-
-    private LocalDate parseBirthDate(String birthyear, String birthday) {
-        if (!hasText(birthyear) || birthday == null || !birthday.matches("\\d{4}")) {
-            return null;
-        }
-        try {
-            return LocalDate.of(
-                    Integer.parseInt(birthyear),
-                    Integer.parseInt(birthday.substring(0, 2)),
-                    Integer.parseInt(birthday.substring(2, 4))
-            );
-        } catch (DateTimeException | NumberFormatException exception) {
-            return null;
-        }
-    }
-
-    private String normalizeKakaoPhone(String phoneNumber) {
-        if (!hasText(phoneNumber)) {
-            return null;
-        }
-        String domestic = phoneNumber.trim().replaceFirst("^\\+82\\s*", "0");
-        try {
-            return PhoneNumber.from(domestic).value();
-        } catch (BusinessException exception) {
-            return null;
-        }
     }
 
     private void validateConfiguration() {
@@ -167,16 +107,7 @@ public class KakaoRestOAuthClient implements KakaoOAuthClient {
     record KakaoUserResponse(Long id, @JsonProperty("kakao_account") KakaoAccount account) {
     }
 
-    record KakaoAccount(
-            @JsonProperty("email_needs_agreement") Boolean emailNeedsAgreement,
-            String email,
-            Profile profile,
-            String name,
-            String gender,
-            String birthyear,
-            String birthday,
-            @JsonProperty("phone_number") String phoneNumber
-    ) {
+    record KakaoAccount(Profile profile) {
     }
 
     record Profile(

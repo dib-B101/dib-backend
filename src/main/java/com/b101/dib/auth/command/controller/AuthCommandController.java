@@ -4,6 +4,7 @@ import com.b101.dib.auth.command.dto.LoginRequest;
 import com.b101.dib.auth.command.dto.LoginResponse;
 import com.b101.dib.auth.command.dto.KakaoAuthRequest;
 import com.b101.dib.auth.command.dto.KakaoAuthResponse;
+import com.b101.dib.auth.command.dto.KakaoSignupRequest;
 import com.b101.dib.auth.command.dto.LogoutRequest;
 import com.b101.dib.auth.command.dto.PasswordResetLinkRequest;
 import com.b101.dib.auth.command.dto.PasswordResetRequest;
@@ -76,6 +77,14 @@ public class AuthCommandController {
             @Valid @RequestBody KakaoAuthRequest request
     ) {
         return ResponseEntity.ok(kakaoAuthService.authenticate(request));
+    }
+
+    @PostMapping("/oauth/kakao/signup")
+    public ResponseEntity<KakaoAuthResponse> signupWithKakao(
+            @Valid @RequestBody KakaoSignupRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(kakaoAuthService.signup(request));
     }
 
     @PostMapping("/token/refresh")

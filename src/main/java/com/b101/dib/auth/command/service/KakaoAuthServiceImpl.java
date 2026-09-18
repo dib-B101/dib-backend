@@ -1,20 +1,30 @@
 package com.b101.dib.auth.command.service;
 
+import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Base64;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
 import com.b101.dib.auth.command.dto.KakaoAuthRequest;
 import com.b101.dib.auth.command.dto.KakaoAuthResponse;
+import com.b101.dib.auth.command.dto.KakaoProfileResponse;
+import com.b101.dib.auth.command.dto.KakaoSignupRequest;
 import com.b101.dib.auth.command.dto.LoginMemberResponse;
 import com.b101.dib.auth.config.JwtProperties;
+import com.b101.dib.auth.config.KakaoProperties;
 import com.b101.dib.auth.domain.AuthTokenPair;
+import com.b101.dib.auth.domain.PhoneNumber;
 import com.b101.dib.auth.domain.PhoneVerificationPurpose;
 import com.b101.dib.auth.external.kakao.KakaoOAuthClient;
 import com.b101.dib.auth.external.kakao.KakaoProfile;
+import com.b101.dib.auth.repository.KakaoSignupSession;
+import com.b101.dib.auth.repository.KakaoSignupTokenStore;
 import com.b101.dib.auth.repository.RefreshSessionStore;
+import com.b101.dib.auth.token.KakaoSignupTokenHasher;
 import com.b101.dib.auth.token.TokenIssuer;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
@@ -35,8 +45,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class KakaoAuthServiceImpl implements KakaoAuthService {
 
     private static final SocialProvider PROVIDER = SocialProvider.KAKAO;
+    private static final int SIGNUP_TOKEN_BYTES = 32;
 
     private final KakaoOAuthClient kakaoOAuthClient;
+    private final KakaoSignupTokenStore kakaoSignupTokenStore;
+    private final KakaoSignupTokenHasher kakaoSignupTokenHasher;
     private final SocialAccountRepository socialAccountRepository;
     private final MemberRepository memberRepository;
     private final PhoneVerificationService phoneVerificationService;
@@ -44,6 +57,8 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
     private final TokenIssuer tokenIssuer;
     private final RefreshSessionStore refreshSessionStore;
     private final JwtProperties jwtProperties;
+    private final KakaoProperties kakaoProperties;
+    private final SecureRandom secureRandom;
     private final Clock clock;
 
     @Override
@@ -53,16 +68,57 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 request.authorizationCode().trim(),
                 request.redirectUri().trim()
         );
-        LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
-
         Optional<SocialAccount> linkedAccount = socialAccountRepository
                 .findByProviderAndProviderUserId(PROVIDER, profile.providerUserId());
         if (linkedAccount.isPresent()) {
-            return login(linkedAccount.get().getMember(), request.deviceId(), false, now);
+            return login(
+                    linkedAccount.get().getMember(),
+                    request.deviceId(),
+                    false,
+                    now()
+            );
         }
 
-        Optional<Member> memberByPhone = memberRepository.findByPhoneNumber(profile.phoneNumber());
-        Optional<Member> memberByEmail = memberRepository.findByEmail(profile.email());
+        String signupToken = generateSignupToken();
+        kakaoSignupTokenStore.save(
+                kakaoSignupTokenHasher.hash(signupToken),
+                new KakaoSignupSession(
+                        profile.providerUserId(),
+                        profile.nickname(),
+                        profile.profileImageUrl()
+                ),
+                kakaoProperties.signupTokenTtl()
+        );
+        return new KakaoAuthResponse(
+                true,
+                null,
+                signupToken,
+                new KakaoProfileResponse(profile.nickname(), profile.profileImageUrl()),
+                null,
+                null,
+                null
+        );
+    }
+
+    @Override
+    @Transactional
+    public KakaoAuthResponse signup(KakaoSignupRequest request) {
+        String signupTokenHash = kakaoSignupTokenHasher.hash(request.signupToken().trim());
+        KakaoSignupSession signupSession = kakaoSignupTokenStore.find(signupTokenHash);
+        Optional<SocialAccount> alreadyLinked = socialAccountRepository
+                .findByProviderAndProviderUserId(PROVIDER, signupSession.providerUserId());
+        if (alreadyLinked.isPresent()) {
+            kakaoSignupTokenStore.consume(signupTokenHash);
+            return login(alreadyLinked.get().getMember(), request.deviceId(), false, now());
+        }
+
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
+        String name = request.name().trim();
+        String nickname = request.nickname().trim();
+        String phoneNumber = PhoneNumber.from(request.phoneNumber()).value();
+
+        Optional<Member> memberByPhone = memberRepository.findByPhoneNumber(phoneNumber);
+        Optional<Member> memberByEmail = memberRepository.findByEmail(email);
         Member member;
         boolean isNewMember;
         if (memberByPhone.isPresent()) {
@@ -70,35 +126,54 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
             if (memberByEmail.isPresent() && !memberByEmail.get().getId().equals(member.getId())) {
                 throw new BusinessException(ErrorCode.ACCOUNT_LINK_REQUIRED);
             }
-            requireAndConsumePhoneVerification(request.phoneVerificationToken(), profile.phoneNumber());
             isNewMember = false;
         } else if (memberByEmail.isPresent()) {
             throw new BusinessException(ErrorCode.ACCOUNT_LINK_REQUIRED);
         } else {
-            requireAndConsumePhoneVerification(request.phoneVerificationToken(), profile.phoneNumber());
-            member = createMember(profile, now);
+            if (memberRepository.existsByNickname(nickname)) {
+                throw new BusinessException(ErrorCode.NICKNAME_DUPLICATED);
+            }
+            member = null;
             isNewMember = true;
+        }
+
+        phoneVerificationService.consumeVerificationToken(
+                request.phoneVerificationToken().trim(),
+                PhoneVerificationPurpose.SIGN_UP,
+                phoneNumber
+        );
+        kakaoSignupTokenStore.consume(signupTokenHash);
+        if (isNewMember) {
+            member = createMember(request, email, name, nickname, phoneNumber, signupSession, now());
         }
 
         socialAccountRepository.save(SocialAccount.builder()
                 .member(member)
                 .provider(PROVIDER)
-                .providerUserId(profile.providerUserId())
-                .createdAt(now)
+                .providerUserId(signupSession.providerUserId())
+                .createdAt(now())
                 .build());
-        return login(member, request.deviceId(), isNewMember, now);
+        return login(member, request.deviceId(), isNewMember, now());
     }
 
-    private Member createMember(KakaoProfile profile, LocalDateTime now) {
+    private Member createMember(
+            KakaoSignupRequest request,
+            String email,
+            String name,
+            String nickname,
+            String phoneNumber,
+            KakaoSignupSession signupSession,
+            LocalDateTime now
+    ) {
         Member member = Member.builder()
-                .email(profile.email())
+                .email(email)
                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
-                .nickname(uniqueNickname(profile.nickname(), profile.providerUserId()))
-                .profileImageUrl(profile.profileImageUrl())
-                .name(profile.name().substring(0, Math.min(profile.name().length(), 10)))
-                .gender(profile.gender())
-                .birthDate(profile.birthDate())
-                .phoneNumber(profile.phoneNumber())
+                .nickname(nickname)
+                .profileImageUrl(signupSession.profileImageUrl())
+                .name(name)
+                .gender(request.gender())
+                .birthDate(request.birthDate())
+                .phoneNumber(phoneNumber)
                 .status(MemberStatus.ACTIVE)
                 .role(MemberRole.USER)
                 .score(50.0)
@@ -109,25 +184,14 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         return memberRepository.saveAndFlush(member);
     }
 
-    private String uniqueNickname(String nickname, String providerUserId) {
-        String base = nickname.length() <= 50 ? nickname : nickname.substring(0, 50);
-        if (!memberRepository.existsByNickname(base)) {
-            return base;
-        }
-        String suffix = "_" + providerUserId;
-        int baseLength = Math.max(0, 50 - suffix.length());
-        return base.substring(0, Math.min(base.length(), baseLength)) + suffix;
+    private String generateSignupToken() {
+        byte[] bytes = new byte[SIGNUP_TOKEN_BYTES];
+        secureRandom.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    private void requireAndConsumePhoneVerification(String token, String phoneNumber) {
-        if (token == null || token.isBlank()) {
-            throw new BusinessException(ErrorCode.INVALID_VERIFICATION);
-        }
-        phoneVerificationService.consumeVerificationToken(
-                token.trim(),
-                PhoneVerificationPurpose.SIGN_UP,
-                phoneNumber
-        );
+    private LocalDateTime now() {
+        return LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
     }
 
     private KakaoAuthResponse login(
@@ -152,6 +216,8 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                         member.getStatus(),
                         member.getRole()
                 ),
+                null,
+                null,
                 tokens.accessToken(),
                 tokens.refreshToken(),
                 jwtProperties.accessTokenValiditySeconds()

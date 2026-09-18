@@ -1,6 +1,6 @@
-package com.b101.dib.auth.external.kakao;
+package com.b101.dib.auth.repository;
 
-public record KakaoProfile(
+public record KakaoSignupSession(
         String providerUserId,
         String nickname,
         String profileImageUrl
