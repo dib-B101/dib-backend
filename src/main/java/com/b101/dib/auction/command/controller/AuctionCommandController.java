@@ -48,9 +48,12 @@ public class AuctionCommandController {
     @PatchMapping("/{auctionId}/start")
     public ResponseEntity<Map<String, Object>> startAuction(
     		@RequestHeader("X-Member-Id") Long myId,
-    		@PathVariable("auctionId") Long auctionId
+    		@PathVariable("auctionId") Long auctionId,
+    		@RequestBody(required = false) StartAuctionRequest request
     		){
-    	Auction auction = auctionCommandService.startAuction(myId, auctionId);
+    	Auction auction = auctionCommandService.startAuction(myId, auctionId,
+    			request == null ? null : request.getStartPrice(),
+    			request == null ? null : request.getAuctionTime());
     	HashMap<String, Object> map = new HashMap<>();
         map.put("message", "경매 시작");
         map.put("data", auction);
@@ -59,6 +62,20 @@ public class AuctionCommandController {
         		.body(map);
     }
     
+    @PatchMapping("/{auctionId}/relist")
+    public ResponseEntity<Map<String, Object>> relist(
+    		@RequestHeader("X-Member-Id") Long myId,
+    		@PathVariable("auctionId") Long auctionId
+    		) {
+    	Auction auction = auctionCommandService.relist(myId, auctionId);
+    	HashMap<String, Object> map = new HashMap<>();
+        map.put("message", "경매 재등록 성공");
+        map.put("data", auction);
+        return ResponseEntity
+        		.status(HttpStatus.OK)
+        		.body(map);
+    }
+
     @DeleteMapping("/{auctionId}")
     public ResponseEntity<Map<String, Object>> delete(
     		@RequestHeader("X-Member-Id") Long myId,

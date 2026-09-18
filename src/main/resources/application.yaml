@@ -94,7 +94,7 @@ dib:
   cache:
     snapshot-enabled: true # 입찰 스냅샷 Redis Hot State auction:{id}:snapshot
   ai:
-    enabled: ${DIB_AI_ENABLED:false}                 # true 면 경매 종료 후 AI 서버에 이상입찰 분석 요청
+    enabled: ${DIB_AI_ENABLED:false}                 # true 면 이상입찰 분석 + 상품 등록·수정 시 AI 검수 요청. false 면 등록 즉시 REGISTERED + 경매 생성(기존 동작)
     base-url: ${DIB_AI_BASE_URL:http://localhost:8000}
     callback-base-url: ${DIB_AI_CALLBACK_BASE_URL:http://localhost:8080}
     service-hmac-secret: ${DIB_SERVICE_HMAC_SECRET:}  # AI 의 DIB_SERVICE_HMAC_SECRET 과 같은 값

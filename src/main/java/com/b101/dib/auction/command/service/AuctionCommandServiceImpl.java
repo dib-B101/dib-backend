@@ -82,15 +82,52 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 	
 	
 	@Override
-	public Auction startAuction(Long myId, Long auctionId) {
+	public Auction startAuction(Long myId, Long auctionId, Long startPrice, Integer auctionTime) {
 		Auction auction = checkAuction(myId, auctionId);
 		Long productId = auction.getProductId();
 		Product product = checkProduct(myId, productId);
 		LocalDateTime now = LocalDateTime.now();
+
+		if (startPrice != null) {
+			if (startPrice < 1000L) {
+				throw new BusinessException(ErrorCode.AUCTION_PRICE_INVALID);
+			}
+			auction.setStartPrice(startPrice);
+			// 아직 입찰이 없으므로 현재가는 시작가와 같아야 한다
+			auction.setCurrentPrice(startPrice);
+		}
+		if (auctionTime != null) {
+			if (auctionTime < 300) {
+				throw new BusinessException(ErrorCode.AUCTION_SCHEDULE_INVALID);
+			}
+			auction.setAuctionTime(auctionTime);
+		}
+		// 상품 등록 때 값을 받지 않으므로 시작 시점까지 비어 있을 수 있다
+		if (auction.getStartPrice() == null || auction.getAuctionTime() == null) {
+			throw new BusinessException(ErrorCode.AUCTION_PRICE_REQUIRED);
+		}
+
 		auction.start(now);
 		product.setStatus(ProductStatus.ON_AUCTION);
 		product.setUpdatedAt(now);
 		
+		return auction;
+	}
+
+	// 유찰된 경매를 다시 예정 상태로. 상품도 REGISTERED 로 되돌려 시작가·시간을 다시 정할 수 있게 한다
+	@Override
+	public Auction relist(Long myId, Long auctionId) {
+		Auction auction = auctionRepository.findById(auctionId)
+				.orElseThrow(() -> new BusinessException(ErrorCode.AUCTION_NOT_FOUND));
+		if (auction.getDeletedAt() != null) {
+			throw new BusinessException(ErrorCode.AUCTION_ALREADY_DELETED);
+		}
+		Product product = checkProduct(myId, auction.getProductId());
+		if (product.getStatus() == ProductStatus.SOLD) {
+			throw new BusinessException(ErrorCode.AUCTION_NOT_RELISTABLE);
+		}
+		auction.relist(LocalDateTime.now());
+		product.setStatus(ProductStatus.REGISTERED);
 		return auction;
 	}
 

@@ -37,6 +37,10 @@ public class SettlementCommandServiceImpl implements SettlementCommandService {
         if (order.getStatus() != OrderStatus.CONFIRMED) {
             throw new BusinessException(ErrorCode.SETTLEMENT_NOT_READY);
         }
+        // 보류 건은 confirm() 단계에서 이미 막히지만, 정산 행이 생기면 지급까지 흘러가므로 여기서도 이중으로 막는다
+        if (order.isOnHold()) {
+            throw new BusinessException(ErrorCode.ORDER_ON_HOLD);
+        }
         Settlement existing = settlementRepository.findByOrderId(order.getOrderId()).orElse(null);
         if (existing != null) {
             return existing;
@@ -56,6 +60,10 @@ public class SettlementCommandServiceImpl implements SettlementCommandService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.SETTLEMENT_NOT_FOUND));
         Order order = orderRepository.findById(settlement.getOrderId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+        // 지급은 돈이 판매자에게 빠져나가는 마지막 관문이라 보류 여부를 지급 직전에 다시 본다
+        if (order.isOnHold()) {
+            throw new BusinessException(ErrorCode.ORDER_ON_HOLD);
+        }
         if (order.getStatus() != OrderStatus.CONFIRMED || settlement.isPaidOut() || !settlement.hasAccount()) {
             throw new BusinessException(ErrorCode.SETTLEMENT_NOT_READY);
         }

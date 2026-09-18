@@ -126,6 +126,14 @@
 		LIMIT 1
 	</select>
 
+	<select id="findCardsByLiveBroadcastId" resultMap="AuctionCardRowMap">
+		SELECT <include refid="cardColumns" />
+		<include refid="cardFrom" />
+		WHERE a.live_broadcast_id = #{liveBroadcastId}
+		  AND a.deleted_at IS NULL
+		ORDER BY CASE a.status WHEN 'ACTIVE' THEN 0 WHEN 'SCHEDULED' THEN 1 ELSE 2 END, a.auction_id
+	</select>
+
 	<!-- AI 는 경매 ID 순서만 돌려준다. 여기서는 여전히 노출 가능한 일반 경매인지 다시
 	     확인하고 카드 데이터를 채운다. 최종 순서는 서비스가 AI ID 목록대로 복원한다. -->
 	<select id="findActiveGeneralCardsByIds" resultMap="AuctionCardRowMap">

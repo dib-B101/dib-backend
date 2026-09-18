@@ -31,10 +31,9 @@ public class ProductCreateRequest {
     @PositiveOrZero
     private Long marketPrice;
 
-    @NotNull
+    // 시작가·경매시간은 경매 시작 또는 라이브 편성 시점에 정한다. 등록 때는 선택
     @Min(1000)
     private Long startPrice;
-    @NotNull
     @Min(300)
     private Integer auctionTime;
 }

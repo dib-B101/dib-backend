@@ -159,6 +159,8 @@
         <result property="chattingSessionId" column="chatting_session_id" />
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
+        <result property="heldAt" column="held_at" />
+        <result property="holdReportId" column="hold_report_id" />
         <result property="auctionId" column="auction_id" />
         <result property="startPrice" column="start_price" />
         <result property="currentPrice" column="current_price" />
@@ -194,6 +196,8 @@
             o.chatting_session_id,
             o.created_at,
             o.updated_at,
+            o.held_at,
+            o.hold_report_id,
             a.auction_id,
             a.start_price,
             a.current_price,

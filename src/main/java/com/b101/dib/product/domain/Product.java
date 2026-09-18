@@ -50,6 +50,13 @@ public class Product {
     @Column(columnDefinition = "vector(768)", insertable = false, updatable = false)
     private String embedding;
 
+    // AI 검수 결과. 판매자에게 거절 사유를 보여주고 관리자 검수 근거로 쓴다
+    @Column(columnDefinition = "text")
+    private String moderationReason;
+    private String moderationStage;
+    private String moderationContentHash;
+    private LocalDateTime moderatedAt;
+
     @CreatedDate
     private LocalDateTime createdAt;
     @LastModifiedDate

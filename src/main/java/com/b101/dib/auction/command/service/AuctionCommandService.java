@@ -7,7 +7,9 @@ public interface AuctionCommandService {
     
 	Auction update(Long myId, Long auctionId, UpdateAuctionRequest request);
     
-	Auction startAuction(Long myId, Long auctionId);
+	Auction startAuction(Long myId, Long auctionId, Long startPrice, Integer auctionTime);
+
+	Auction relist(Long myId, Long auctionId);
 
 	Auction delete(Long myId, Long auctionId);
 

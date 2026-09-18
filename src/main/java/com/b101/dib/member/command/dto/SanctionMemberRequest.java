@@ -3,11 +3,17 @@ package com.b101.dib.member.command.dto;
 import com.b101.dib.member.domain.MemberStatus;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class SanctionMemberRequest {
     @Min(0)
     private Integer warningCount;

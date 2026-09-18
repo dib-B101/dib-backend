@@ -1,6 +1,9 @@
 package com.b101.dib.product.command.service;
 
 import com.b101.dib.auction.repository.AuctionRepository;
+import com.b101.dib.common.ai.AiServerClient;
+import com.b101.dib.product.command.event.ProductModerationRequestedEvent;
+import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.auction.domain.Auction;
 import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.common.exception.BusinessException;
@@ -16,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.List;
@@ -23,6 +27,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -32,10 +37,13 @@ class ProductCommandServiceImplTest {
     @Mock ProductRepository productRepository;
     @Mock ProductImageRepository productImageRepository;
     @Mock AuctionRepository auctionRepository;
+    @Mock AiServerClient aiServerClient;
+    @Mock ApplicationEventPublisher eventPublisher;
     @InjectMocks ProductCommandServiceImpl productCommandService;
 
     @Test
     void createsProductWithReleaseYearInsteadOfAuctionTime() {
+        // dib.ai.enabled=false 면 등록 즉시 승인 + 경매 생성이라는 기존 동작을 유지한다
         ProductCreateRequest request = validRequest();
         MockMultipartFile jpeg = new MockMultipartFile(
                 "images", "camera.jpg", "image/jpeg",
@@ -46,13 +54,29 @@ class ProductCommandServiceImplTest {
 
         assertThat(product.getMemberId()).isEqualTo(17L);
         assertThat(product.getReleaseYear()).isEqualTo(1982);
-        assertThat(product.getStatus()).isEqualTo(com.b101.dib.product.domain.ProductStatus.REGISTERED);
+        assertThat(product.getStatus()).isEqualTo(ProductStatus.REGISTERED);
         verify(productRepository).save(any(Product.class));
         ArgumentCaptor<Auction> auctionCaptor = ArgumentCaptor.forClass(Auction.class);
         verify(auctionRepository).save(auctionCaptor.capture());
         assertThat(auctionCaptor.getValue().getStatus()).isEqualTo(AuctionStatus.SCHEDULED);
         assertThat(auctionCaptor.getValue().getStartPrice()).isEqualTo(30_000L);
         assertThat(auctionCaptor.getValue().getAuctionTime()).isEqualTo(300);
+    }
+
+    // 검수가 켜지면 경매는 검수 통과 후에 만든다
+    @Test
+    void createsPendingProductWithoutAuctionWhenModerationEnabled() {
+        given(aiServerClient.isEnabled()).willReturn(true);
+        MockMultipartFile jpeg = new MockMultipartFile(
+                "images", "camera.jpg", "image/jpeg",
+                new byte[] {(byte) 0xff, (byte) 0xd8, (byte) 0xff, 0x00}
+        );
+
+        Product product = productCommandService.create(17L, validRequest(), List.of(jpeg));
+
+        assertThat(product.getStatus()).isEqualTo(ProductStatus.PENDING);
+        verify(auctionRepository, never()).save(any(Auction.class));
+        verify(eventPublisher).publishEvent(any(ProductModerationRequestedEvent.class));
     }
 
     @Test

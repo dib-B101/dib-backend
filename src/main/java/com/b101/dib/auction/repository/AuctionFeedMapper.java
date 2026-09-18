@@ -28,6 +28,8 @@ public interface AuctionFeedMapper {
 
     AuctionCardRowDto findActiveCardByLiveBroadcastId(@Param("memberId") Long memberId, @Param("liveBroadcastId") Long liveBroadcastId);
 
+    List<AuctionCardRowDto> findCardsByLiveBroadcastId(@Param("memberId") Long memberId, @Param("liveBroadcastId") Long liveBroadcastId);
+
     List<AuctionCardRowDto> findActiveGeneralCardsByIds(@Param("memberId") Long memberId,
                                                         @Param("auctionIds") List<Long> auctionIds);
 }

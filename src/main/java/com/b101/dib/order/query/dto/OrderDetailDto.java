@@ -27,6 +27,8 @@ public class OrderDetailDto {
     private String chattingSessionId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime heldAt;
+    private Long holdReportId;
 
     private Long auctionId;
     private Long startPrice;

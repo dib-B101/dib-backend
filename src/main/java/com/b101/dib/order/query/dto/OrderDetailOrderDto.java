@@ -27,4 +27,7 @@ public class OrderDetailOrderDto {
     private String chattingSessionId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    // 신고 보류. status는 그대로이므로 프론트는 이 값으로 "신고 처리 중" 배지와 버튼 비활성을 판단한다
+    private LocalDateTime heldAt;
+    private Long holdReportId;
 }

@@ -48,7 +48,8 @@ public class OrderExpiryTxServiceImpl implements OrderExpiryTxService {
     @Override
     public void confirmOne(Long orderId, LocalDateTime deliveredBefore) {
         Order order = orderRepository.findById(orderId).orElse(null);
-        if (order == null || order.getStatus() != OrderStatus.DELIEVERED
+        // 보류 건은 조용히 건너뛴다. order.confirm()이 던지는 예외에 맡기면 매분 에러 로그만 쌓인다
+        if (order == null || order.isOnHold() || order.getStatus() != OrderStatus.DELIEVERED
                 || order.getUpdatedAt() == null || !order.getUpdatedAt().isBefore(deliveredBefore)) {
             return;
         }

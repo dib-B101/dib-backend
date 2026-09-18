@@ -38,6 +38,8 @@ public class OrderDetailViewDto {
         order.setChattingSessionId(row.getChattingSessionId());
         order.setCreatedAt(row.getCreatedAt());
         order.setUpdatedAt(row.getUpdatedAt());
+        order.setHeldAt(row.getHeldAt());
+        order.setHoldReportId(row.getHoldReportId());
         view.setOrder(order);
 
         OrderDetailAuctionDto auction = new OrderDetailAuctionDto();

@@ -21,6 +21,8 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
     List<Auction> findAllByStatusAndEndedAtBefore(AuctionStatus status, LocalDateTime before);
 
+    List<Auction> findAllByLiveBroadcastId(Long liveBroadcastId);
+
     @Query("""
             select (count(a) > 0)
             from Auction a

@@ -124,7 +124,8 @@
 			a.live_broadcast_id
 			
 		FROM product p
-		JOIN auction a ON p.product_id = a.product_id
+		<!-- 검수 통과 전 상품은 경매 행이 없다. INNER JOIN 이면 판매자가 자기 PENDING 상품을 못 본다 -->
+		LEFT JOIN auction a ON p.product_id = a.product_id
 		WHERE p.deleted_at IS NULL
 		AND p.member_id = #{myId}
 		<if test="cursor != null">
@@ -246,6 +247,10 @@
 		<result property="categoryName" column="category_name" />
 		<result property="memberId" column="member_id" />
 		<result property="nickname" column="nickname" />
+
+		<result property="moderationReason" column="moderation_reason" />
+		<result property="moderationStage" column="moderation_stage" />
+		<result property="moderatedAt" column="moderated_at" />
 	</resultMap>
 
 	<select id="findById" resultMap="ProductDetailMap">
@@ -261,6 +266,9 @@
 			p.status,
 			p.created_at,
 			p.updated_at,
+			p.moderation_reason,
+			p.moderation_stage,
+			p.moderated_at,
 			
 			c.category_id,
 			c.name AS category_name,
@@ -284,6 +292,9 @@
 		<result property="status" column="status" />
 		<result property="createdAt" column="created_at" />
 		<result property="updatedAt" column="updated_at" />
+		<result property="moderationReason" column="moderation_reason" />
+		<result property="moderationStage" column="moderation_stage" />
+		<result property="moderatedAt" column="moderated_at" />
 	</resultMap>
 
 	<select id="findForModeration" resultMap="AdminProductQueryMap">
@@ -294,7 +305,10 @@
 			p.title,
 			p.status,
 			p.created_at,
-			p.updated_at
+			p.updated_at,
+			p.moderation_reason,
+			p.moderation_stage,
+			p.moderated_at
 		FROM product p
 		JOIN member m ON m.member_id = p.member_id
 		WHERE p.deleted_at IS NULL
