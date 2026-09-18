@@ -100,6 +100,10 @@ dib:
     service-hmac-secret: ${DIB_SERVICE_HMAC_SECRET:}  # AI 의 DIB_SERVICE_HMAC_SECRET 과 같은 값
     ai-hmac-secret: ${DIB_AI_HMAC_SECRET:}            # AI 의 DIB_AI_HMAC_SECRET 과 같은 값
     max-skew-seconds: 300
+    recommendation-cache-ttl: 5m
+    recommendation-refresh-lock-ttl: 30s
+    recommendation-initial-delay-ms: 2000
+    recommendation-refresh-ms: 240000
 
 # 배송 조회 구현체 선택: fake(기본, devtools.FakeCarrierClient) | deliverytracker | sweettracker
 carrier:

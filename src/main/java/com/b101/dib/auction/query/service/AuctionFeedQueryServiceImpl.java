@@ -11,11 +11,20 @@ import com.b101.dib.common.exception.ErrorCode;
 import com.b101.dib.common.util.Times;
 import com.b101.dib.liveBroadcast.query.dto.LiveBroadcastCardDto;
 import com.b101.dib.liveBroadcast.repository.LiveFeedMapper;
+import com.b101.dib.recommendation.command.dto.RecommendationItemDto;
+import com.b101.dib.recommendation.command.service.RecommendationRefreshPublisher;
+import com.b101.dib.recommendation.query.dto.RecommendationSnapshot;
+import com.b101.dib.recommendation.repository.RecommendationCache;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +34,8 @@ public class AuctionFeedQueryServiceImpl implements AuctionFeedQueryService {
 
     private final AuctionFeedMapper auctionFeedMapper;
     private final LiveFeedMapper liveFeedMapper;
+    private final RecommendationCache recommendationCache;
+    private final RecommendationRefreshPublisher recommendationRefreshPublisher;
 
     // LATEST 는 auction_id 커서, 다른 정렬은 offset 커서 (숫자 문자열 하나로 프론트 계약 유지)
     @Override
@@ -60,21 +71,66 @@ public class AuctionFeedQueryServiceImpl implements AuctionFeedQueryService {
         return page;
     }
 
-    // 1차 추천: LIVE 방송 + 마감 임박 순 ACTIVE 일반 경매. AI 추천(명세 94/95) 붙으면 이 메서드만 교체
+    // LIVE 방송 카드는 기존 정책을 유지하고, 일반 경매는 AI 캐시 순서를 우선한다.
+    // 캐시 미스·Redis/AI 장애 때는 마감 임박 순으로 즉시 폴백해 홈 요청을 실패시키지 않는다.
     @Override
     public AuctionRecommendationDto recommend(Long memberId, int size) {
         int limit = CursorPageDto.limit(size);
+        Long recommendationMemberId = memberId == null ? 0L : memberId;
+        RecommendationSnapshot snapshot = recommendationCache.get(recommendationMemberId)
+                .or(() -> recommendationMemberId == 0L ? java.util.Optional.empty() : recommendationCache.get(0L))
+                .orElse(null);
+        if (snapshot == null || !recommendationMemberId.equals(snapshot.getMemberId())) {
+            recommendationRefreshPublisher.requestIfNeeded(recommendationMemberId);
+        }
+
         AuctionRecommendationDto dto = new AuctionRecommendationDto();
         dto.setLiveItems(liveFeedMapper.findLive(RECOMMEND_LIVE_MAX).stream().map(LiveBroadcastCardDto::from).toList());
-        List<AuctionCardRowDto> rows = auctionFeedMapper.findCards(memberId, "GENERAL", "ACTIVE", null, null, null,
-                AuctionFeedSort.ENDING_SOON.name(), null, 0, limit + 1);
-        List<AuctionCardDto> cards = rows.stream().map(r -> AuctionCardDto.from(r, memberId)).toList();
-        CursorPageDto<AuctionCardDto> page = CursorPageDto.of(cards, limit, AuctionCardDto::getAuctionId);
-        dto.setGeneralItems(page.getItems());
-        dto.setHasNext(page.isHasNext());
-        dto.setNextCursor(page.isHasNext() ? String.valueOf(limit) : null);
+        List<AuctionCardDto> cards = mergeAiOrderWithFallback(memberId, snapshot, limit + 1);
+        boolean hasNext = cards.size() > limit;
+        dto.setGeneralItems(hasNext ? new ArrayList<>(cards.subList(0, limit)) : cards);
+        dto.setHasNext(hasNext);
+        dto.setNextCursor(hasNext ? String.valueOf(limit) : null);
         dto.setServerTime(Times.now());
         return dto;
+    }
+
+    private List<AuctionCardDto> mergeAiOrderWithFallback(Long memberId, RecommendationSnapshot snapshot, int targetSize) {
+        List<AuctionCardDto> ordered = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        if (snapshot != null && !snapshot.getItems().isEmpty()) {
+            List<Long> ids = snapshot.getItems().stream()
+                    .map(RecommendationItemDto::getAuctionId)
+                    .filter(java.util.Objects::nonNull)
+                    .distinct()
+                    .toList();
+            if (!ids.isEmpty()) {
+                Map<Long, AuctionCardRowDto> rowsById = new HashMap<>();
+                for (AuctionCardRowDto row : auctionFeedMapper.findActiveGeneralCardsByIds(memberId, ids)) {
+                    rowsById.put(row.getAuctionId(), row);
+                }
+                for (Long id : ids) {
+                    AuctionCardRowDto row = rowsById.get(id);
+                    if (row != null && seen.add(id)) {
+                        ordered.add(AuctionCardDto.from(row, memberId));
+                    }
+                }
+            }
+        }
+
+        if (ordered.size() < targetSize) {
+            List<AuctionCardRowDto> fallback = auctionFeedMapper.findCards(memberId, "GENERAL", "ACTIVE", null, null, null,
+                    AuctionFeedSort.ENDING_SOON.name(), null, 0, targetSize);
+            for (AuctionCardRowDto row : fallback) {
+                if (seen.add(row.getAuctionId())) {
+                    ordered.add(AuctionCardDto.from(row, memberId));
+                    if (ordered.size() >= targetSize) {
+                        break;
+                    }
+                }
+            }
+        }
+        return ordered;
     }
 
     @Override

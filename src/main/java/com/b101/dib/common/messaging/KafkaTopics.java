@@ -6,10 +6,12 @@ public final class KafkaTopics {
 
     public static final String BID_PLACED = "dib.bid.placed";
     public static final String AUCTION_CLOSED = "dib.auction.closed";
+    public static final String RECOMMENDATION_REQUESTED = "dib.recommendation.requested";
 
     // Consumer group. 역할별로 나눠서 한 역할이 느려도 다른 역할이 밀리지 않게
     public static final String GROUP_NOTIFICATION = "dib-notification";
     public static final String GROUP_MEMBER_EVENT = "dib-member-event";
     public static final String GROUP_PAYMENT = "dib-payment";
     public static final String GROUP_FRAUD = "dib-fraud";
+    public static final String GROUP_RECOMMENDATION = "dib-recommendation";
 }

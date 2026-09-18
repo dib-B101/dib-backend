@@ -126,6 +126,22 @@
 		LIMIT 1
 	</select>
 
+	<!-- AI 는 경매 ID 순서만 돌려준다. 여기서는 여전히 노출 가능한 일반 경매인지 다시
+	     확인하고 카드 데이터를 채운다. 최종 순서는 서비스가 AI ID 목록대로 복원한다. -->
+	<select id="findActiveGeneralCardsByIds" resultMap="AuctionCardRowMap">
+		SELECT <include refid="cardColumns" />
+		<include refid="cardFrom" />
+		WHERE a.auction_id IN
+		<foreach collection="auctionIds" item="auctionId" open="(" separator="," close=")">
+			#{auctionId}
+		</foreach>
+		  AND a.deleted_at IS NULL
+		  AND p.deleted_at IS NULL
+		  AND a.status = 'ACTIVE'
+		  AND a.live_broadcast_id IS NULL
+		  AND p.status NOT IN ('PENDING', 'REJECTED')
+	</select>
+
 	<!-- 찜 목록 화면: bookmark 를 경매 카드에 조인해 카드 그대로 내려준다 (프론트에서 최근 경매와 교집합 내던 우회를 없앤다) -->
 	<select id="findBookmarkedCards" resultMap="AuctionCardRowMap">
 		SELECT bm.bookmark_id, <include refid="cardColumns" />

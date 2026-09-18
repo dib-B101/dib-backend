@@ -17,4 +17,9 @@ public class KafkaTopicConfig {
     public NewTopic auctionClosedTopic() {
         return TopicBuilder.name(KafkaTopics.AUCTION_CLOSED).partitions(3).replicas(1).build();
     }
+
+    @Bean
+    public NewTopic recommendationRequestedTopic() {
+        return TopicBuilder.name(KafkaTopics.RECOMMENDATION_REQUESTED).partitions(3).replicas(1).build();
+    }
 }

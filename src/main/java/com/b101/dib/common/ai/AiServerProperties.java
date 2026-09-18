@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+
 // AI 서버(FastAPI) 연동 설정 dib.ai.*
 // enabled=false 면 분석 요청을 보내지 않고 로그만 남긴다.
 // serviceHmacSecret: 우리 → AI 서명 (AI 의 DIB_SERVICE_HMAC_SECRET), aiHmacSecret: AI → 우리 콜백 검증 (AI 의 DIB_AI_HMAC_SECRET)
@@ -19,4 +21,6 @@ public class AiServerProperties {
     private String serviceHmacSecret = "";
     private String aiHmacSecret = "";
     private int maxSkewSeconds = 300;
+    private Duration recommendationCacheTtl = Duration.ofMinutes(5);
+    private Duration recommendationRefreshLockTtl = Duration.ofSeconds(30);
 }
