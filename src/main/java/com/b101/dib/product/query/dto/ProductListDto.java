@@ -14,7 +14,9 @@ import lombok.Getter;
 public class ProductListDto {
 	private Long productId;
     private Long memberId;
+    private String nickname;
     private Long categoryId;
+    private String categoryName;
     private String title;
     private String description;
     private ProductCondition condition;
