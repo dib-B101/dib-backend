@@ -29,6 +29,7 @@ public enum ErrorCode {
     INVALID_CONTENT_TYPE(HttpStatus.BAD_REQUEST, "JPG, PNG, WEBP 이미지만 등록할 수 있습니다."),
     FILE_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "이미지는 장당 10MB까지만 등록할 수 있습니다."),
     FILE_COUNT_EXCEEDED(HttpStatus.BAD_REQUEST, "이미지는 10장까지만 등록할 수 있습니다."),
+    IMAGE_STORAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 저장에 실패했습니다."),
     
     // 검색
     INVALID_SEARCH(HttpStatus.BAD_REQUEST, "검색 조건과 키워드가 유효하지 않습니다"),

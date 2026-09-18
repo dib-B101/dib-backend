@@ -2,6 +2,8 @@ package com.b101.dib.question.command.service;
 
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
+import com.b101.dib.notification.domain.Notification;
+import com.b101.dib.notification.repository.NotificationRepository;
 import com.b101.dib.question.command.dto.AnswerQuestionRequest;
 import com.b101.dib.question.command.dto.CreateQuestionRequest;
 import com.b101.dib.question.domain.Question;
@@ -17,6 +19,7 @@ import java.time.LocalDateTime;
 @Transactional
 public class QuestionCommandServiceImpl implements QuestionCommandService {
     private final QuestionRepository questionRepository;
+    private final NotificationRepository notificationRepository;
 
     @Override
     public Question create(Long memberId, CreateQuestionRequest request) {
@@ -36,6 +39,8 @@ public class QuestionCommandServiceImpl implements QuestionCommandService {
         LocalDateTime now = LocalDateTime.now();
         question.setAnswer(request.getAnswer());
         question.setAnsweredAt(now);
+        notificationRepository.save(Notification.system(question.getMemberId(), "문의 답변 완료",
+                "문의 #" + questionId + "에 관리자 답변이 등록되었습니다."));
         return now;
     }
 }

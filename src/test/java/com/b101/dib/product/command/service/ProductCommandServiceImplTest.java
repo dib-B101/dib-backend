@@ -13,6 +13,7 @@ import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductCondition;
 import com.b101.dib.product.repository.ProductRepository;
 import com.b101.dib.productImage.repository.ProductImageRepository;
+import com.b101.dib.productImage.storage.ProductImageStorage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
@@ -39,6 +41,7 @@ class ProductCommandServiceImplTest {
     @Mock AuctionRepository auctionRepository;
     @Mock AiServerClient aiServerClient;
     @Mock ApplicationEventPublisher eventPublisher;
+    @Mock ProductImageStorage productImageStorage;
     @InjectMocks ProductCommandServiceImpl productCommandService;
 
     @Test
@@ -49,6 +52,8 @@ class ProductCommandServiceImplTest {
                 "images", "camera.jpg", "image/jpeg",
                 new byte[] {(byte) 0xff, (byte) 0xd8, (byte) 0xff, 0x00}
         );
+        given(productImageStorage.storeAll(List.of(jpeg)))
+                .willReturn(List.of("/api/v1/product-images/files/camera.jpg"));
 
         Product product = productCommandService.create(17L, request, List.of(jpeg));
 
@@ -66,16 +71,22 @@ class ProductCommandServiceImplTest {
     // 검수가 켜지면 경매는 검수 통과 후에 만든다
     @Test
     void createsPendingProductWithoutAuctionWhenModerationEnabled() {
+        ReflectionTestUtils.setField(productCommandService, "moderationEnabled", true);
         given(aiServerClient.isEnabled()).willReturn(true);
         MockMultipartFile jpeg = new MockMultipartFile(
                 "images", "camera.jpg", "image/jpeg",
                 new byte[] {(byte) 0xff, (byte) 0xd8, (byte) 0xff, 0x00}
         );
+        given(productImageStorage.storeAll(List.of(jpeg)))
+                .willReturn(List.of("/api/v1/product-images/files/camera.jpg"));
 
         Product product = productCommandService.create(17L, validRequest(), List.of(jpeg));
 
         assertThat(product.getStatus()).isEqualTo(ProductStatus.PENDING);
-        verify(auctionRepository, never()).save(any(Auction.class));
+        ArgumentCaptor<Auction> auctionCaptor = ArgumentCaptor.forClass(Auction.class);
+        verify(auctionRepository).save(auctionCaptor.capture());
+        assertThat(auctionCaptor.getValue().getStartPrice()).isEqualTo(30_000L);
+        assertThat(auctionCaptor.getValue().getAuctionTime()).isEqualTo(300);
         verify(eventPublisher).publishEvent(any(ProductModerationRequestedEvent.class));
     }
 

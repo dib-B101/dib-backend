@@ -93,8 +93,12 @@ dib:
     redis-enabled: true    # 경매 단위 Redisson 분산락 lock:auction:{id}. false 면 DB 행 락만
   cache:
     snapshot-enabled: true # 입찰 스냅샷 Redis Hot State auction:{id}:snapshot
+  storage:
+    product-image-dir: ${DIB_PRODUCT_IMAGE_DIR:./data/product-images}
+    internal-base-url: ${DIB_STORAGE_INTERNAL_BASE_URL:${DIB_AI_CALLBACK_BASE_URL:http://localhost:8080}}
   ai:
     enabled: ${DIB_AI_ENABLED:false}                 # true 면 이상입찰 분석 + 상품 등록·수정 시 AI 검수 요청. false 면 등록 즉시 REGISTERED + 경매 생성(기존 동작)
+    moderation-enabled: ${DIB_AI_MODERATION_ENABLED:false} # 검수 모델 운영 전에는 false: 상품은 즉시 승인하되 추천·이상입찰 AI는 유지
     base-url: ${DIB_AI_BASE_URL:http://localhost:8000}
     callback-base-url: ${DIB_AI_CALLBACK_BASE_URL:http://localhost:8080}
     service-hmac-secret: ${DIB_SERVICE_HMAC_SECRET:}  # AI 의 DIB_SERVICE_HMAC_SECRET 과 같은 값

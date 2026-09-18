@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class LiveBroadcastCommandServiceImpl implements LiveBroadcastCommandService {
 	
 	private final LiveBroadcastRepository liveBroadcastRepository;

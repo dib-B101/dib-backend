@@ -7,6 +7,7 @@ import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.product.repository.ProductRepository;
 import com.b101.dib.productImage.domain.ProductImage;
 import com.b101.dib.productImage.repository.ProductImageRepository;
+import com.b101.dib.productImage.storage.ProductImageStorage;
 import com.b101.dib.auction.domain.Auction;
 import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.auction.repository.AuctionRepository;
@@ -18,6 +19,7 @@ import com.b101.dib.product.command.event.ProductModerationRequestedEvent;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,14 +43,19 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     private final AuctionRepository auctionRepository;
     private final AiServerClient aiServerClient;
     private final ApplicationEventPublisher eventPublisher;
+    private final ProductImageStorage productImageStorage;
+
+    @Value("${dib.ai.moderation-enabled:false}")
+    private boolean moderationEnabled;
     
     @Override
     public Product create(Long myId, ProductCreateRequest request, List<MultipartFile> images) {
 		validateImages(images);
-    	String thumbnailUrl = images.get(0).toString();
+		List<String> imageUrls = productImageStorage.storeAll(images);
+		String thumbnailUrl = imageUrls.get(0);
 
-    	// 검수를 거치는 동안 상품은 PENDING 이고 경매 행도 만들지 않는다. AI 가 꺼져 있으면 기존대로 즉시 승인한다
-    	boolean moderationEnabled = aiServerClient.isEnabled();
+        // 추천·이상입찰 AI와 상품 검수의 준비 상태는 다르므로 검수 플래그를 따로 둔다.
+        boolean requestModeration = moderationEnabled && aiServerClient.isEnabled();
 
         Product product = Product.builder()
         		.memberId(myId)
@@ -60,7 +67,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 				.releaseYear(request.getReleaseYear())
         		.marketPrice(request.getMarketPrice())
         		.thumbnailUrl(thumbnailUrl)
-				.status(moderationEnabled ? ProductStatus.PENDING : ProductStatus.REGISTERED)
+				.status(requestModeration ? ProductStatus.PENDING : ProductStatus.REGISTERED)
         		.embedding(null)
         		.createdAt(LocalDateTime.now())
         		.updatedAt(null)
@@ -68,26 +75,23 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         		.build();
         productRepository.save(product);
         
-        // 이미지들을 업로드한다.
-        // S3 서비스로 구현할 예정
         for(int i=0; i<images.size(); i++) {
-        	MultipartFile image = images.get(i);
         	Long productId = product.getProductId();
-    		String imageUrl = image.toString();
-    		Integer sequence = i+1;
-    		ProductImage productImage = ProductImage.builder().productId(productId)
-    				.imageUrl(imageUrl)
+			Integer sequence = i+1;
+            ProductImage productImage = ProductImage.builder().productId(productId)
+					.imageUrl(imageUrls.get(i))
     				.sequence(sequence)
     				.build();
     		productImageRepository.save(productImage);
     	}
         
-        if (moderationEnabled) {
-            // 등록 응답이 AI 응답을 기다리면 안 되므로 커밋 후에 검수를 부른다. 경매는 검수 통과 시점에 만든다
+        // 검수 중에는 시작할 수 없지만, 최초 입력값은 잃지 않도록 경매 초안은 즉시 저장한다.
+        auctionRepository.save(Auction.scheduled(product.getProductId(),
+                request.getStartPrice(), request.getAuctionTime(), LocalDateTime.now()));
+
+        if (requestModeration) {
+            // 등록 응답이 AI 응답을 기다리면 안 되므로 커밋 후에 검수를 부른다.
             eventPublisher.publishEvent(new ProductModerationRequestedEvent(product.getProductId()));
-        } else {
-            auctionRepository.save(Auction.scheduled(product.getProductId(),
-                    request.getStartPrice(), request.getAuctionTime(), LocalDateTime.now()));
         }
 
         return product;
@@ -198,7 +202,8 @@ public class ProductCommandServiceImpl implements ProductCommandService {
             updated = true;
         }
         
-        boolean remoderate = reviewedContentChanged && aiServerClient.isEnabled();
+        boolean requestModeration = moderationEnabled && aiServerClient.isEnabled();
+        boolean remoderate = reviewedContentChanged && requestModeration;
         if(updated) {
         	if (remoderate) {
         		// 내용이 달라졌으니 이전 판정은 더 이상 이 상품의 판정이 아니다
@@ -207,7 +212,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         		product.setModerationStage(null);
         		product.setModerationContentHash(null);
         		product.setModeratedAt(null);
-        	} else if (!aiServerClient.isEnabled() && product.getStatus() != ProductStatus.PENDING) {
+            } else if (!requestModeration && product.getStatus() != ProductStatus.PENDING) {
         		// AI 미연동 기간의 기존 동작: 수정하면 즉시 재승인.
         		// 검수가 켜져 있으면 검수 대상이 그대로이므로 판정도 그대로 둔다 (가격만 고쳐 거절을 무르게 둘 수 없다)
         		product.setStatus(ProductStatus.REGISTERED);
@@ -215,7 +220,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         	product.setUpdatedAt(LocalDateTime.now());
         }
 
-        // 검수 통과 전 상품에는 경매 행이 없다. 시작가·경매시간을 같이 보냈을 때만 경매가 있어야 한다
+        // 신규 상품은 검수 전에도 입력값 보존용 경매 초안이 있다. 구버전 데이터만 없을 수 있다.
         Auction auction = findEditableAuction(productId);
         boolean auctionFieldRequested = request.getStartPrice() != null || request.getAuctionTime() != null;
         if (auction == null && auctionFieldRequested) {
@@ -253,6 +258,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         product.setDeletedAt(LocalDateTime.now());
         
         List<ProductImage> productImages = productImageRepository.findAllByProductId(productId);
+        productImageStorage.deleteAll(productImages.stream().map(ProductImage::getImageUrl).toList());
         for(ProductImage productImage : productImages) {
         	productImageRepository.delete(productImage);
         }

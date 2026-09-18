@@ -10,8 +10,10 @@ import com.b101.dib.product.repository.ProductMapper;
 import com.b101.dib.product.repository.ProductRepository;
 import com.b101.dib.productImage.domain.ProductImage;
 import com.b101.dib.productImage.repository.ProductImageRepository;
+import com.b101.dib.productImage.storage.ProductImageStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -31,10 +33,14 @@ public class ProductModerationServiceImpl implements ProductModerationService {
     private final ProductMapper productMapper;
     private final AiServerClient aiServerClient;
     private final ProductModerationTxService productModerationTxService;
+    private final ProductImageStorage productImageStorage;
+
+    @Value("${dib.ai.moderation-enabled:false}")
+    private boolean moderationEnabled;
 
     @Override
     public void review(Long productId) {
-        if (!aiServerClient.isEnabled()) {
+        if (!moderationEnabled || !aiServerClient.isEnabled()) {
             return;
         }
         Product product = productRepository.findById(productId).orElse(null);
@@ -73,6 +79,7 @@ public class ProductModerationServiceImpl implements ProductModerationService {
                         Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(ProductImage::getImageUrl)
                 .filter(url -> url != null && !url.isBlank())
+                .map(productImageStorage::internalUrl)
                 .limit(MAX_REVIEW_IMAGES)
                 .toList();
     }

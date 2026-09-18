@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -41,6 +42,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             JwtAuthenticationFilter jwtAuthenticationFilter,
+            MemberIdHeaderFilter memberIdHeaderFilter,
             RestAuthenticationEntryPoint restAuthenticationEntryPoint
     ) throws Exception {
 
@@ -128,9 +130,22 @@ public class SecurityConfig {
                         .hasAnyRole("USER", "ADMIN")
                         .anyRequest().permitAll()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // JWT claims를 기존 X-Member-Id 기반 컨트롤러에 전달하고, local 프로필에서는
+                // 테스트 헤더 인증도 인가 전에 적용한다.
+                .addFilterAfter(memberIdHeaderFilter, JwtAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // MemberIdHeaderFilter는 SecurityFilterChain 안에서만 한 번 실행한다.
+    @Bean
+    public FilterRegistrationBean<MemberIdHeaderFilter> disableMemberIdHeaderFilterServletRegistration(
+            MemberIdHeaderFilter filter
+    ) {
+        FilterRegistrationBean<MemberIdHeaderFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean

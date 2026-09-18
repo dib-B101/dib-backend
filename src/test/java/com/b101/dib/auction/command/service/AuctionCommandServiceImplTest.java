@@ -53,7 +53,7 @@ class AuctionCommandServiceImplTest {
         when(auctionRepository.findById(21L)).thenReturn(Optional.of(auction));
         when(productRepository.findById(10L)).thenReturn(Optional.of(product));
 
-        Auction started = auctionCommandService.startAuction(17L, 21L);
+        Auction started = auctionCommandService.startAuction(17L, 21L, null, null);
 
         assertThat(started.getStatus()).isEqualTo(AuctionStatus.ACTIVE);
         assertThat(started.getStartedAt()).isNotNull();
