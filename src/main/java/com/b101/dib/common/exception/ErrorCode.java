@@ -71,6 +71,9 @@ public enum ErrorCode {
     SESSION_REVOKED(HttpStatus.UNAUTHORIZED, "다른 기기 로그인 또는 보안 변경으로 세션이 종료되었습니다."),
     DEVICE_MISMATCH(HttpStatus.BAD_REQUEST, "등록된 기기 정보와 일치하지 않습니다."),
     INVALID_RESET_TOKEN(HttpStatus.BAD_REQUEST, "비밀번호 재설정 링크가 유효하지 않습니다."),
+    EMAIL_CONSENT_REQUIRED(HttpStatus.BAD_REQUEST, "카카오 이메일 제공 동의가 필요합니다."),
+    ACCOUNT_LINK_REQUIRED(HttpStatus.CONFLICT, "기존 계정 연결이 필요합니다."),
+    KAKAO_AUTH_FAILED(HttpStatus.BAD_GATEWAY, "카카오 인증에 실패했습니다."),
 
     // 본인 인증
     INVALID_PHONE(HttpStatus.BAD_REQUEST, "휴대전화번호 형식이 올바르지 않습니다."),

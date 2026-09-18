@@ -2,6 +2,8 @@ package com.b101.dib.auth.command.controller;
 
 import com.b101.dib.auth.command.dto.LoginRequest;
 import com.b101.dib.auth.command.dto.LoginResponse;
+import com.b101.dib.auth.command.dto.KakaoAuthRequest;
+import com.b101.dib.auth.command.dto.KakaoAuthResponse;
 import com.b101.dib.auth.command.dto.LogoutRequest;
 import com.b101.dib.auth.command.dto.PasswordResetLinkRequest;
 import com.b101.dib.auth.command.dto.PasswordResetRequest;
@@ -14,6 +16,7 @@ import com.b101.dib.auth.command.dto.SignupResponse;
 import com.b101.dib.auth.command.dto.TokenRefreshRequest;
 import com.b101.dib.auth.command.dto.TokenRefreshResponse;
 import com.b101.dib.auth.command.service.LoginService;
+import com.b101.dib.auth.command.service.KakaoAuthService;
 import com.b101.dib.auth.command.service.PasswordResetService;
 import com.b101.dib.auth.command.service.PhoneVerificationService;
 import com.b101.dib.auth.command.service.SignupService;
@@ -38,6 +41,7 @@ public class AuthCommandController {
     private final PhoneVerificationService phoneVerificationService;
     private final SignupService signupService;
     private final LoginService loginService;
+    private final KakaoAuthService kakaoAuthService;
     private final TokenSessionService tokenSessionService;
     private final PasswordResetService passwordResetService;
 
@@ -65,6 +69,13 @@ public class AuthCommandController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(loginService.login(request));
+    }
+
+    @PostMapping("/oauth/kakao")
+    public ResponseEntity<KakaoAuthResponse> authenticateWithKakao(
+            @Valid @RequestBody KakaoAuthRequest request
+    ) {
+        return ResponseEntity.ok(kakaoAuthService.authenticate(request));
     }
 
     @PostMapping("/token/refresh")
