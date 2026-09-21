@@ -35,7 +35,8 @@ class KakaoRestOAuthClientTest {
                         "client-secret",
                         "https://kauth.kakao.test/oauth/token",
                         "https://kapi.kakao.test/v2/user/me",
-                        Duration.ofMinutes(10)
+                        Duration.ofMinutes(10),
+                        java.util.List.of("http://localhost/callback")
                 ),
                 builder.build()
         );
