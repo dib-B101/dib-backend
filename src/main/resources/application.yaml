@@ -72,6 +72,7 @@ auth:
     token-url: https://kauth.kakao.com/oauth/token
     user-info-url: https://kapi.kakao.com/v2/user/me
     signup-token-ttl: 10m
+    redirect-uris: ${KAKAO_REDIRECT_URIS:}
 
 # TossPayments 자동결제(빌링). 키는 프로필/환경변수에서 — 없으면 결제 호출 시점에만 실패
 toss:

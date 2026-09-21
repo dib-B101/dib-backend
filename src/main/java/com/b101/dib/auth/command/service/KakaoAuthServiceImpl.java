@@ -64,9 +64,11 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
     @Override
     @Transactional
     public KakaoAuthResponse authenticate(KakaoAuthRequest request) {
+        String redirectUri = request.redirectUri().trim();
+        validateRedirectUri(redirectUri);
         KakaoProfile profile = kakaoOAuthClient.authenticate(
                 request.authorizationCode().trim(),
-                request.redirectUri().trim()
+                redirectUri
         );
         Optional<SocialAccount> linkedAccount = socialAccountRepository
                 .findByProviderAndProviderUserId(PROVIDER, profile.providerUserId());
@@ -188,6 +190,14 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         byte[] bytes = new byte[SIGNUP_TOKEN_BYTES];
         secureRandom.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private void validateRedirectUri(String redirectUri) {
+        if (kakaoProperties.redirectUris() == null || kakaoProperties.redirectUris().stream()
+                .map(String::trim)
+                .noneMatch(redirectUri::equals)) {
+            throw new BusinessException(ErrorCode.INVALID_KAKAO_REDIRECT_URI);
+        }
     }
 
     private LocalDateTime now() {

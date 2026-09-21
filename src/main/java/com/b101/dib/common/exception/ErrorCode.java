@@ -74,6 +74,7 @@ public enum ErrorCode {
     ACCOUNT_LINK_REQUIRED(HttpStatus.CONFLICT, "기존 계정 연결이 필요합니다."),
     KAKAO_AUTH_FAILED(HttpStatus.BAD_GATEWAY, "카카오 인증에 실패했습니다."),
     INVALID_KAKAO_SIGNUP_TOKEN(HttpStatus.BAD_REQUEST, "카카오 가입 정보가 유효하지 않습니다."),
+    INVALID_KAKAO_REDIRECT_URI(HttpStatus.BAD_REQUEST, "허용되지 않은 카카오 Redirect URI입니다."),
 
     // 본인 인증
     INVALID_PHONE(HttpStatus.BAD_REQUEST, "휴대전화번호 형식이 올바르지 않습니다."),

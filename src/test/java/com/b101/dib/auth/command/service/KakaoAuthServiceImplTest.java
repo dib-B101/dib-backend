@@ -80,7 +80,8 @@ class KakaoAuthServiceImplTest {
                 refreshSessionStore,
                 new JwtProperties("secret", 1800, Duration.ofDays(30), Duration.ofDays(90)),
                 new KakaoProperties(
-                        "client-id", "client-secret", "token-url", "user-info-url", SIGNUP_TTL
+                        "client-id", "client-secret", "token-url", "user-info-url", SIGNUP_TTL,
+                        java.util.List.of("http://localhost/callback")
                 ),
                 new SecureRandom(),
                 Clock.fixed(NOW, ZoneOffset.UTC)
@@ -131,6 +132,20 @@ class KakaoAuthServiceImplTest {
                 org.mockito.ArgumentMatchers.eq(SIGNUP_TTL));
         assertThat(sessionCaptor.getValue().providerUserId()).isEqualTo("12345");
         verifyNoInteractions(memberRepository, phoneVerificationService, tokenIssuer);
+    }
+
+    @Test
+    void rejectsRedirectUriNotConfiguredByServer() {
+        KakaoAuthRequest request = new KakaoAuthRequest(
+                "authorization-code", "https://evil.example/callback", "device-id"
+        );
+
+        assertThatThrownBy(() -> service.authenticate(request))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.INVALID_KAKAO_REDIRECT_URI));
+
+        verifyNoInteractions(kakaoOAuthClient);
     }
 
     @Test
