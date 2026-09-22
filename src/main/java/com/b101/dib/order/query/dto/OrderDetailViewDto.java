@@ -29,6 +29,7 @@ public class OrderDetailViewDto {
         order.setProductId(row.getProductId());
         order.setSellerId(row.getSellerId());
         order.setSellerNickname(row.getSellerNickname());
+        order.setSellerProfileImageUrl(row.getSellerProfileImageUrl());
         order.setBuyerId(row.getBuyerId());
         order.setBuyerNickname(row.getBuyerNickname());
         order.setFinalPrice(row.getFinalPrice());

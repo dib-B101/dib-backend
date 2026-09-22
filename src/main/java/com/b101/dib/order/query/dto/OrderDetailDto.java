@@ -16,6 +16,7 @@ public class OrderDetailDto {
     private Long orderId;
     private Long sellerId;
     private String sellerNickname;
+    private String sellerProfileImageUrl;
     private Long buyerId;
     private String buyerNickname;
     private Long finalPrice;

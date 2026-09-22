@@ -34,6 +34,7 @@ public class AuctionCardRowDto {
 
     private Long sellerId;
     private String sellerNickname;
+    private String sellerProfileImageUrl;
     private Double sellerScore;
     private Integer sellerReviewCount;
     private Integer sellerTradeCount;

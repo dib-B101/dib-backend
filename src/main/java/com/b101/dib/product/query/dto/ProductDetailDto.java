@@ -31,6 +31,8 @@ public class ProductDetailDto {
     
     private Long memberId;
     private String nickname;
+    // 판매자 프로필 사진. 앱 상세 화면의 판매자 줄에 그린다
+    private String profileImageUrl;
 
     // 판매자가 거절·보류 사유를 볼 수 있어야 한다
     private String moderationReason;

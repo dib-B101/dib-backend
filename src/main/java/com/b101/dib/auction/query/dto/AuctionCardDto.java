@@ -82,6 +82,7 @@ public class AuctionCardDto {
         d.setProduct(p);
         AuctionCardSellerDto s = new AuctionCardSellerDto();
         s.setNickname(r.getSellerNickname());
+        s.setProfileImageUrl(r.getSellerProfileImageUrl());
         // 평가가 한 건도 없으면 평점을 아예 내보내지 않는다. 앱에서도 걸러지지만 여기서 막는 게 확실하다 —
         // V900 시드에 옛 0~100 점수(85.5 등)가 남아 있어서 그대로 흘리면 ★85.5 가 찍힌다
         int reviewCount = r.getSellerReviewCount() == null ? 0 : r.getSellerReviewCount();
