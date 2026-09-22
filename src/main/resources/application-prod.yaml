@@ -4,6 +4,10 @@ spring:
     url: ${DB_URL}
     username: auction
     password: ${DB_PASSWORD}
+  flyway:
+    # 운영 데이터 초기화 뒤에도 스키마와 최소 기준 데이터가 한 번에 복원되도록
+    # 로컬 더미 시드(db/seed)와 분리한 배포 전용 시드만 추가로 읽는다.
+    locations: classpath:db/migration,classpath:db/deploy-seed
   data:
     redis:
       host: ${REDIS_HOST}
