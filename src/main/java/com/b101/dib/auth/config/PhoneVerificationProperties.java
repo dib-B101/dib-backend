@@ -12,6 +12,7 @@ public record PhoneVerificationProperties(
         Duration rateWindow, // 요청 횟수를 제한하는 시간 범위
         int maxRequestsPerWindow, // 제한 시간 내 허용되는 최대 요청 횟수
         int maxAttempts, // 인증번호 확인 최대 실패 횟수
+        String fixedCode, // 비어 있으면 난수, QA 환경에서는 고정 6자리 코드
         String hmacSecret // HMAC 해시 비밀키
 ) {
 }
