@@ -9,17 +9,20 @@ INSERT INTO member (email, password, nickname, name, gender, birth_date, phone_n
 ('admin@example.com', 'hashed_pw_3', '관리자', '박관리', 'MALE', '1985-11-20', '010-9999-9999', 'ACTIVE', 'ADMIN', 100.0, NULL, NULL, NULL);
 
 -- 2. 카테고리 (Category)
+-- 배포 DB 에 처음부터 있던 8개(디지털기기 ~ 예술·창작)를 그대로 앞에 두고, 뒤에 겹치지 않는 분류만 붙인다.
+-- 예전 21개 목록의 디지털·가구/인테리어·스포츠/레저·여성의류·여성잡화·남성패션·남성잡화·뷰티/미용·취미/게임/음반은
+-- 기존 8개와 뜻이 겹쳐 배포 DB 에서 분류가 두 개씩 보였다(2026-09-23 정리, db/category_dedupe_20260923.sql 참고).
 INSERT INTO category (name) VALUES
-('디지털'),('생활가전'),('가구/인테리어'),('생활/주방'),('유아동'),
-('유아도서'),('여성의류'),('여성잡화'),('남성패션'),('남성잡화'),
-('뷰티/미용'),('스포츠/레저'),('취미/게임/음반'),('도서'),('티켓/교환권'),
+('디지털기기'),('생활가전'),('가구·인테리어'),('스포츠·레저'),('패션·잡화'),
+('뷰티'),('취미·게임'),('예술·창작'),
+('생활/주방'),('유아동'),('유아도서'),('도서'),('티켓/교환권'),
 ('e쿠폰'),('가공식품'),('건강기능식품'),('반려동물용품'),('식물'),('기타');
 
 -- 3. 상품 (Product)
 INSERT INTO product (member_id, category_id, title, description, condition, model_name, release_year, market_price, thumbnail_url, status, embedding) VALUES
 (1, 1, '아이폰 13 프로 256GB', '깨끗하게 사용한 아이폰 13 프로입니다. 기스 없습니다.', 'GOOD', 'A2638', 2021, 700000, 'https://example.com/img/iphone13.jpg', 'REGISTERED', NULL),
-(2, 2, '나이키 빈티지 바람막이', '실착 3회 미만 상태 A급입니다.', 'NORMAL', 'Nike Windrunner', 2022, 50000, 'https://example.com/img/nike.jpg', 'REGISTERED', NULL),
-(1, 3, '해리포터 원서 전권 세트', '소장용으로 가지고 있던 책들입니다.', 'GOOD', NULL, 2010, 80000, 'https://example.com/img/harrypotter.jpg', 'SOLD', NULL);
+(2, 5, '나이키 빈티지 바람막이', '실착 3회 미만 상태 A급입니다.', 'NORMAL', 'Nike Windrunner', 2022, 50000, 'https://example.com/img/nike.jpg', 'REGISTERED', NULL),
+(1, 12, '해리포터 원서 전권 세트', '소장용으로 가지고 있던 책들입니다.', 'GOOD', NULL, 2010, 80000, 'https://example.com/img/harrypotter.jpg', 'SOLD', NULL);
 
 -- 4. 상품 이미지 (Product Image)
 INSERT INTO product_image (product_id, image_url, sequence) VALUES
