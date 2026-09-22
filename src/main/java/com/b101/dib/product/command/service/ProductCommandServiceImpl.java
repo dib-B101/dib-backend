@@ -13,6 +13,7 @@ import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
+import com.b101.dib.common.validation.TradeInputValidator;
 
 import com.b101.dib.common.ai.AiServerClient;
 import com.b101.dib.product.command.event.ProductModerationRequestedEvent;
@@ -50,13 +51,14 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     
     @Override
     public Product create(Long myId, ProductCreateRequest request, List<MultipartFile> images) {
+		TradeInputValidator.validateReleaseYear(request.getReleaseYear());
+		TradeInputValidator.validatePrice(request.getStartPrice());
 		validateImages(images);
 		List<String> imageUrls = productImageStorage.storeAll(images);
 		String thumbnailUrl = imageUrls.get(0);
 
         // 추천·이상입찰 AI와 상품 검수의 준비 상태는 다르므로 검수 플래그를 따로 둔다.
         boolean requestModeration = moderationEnabled && aiServerClient.isEnabled();
-
         Product product = Product.builder()
         		.memberId(myId)
         		.categoryId(request.getCategoryId())
@@ -164,24 +166,28 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 
     @Override
     public Product update(Long myId, Long productId, ProductUpdateRequest request) {
-    	
+	    TradeInputValidator.validateReleaseYear(request.getReleaseYear());
+	    if (request.getStartPrice() != null) {
+	        TradeInputValidator.validatePrice(request.getStartPrice());
+	    }
+
         Product product = checkProduct(myId, productId);
         
         boolean updated = false;
         // 검수 대상(카테고리·제목·설명)이 실제로 달라졌는지만 본다. 가격·경매시간만 바뀐 수정에 AI 를 부르지 않기 위해서다
         boolean reviewedContentChanged = false;
         if(request.getCategoryId() != null) {
-        	reviewedContentChanged |= !request.getCategoryId().equals(product.getCategoryId());
-        	product.setCategoryId(request.getCategoryId());
-        	updated = true;
+            reviewedContentChanged |= !request.getCategoryId().equals(product.getCategoryId());
+            product.setCategoryId(request.getCategoryId());
+            updated = true;
         }
         if(request.getTitle() != null){
-        	reviewedContentChanged |= !request.getTitle().equals(product.getTitle());
+            reviewedContentChanged |= !request.getTitle().equals(product.getTitle());
             product.setTitle(request.getTitle());
             updated = true;
         }
         if(request.getDescription() != null){
-        	reviewedContentChanged |= !request.getDescription().equals(product.getDescription());
+            reviewedContentChanged |= !request.getDescription().equals(product.getDescription());
             product.setDescription(request.getDescription());
             updated = true;
         }
@@ -205,26 +211,26 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         boolean requestModeration = moderationEnabled && aiServerClient.isEnabled();
         boolean remoderate = reviewedContentChanged && requestModeration;
         if(updated) {
-        	if (remoderate) {
-        		// 내용이 달라졌으니 이전 판정은 더 이상 이 상품의 판정이 아니다
-        		product.setStatus(ProductStatus.PENDING);
-        		product.setModerationReason(null);
-        		product.setModerationStage(null);
-        		product.setModerationContentHash(null);
-        		product.setModeratedAt(null);
+            if (remoderate) {
+                // 내용이 달라졌으니 이전 판정은 더 이상 이 상품의 판정이 아니다
+                product.setStatus(ProductStatus.PENDING);
+                product.setModerationReason(null);
+                product.setModerationStage(null);
+                product.setModerationContentHash(null);
+                product.setModeratedAt(null);
             } else if (!requestModeration && product.getStatus() != ProductStatus.PENDING) {
-        		// AI 미연동 기간의 기존 동작: 수정하면 즉시 재승인.
-        		// 검수가 켜져 있으면 검수 대상이 그대로이므로 판정도 그대로 둔다 (가격만 고쳐 거절을 무르게 둘 수 없다)
-        		product.setStatus(ProductStatus.REGISTERED);
-        	}
-        	product.setUpdatedAt(LocalDateTime.now());
+                // AI 미연동 기간의 기존 동작: 수정하면 즉시 재승인.
+                // 검수가 켜져 있으면 검수 대상이 그대로이므로 판정도 그대로 둔다 (가격만 고쳐 거절을 무르게 둘 수 없다)
+                product.setStatus(ProductStatus.REGISTERED);
+            }
+            product.setUpdatedAt(LocalDateTime.now());
         }
 
         // 신규 상품은 검수 전에도 입력값 보존용 경매 초안이 있다. 구버전 데이터만 없을 수 있다.
         Auction auction = findEditableAuction(productId);
         boolean auctionFieldRequested = request.getStartPrice() != null || request.getAuctionTime() != null;
         if (auction == null && auctionFieldRequested) {
-        	throw new BusinessException(ErrorCode.AUCTION_NOT_FOUND);
+            throw new BusinessException(ErrorCode.AUCTION_NOT_FOUND);
         }
         if (auction != null) {
 			updated = false;
@@ -241,12 +247,12 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 				updated = true;
 			}
 			if(updated) {
-				auction.setUpdatedAt(LocalDateTime.now());			
+				auction.setUpdatedAt(LocalDateTime.now());
 			}
         }
 
         if (remoderate) {
-        	eventPublisher.publishEvent(new ProductModerationRequestedEvent(productId));
+            eventPublisher.publishEvent(new ProductModerationRequestedEvent(productId));
         }
 
         return product;
@@ -269,7 +275,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         // 검수 통과 전 상품에는 경매 행이 없다
         Auction auction = findEditableAuction(productId);
         if (auction != null) {
-        	auctionRepository.delete(auction);
+            auctionRepository.delete(auction);
         }
         
         return product;

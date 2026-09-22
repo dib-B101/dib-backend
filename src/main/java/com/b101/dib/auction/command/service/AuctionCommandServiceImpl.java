@@ -4,8 +4,9 @@ import com.b101.dib.auction.command.dto.*;
 import com.b101.dib.auction.domain.Auction;
 import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.auction.repository.AuctionRepository;
-import com.b101.dib.common.exception.*;
 import com.b101.dib.common.messaging.KafkaTopics;
+import com.b101.dib.common.exception.*;
+import com.b101.dib.common.validation.TradeInputValidator;
 import com.b101.dib.outboxEvent.command.service.OutboxEventRecorder;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
@@ -30,6 +31,7 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 
 	@Override
 	public Auction create(Long myId, CreateAuctionRequest request) {
+		TradeInputValidator.validatePrice(request.getStartPrice());
 		Long productId = request.getProductId();
 		Product product = checkProduct(myId, productId);
 		if (auctionRepository.findByProductId(productId) != null) {
@@ -61,6 +63,9 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 
 	@Override
 	public Auction update(Long myId, Long auctionId, UpdateAuctionRequest request) {
+		if (request.getStartPrice() != null) {
+			TradeInputValidator.validatePrice(request.getStartPrice());
+		}
 		Auction auction = checkAuction(myId, auctionId);
 		
 		boolean updated = false;
