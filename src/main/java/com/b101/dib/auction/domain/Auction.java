@@ -46,6 +46,14 @@ public class Auction {
     // 입찰 규칙 — 마감 15초 안에 입찰이 들어오면 남은 시간을 15초로 되돌린다 (연장이 아니라 리셋)
     public static final int EXTEND_WINDOW_SECONDS = 15;
 
+    // 경매 시간 허용 범위.
+    // 일반 경매는 며칠씩 열어 두는 물건이라 하한만 둔다.
+    // 라이브는 방송 중에 한 점씩 파는 자리라 5분짜리를 걸면 한 시간에 12점이 한계다.
+    // 30초까지 내리고, 대신 방송이 한 물건에 묶이지 않게 5분 상한을 둔다.
+    public static final int MIN_AUCTION_SECONDS = 300;
+    public static final int LIVE_MIN_AUCTION_SECONDS = 30;
+    public static final int LIVE_MAX_AUCTION_SECONDS = 300;
+
     // 검수 통과 직후와 AI 미연동 등록에서 같은 초기값으로 경매 행을 만들려고 한곳에 모았다.
     // startPrice·auctionTime 은 null 이면 "아직 정하지 않음" 이고 경매 시작 시점에 정한다
     public static Auction scheduled(Long productId, Long startPrice, Integer auctionTime, LocalDateTime now) {
@@ -100,13 +108,33 @@ public class Auction {
         return status == AuctionStatus.ACTIVE && endedAt != null && now.isBefore(endedAt);
     }
 
+    // 라이브 편성 여부는 live_broadcast_id 하나로 판단한다 (편성 전용 테이블이 없다)
+    public boolean isLiveItem() {
+        return liveBroadcastId != null;
+    }
+
+    // 경매 시간 검사. 허용 범위가 라이브냐 아니냐로 갈리므로 값을 쓰는 쪽마다 숫자를 박지 않고 여기서 본다.
+    // 편성(setItems)·수정(products PATCH)·시작(startAuction) 세 경로가 전부 이걸 거친다
+    public void validateAuctionTime(Integer seconds) {
+        if (seconds == null) {
+            throw new BusinessException(ErrorCode.AUCTION_SCHEDULE_INVALID);
+        }
+        if (isLiveItem()) {
+            if (seconds < LIVE_MIN_AUCTION_SECONDS || seconds > LIVE_MAX_AUCTION_SECONDS) {
+                throw new BusinessException(ErrorCode.AUCTION_SCHEDULE_INVALID);
+            }
+            return;
+        }
+        if (seconds < MIN_AUCTION_SECONDS) {
+            throw new BusinessException(ErrorCode.AUCTION_SCHEDULE_INVALID);
+        }
+    }
+
     public void start(LocalDateTime now) {
         if (status != AuctionStatus.SCHEDULED) {
             throw new BusinessException(ErrorCode.AUCTION_STARTED);
         }
-        if (auctionTime == null || auctionTime < 300) {
-            throw new BusinessException(ErrorCode.AUCTION_SCHEDULE_INVALID);
-        }
+        validateAuctionTime(auctionTime);
         status = AuctionStatus.ACTIVE;
         startedAt = now;
         endedAt = now.plusSeconds(auctionTime);

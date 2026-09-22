@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -16,6 +17,8 @@ import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
+import com.b101.dib.common.messaging.KafkaTopics;
+import com.b101.dib.outboxEvent.command.service.OutboxEventRecorder;
 import com.b101.dib.liveBroadcast.command.dto.CreateRequest;
 import com.b101.dib.liveBroadcast.command.dto.LiveItemRequest;
 import com.b101.dib.liveBroadcast.command.dto.UpdateRequest;
@@ -40,6 +43,7 @@ import lombok.RequiredArgsConstructor;
 public class LiveBroadcastCommandServiceImpl implements LiveBroadcastCommandService {
 	
 	private final LiveBroadcastRepository liveBroadcastRepository;
+	private final OutboxEventRecorder outboxEventRecorder;
 	private final AuctionRepository auctionRepository;
 	private final AuctionCommandService auctionCommandService;
 	private final ProductRepository productRepository;
@@ -122,6 +126,22 @@ public class LiveBroadcastCommandServiceImpl implements LiveBroadcastCommandServ
 		payload.put("streamUrl", liveBroadcast.getLivekitRoomName());
 		payload.put("startedAt", Times.iso(now));
 		liveWebSocketService.broadcast(liveBroadcastId, "LIVE_STARTED", payload);
+
+		// 위 broadcast 는 이미 방송을 보고 있는 사람에게만 간다. 판매자 팔로우가 없으므로
+		// "찜" 을 관심 신호로 삼아, 편성된 상품을 찜해 둔 사람에게 알림을 보낸다
+		List<Long> productIds = auctionRepository.findAllByLiveBroadcastId(liveBroadcastId).stream()
+				.map(Auction::getProductId)
+				.filter(Objects::nonNull)
+				.distinct()
+				.toList();
+		if (!productIds.isEmpty()) {
+			Map<String, Object> startedPayload = new HashMap<>();
+			startedPayload.put("liveBroadcastId", liveBroadcastId);
+			startedPayload.put("title", liveBroadcast.getTitle());
+			startedPayload.put("productIds", productIds);
+			outboxEventRecorder.record("LIVE_BROADCAST", liveBroadcastId, "LIVE_STARTED",
+					KafkaTopics.LIVE_STARTED, startedPayload);
+		}
 		return liveBroadcast;
 	}
 
@@ -241,9 +261,8 @@ public class LiveBroadcastCommandServiceImpl implements LiveBroadcastCommandServ
 					updated = true;
 				}
 				if(item.getAuctionTime() != null) {
-					if(item.getAuctionTime() < 300) {
-						throw new BusinessException(ErrorCode.AUCTION_SCHEDULE_INVALID);
-					}
+					// 위에서 liveBroadcastId 를 이미 채웠으므로 라이브 범위(30초~5분)로 검사된다
+					auction.validateAuctionTime(item.getAuctionTime());
 					auction.setAuctionTime(item.getAuctionTime());
 					updated = true;
 				}

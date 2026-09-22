@@ -5,6 +5,7 @@ import com.b101.dib.product.query.dto.AdminProductQueryDto;
 import com.b101.dib.product.query.dto.ProductDetailDto;
 import com.b101.dib.product.query.dto.ProductListDto;
 import com.b101.dib.product.query.dto.ProductQueryDto;
+import com.b101.dib.product.query.dto.ProductSearchFilter;
 
 import org.apache.ibatis.annotations.Param;
 
@@ -21,7 +22,7 @@ public interface ProductMapper {
 										@Param("cursor") Long cursor,
 										@Param("limit") int limit);
 	List<ProductListDto> findByMemberId(@Param("memberId") Long memberId);
-	List<ProductListDto> search(@Param("keyword") String keyword,
+	List<ProductListDto> search(@Param("filter") ProductSearchFilter filter,
 								@Param("cursor") Long cursor,
 								@Param("limit") int limit);
 }

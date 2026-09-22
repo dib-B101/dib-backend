@@ -6,6 +6,7 @@ import com.b101.dib.product.query.dto.AdminProductQueryDto;
 import com.b101.dib.product.query.dto.ProductDetailDto;
 import com.b101.dib.product.query.dto.ProductListDto;
 import com.b101.dib.product.query.dto.ProductQueryDto;
+import com.b101.dib.product.query.dto.ProductSearchFilter;
 import com.b101.dib.product.repository.ProductMapper;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -62,9 +63,10 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     }
 
 	@Override
-	public CursorPageDto<ProductListDto> search(String keyword, String cursor, int size) {
+	public CursorPageDto<ProductListDto> search(ProductSearchFilter filter, String cursor, int size) {
 		int limit = CursorPageDto.limit(size);
-		List<ProductListDto> rows = productQueryMapper.search(keyword, CursorPageDto.parseCursor(cursor), limit + 1);
+		List<ProductListDto> rows = productQueryMapper.search(
+				filter.normalized(), CursorPageDto.parseCursor(cursor), limit + 1);
 		return CursorPageDto.of(rows, limit, ProductListDto::getProductId);
 	}
 	

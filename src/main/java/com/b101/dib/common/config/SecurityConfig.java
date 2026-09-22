@@ -57,8 +57,21 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
+                        // 헬스는 ALB 대상 검사와 K8s probe 가 토큰 없이 친다. 이 둘만 공개
+                        .requestMatchers("/actuator/health/**", "/actuator/info")
+                        .permitAll()
+                        // metrics·prometheus 는 엔드포인트 목록·요청량·JVM 내부를 그대로 노출한다.
+                        // ALB 가 인터넷에 붙어 있으므로 공개하면 안 된다
+                        .requestMatchers("/actuator/**")
+                        .hasRole("ADMIN")
                         // 관리자 API 는 ADMIN 롤만. 이 줄이 없으면 아래 anyRequest().permitAll() 에 걸려 누구나 호출된다
                         .requestMatchers("/api/v1/admin/**")
+                        .hasRole("ADMIN")
+                        // 운영/테스트용 내부 API. 주문 생성은 낙찰자 카드로 실제 결제까지 일으키고(OrderInternalController)
+                        // 정산 실행은 판매자에게 돈을 내보낸다(InternalSettlementController). 회원 식별 헤더조차 안 받으므로
+                        // permitAll 로 두면 ALB 주소만 알면 누구나 id 를 훑어가며 호출할 수 있다.
+                        // (HMAC 으로 검증하는 AI 콜백은 /internal/v1/... 이라 여기 안 걸린다)
+                        .requestMatchers("/api/v1/internal/**")
                         .hasRole("ADMIN")
                         // 아래 API 들은 X-Member-Id 를 필수로 받는다. permitAll 로 두면 비로그인 호출이
                         // 401 이 아니라 MissingRequestHeaderException 400 으로 나가서 앱이 재로그인 유도를 못 한다
@@ -128,6 +141,8 @@ public class SecurityConfig {
                         .hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/auctions/**")
                         .hasAnyRole("USER", "ADMIN")
+                        // ⚠ 기본 개방이다. 위 목록에 없는 새 엔드포인트는 자동으로 공개된다.
+                        // 보호가 필요한 컨트롤러를 추가하면 반드시 위에 한 줄 같이 넣을 것.
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

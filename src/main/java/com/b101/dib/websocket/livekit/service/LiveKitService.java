@@ -26,6 +26,11 @@ public class LiveKitService {
 	private final LiveBroadcastRepository liveBroadcastRepository;
 	
 	public LiveKitTokenResponse issueToken(Long myId, Long liveBroadcastId) {
+		// 키가 비면 아래 new AccessToken(null, null) 이 SDK 예외로 터져 500 이 난다.
+		// 배포 프로필에 livekit 블록이 없던 시절에 실제로 그랬다. 여기서 503 으로 막아 앱이 원인을 보여주게 한다
+		if (isBlank(liveKitConfig.getUrl()) || isBlank(liveKitConfig.getApiKey()) || isBlank(liveKitConfig.getApiSecret())) {
+			throw new BusinessException(ErrorCode.STREAM_UNAVAILABLE);
+		}
 		LiveBroadcast liveBroadcast = liveBroadcastRepository.findById(liveBroadcastId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LIVE_BROADCAST_NOT_FOUND));
 		
@@ -81,6 +86,10 @@ public class LiveKitService {
             );
         }
         return accessToken.toJwt();
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
 }

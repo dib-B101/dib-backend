@@ -234,6 +234,9 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 				updated = true;
 			}
 			if (request.getAuctionTime() != null) {
+				// 여기서 안 막으면 시작할 때까지 틀린 값이 남아 있다가 startAuction 에서야 튕긴다.
+				// 라이브 편성된 경매면 30초~5분, 아니면 5분 이상
+				auction.validateAuctionTime(request.getAuctionTime());
 				auction.setAuctionTime(request.getAuctionTime());
 				updated = true;
 			}

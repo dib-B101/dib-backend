@@ -216,11 +216,30 @@
 			
 		FROM product p
 		JOIN auction a ON p.product_id = a.product_id
-		WHERE 
-		(p.title LIKE CONCAT('%', #{keyword}, '%') 
-			OR p.description LIKE CONCAT('%', #{keyword}, '%'))
-		AND p.deleted_at IS NULL
+		WHERE
+		p.deleted_at IS NULL
 		AND p.status IN ('REGISTERED', 'ON_AUCTION')
+		<if test="filter.keyword != null">
+			AND (p.title LIKE CONCAT('%', #{filter.keyword}, '%')
+				OR p.description LIKE CONCAT('%', #{filter.keyword}, '%'))
+		</if>
+		<if test="filter.categoryId != null">
+			AND p.category_id = #{filter.categoryId}
+		</if>
+		<!-- 입찰 전 경매는 current_price 가 시작가와 같다. 둘 중 있는 값으로 비교한다 -->
+		<if test="filter.minPrice != null">
+			AND COALESCE(a.current_price, a.start_price) &gt;= #{filter.minPrice}
+		</if>
+		<if test="filter.maxPrice != null">
+			AND COALESCE(a.current_price, a.start_price) &lt;= #{filter.maxPrice}
+		</if>
+		<!-- condition 은 Postgres enum 이라 바인딩 값에 캐스트가 필요하다 (다른 매퍼도 같은 방식) -->
+		<if test="filter.condition != null">
+			AND p.condition = #{filter.condition}::product_condition
+		</if>
+		<if test="filter.onAuctionOnly == true">
+			AND a.status = 'ACTIVE'
+		</if>
 		<if test="cursor != null">
 			AND p.product_id &lt; #{cursor}
 		</if>

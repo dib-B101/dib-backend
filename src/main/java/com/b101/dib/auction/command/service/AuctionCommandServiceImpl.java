@@ -5,6 +5,8 @@ import com.b101.dib.auction.domain.Auction;
 import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.common.exception.*;
+import com.b101.dib.common.messaging.KafkaTopics;
+import com.b101.dib.outboxEvent.command.service.OutboxEventRecorder;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.product.repository.ProductRepository;
@@ -14,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +26,7 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 
 	private final AuctionRepository auctionRepository;
 	private final ProductRepository productRepository;
+	private final OutboxEventRecorder outboxEventRecorder;
 
 	@Override
 	public Auction create(Long myId, CreateAuctionRequest request) {
@@ -97,9 +102,7 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 			auction.setCurrentPrice(startPrice);
 		}
 		if (auctionTime != null) {
-			if (auctionTime < 300) {
-				throw new BusinessException(ErrorCode.AUCTION_SCHEDULE_INVALID);
-			}
+			auction.validateAuctionTime(auctionTime);   // 라이브 편성이면 30초~5분, 아니면 5분 이상
 			auction.setAuctionTime(auctionTime);
 		}
 		// 상품 등록 때 값을 받지 않으므로 시작 시점까지 비어 있을 수 있다
@@ -110,7 +113,19 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 		auction.start(now);
 		product.setStatus(ProductStatus.ON_AUCTION);
 		product.setUpdatedAt(now);
-		
+
+		// 찜한 사람들에게 "시작했다" 를 알리기 위한 이벤트. 팬아웃이 수백 건이 될 수 있어 트랜잭션 밖(Consumer)에서 처리한다.
+		// 라이브 편성 상품은 제외한다 — 방송 시작 때 LIVE_STARTED 로 이미 알렸는데 물건마다 또 보내면 도배가 된다
+		if (!auction.isLiveItem()) {
+			Map<String, Object> payload = new HashMap<>();
+			payload.put("auctionId", auction.getAuctionId());
+			payload.put("productId", productId);
+			payload.put("productTitle", product.getTitle());
+			payload.put("sellerId", product.getMemberId());
+			outboxEventRecorder.record("AUCTION", auction.getAuctionId(), "AUCTION_STARTED",
+					KafkaTopics.AUCTION_STARTED, payload);
+		}
+
 		return auction;
 	}
 

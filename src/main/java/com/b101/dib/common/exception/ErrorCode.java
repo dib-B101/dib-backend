@@ -44,7 +44,7 @@ public enum ErrorCode {
     AUCTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "상품에 이미 경매가 등록되어 있습니다"),
     AUCTION_ALREADY_DELETED(HttpStatus.NOT_FOUND, "이미 삭제된 경매입니다"),
     AUCTION_NOT_EDITABLE(HttpStatus.CONFLICT, "SCHEDULED 상태의 경매만 수정하거나 삭제할 수 있습니다"),
-    AUCTION_SCHEDULE_INVALID(HttpStatus.BAD_REQUEST, "경매 시작 및 종료 시간이 올바르지 않습니다"),
+    AUCTION_SCHEDULE_INVALID(HttpStatus.BAD_REQUEST, "경매 시간이 올바르지 않습니다 (일반 5분 이상, 라이브 30초~5분)"),
     AUCTION_PRICE_REQUIRED(HttpStatus.CONFLICT, "시작가와 경매 시간을 먼저 정해야 합니다"),
     AUCTION_PRICE_INVALID(HttpStatus.BAD_REQUEST, "시작가는 1000원 이상이어야 합니다"),
     AUCTION_STARTED(HttpStatus.CONFLICT, "이미 시작된 경매입니다"),
@@ -62,6 +62,8 @@ public enum ErrorCode {
     LIVE_BROADCAST_NO_TITLE(HttpStatus.BAD_REQUEST, "라이브 방송 제목은 필수입니다"),
     LIVE_BROADCAST_NOT_FOUND(HttpStatus.NOT_FOUND, "라이브 방송을 찾을 수 없습니다"),
     LIVE_BROADCAST_NOT_OWNED(HttpStatus.FORBIDDEN, "본인 소유의 라이브 방송이 아닙니다"),
+    // LiveKit 키(livekit.url / api-key / api-secret)가 비어 있을 때. 앱이 이 코드를 "송출 연결을 준비하지 못했어요" 로 보여준다
+    STREAM_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "라이브 송출 서버가 설정되지 않았습니다"),
     LIVE_BROADCAST_ALREADY_STARTED(HttpStatus.BAD_REQUEST, "라이브 방송이 이미 시작되었습니다"),
     LIVE_BROADCAST_ALREADY_ENDED(HttpStatus.BAD_REQUEST, "라이브 방송이 이미 끝났습니다"),
     LIVE_BROADCAST_ALREADY_CANCELED(HttpStatus.BAD_REQUEST, "라이브 방송이 취소되었습니다"),
@@ -114,6 +116,12 @@ public enum ErrorCode {
 
     // 이상입찰
     DUPLICATE_LABEL(HttpStatus.CONFLICT, "이미 라벨이 확정된 입찰자입니다"),
+
+    // 후기 (별점만)
+    REVIEW_RATING_INVALID(HttpStatus.BAD_REQUEST, "별점은 0~5 사이여야 합니다"),
+    REVIEW_NOT_ALLOWED(HttpStatus.CONFLICT, "구매 확정된 거래만 평가할 수 있습니다"),
+    REVIEW_ALREADY_WRITTEN(HttpStatus.CONFLICT, "이미 평가한 거래입니다"),
+    REVIEW_NOT_BUYER(HttpStatus.FORBIDDEN, "구매자만 평가할 수 있습니다"),
 
     // 주문
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다"),

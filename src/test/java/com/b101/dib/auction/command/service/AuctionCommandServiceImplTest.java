@@ -6,6 +6,8 @@ import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
+import com.b101.dib.common.messaging.KafkaTopics;
+import com.b101.dib.outboxEvent.command.service.OutboxEventRecorder;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.product.repository.ProductRepository;
@@ -19,6 +21,10 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,6 +32,7 @@ class AuctionCommandServiceImplTest {
 
     @Mock AuctionRepository auctionRepository;
     @Mock ProductRepository productRepository;
+    @Mock OutboxEventRecorder outboxEventRecorder;
     @InjectMocks AuctionCommandServiceImpl auctionCommandService;
 
     @Test
@@ -59,6 +66,24 @@ class AuctionCommandServiceImplTest {
         assertThat(started.getStartedAt()).isNotNull();
         assertThat(started.getEndedAt()).isAfter(started.getStartedAt());
         assertThat(product.getStatus()).isEqualTo(ProductStatus.ON_AUCTION);
+        // 찜한 사람에게 "시작했다" 를 알리는 경로. 이 이벤트가 빠지면 찜 알림이 통째로 안 간다
+        verify(outboxEventRecorder).record(eq("AUCTION"), eq(21L), eq("AUCTION_STARTED"),
+                eq(KafkaTopics.AUCTION_STARTED), any());
+    }
+
+    // 라이브 편성 상품은 방송 시작 때 LIVE_STARTED 로 이미 알렸다. 물건마다 또 보내면 도배가 된다
+    @Test
+    void doesNotAnnounceStartForLiveScheduledAuction() {
+        Product product = approvedProduct();
+        Auction auction = scheduledAuction();
+        auction.setLiveBroadcastId(7L);
+        auction.setAuctionTime(30);   // 라이브는 30초까지 허용된다
+        when(auctionRepository.findById(21L)).thenReturn(Optional.of(auction));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(product));
+
+        auctionCommandService.startAuction(17L, 21L, null, null);
+
+        verify(outboxEventRecorder, never()).record(any(), any(), any(), any(), any());
     }
 
     private Product approvedProduct() {
