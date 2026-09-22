@@ -1,7 +1,5 @@
 package com.b101.dib.member.command.service;
 
-import com.b101.dib.auth.command.service.PhoneVerificationService;
-import com.b101.dib.auth.domain.PhoneVerificationPurpose;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
 import com.b101.dib.member.command.dto.UpdateSettlementAccountRequest;
@@ -18,15 +16,12 @@ import java.time.LocalDateTime;
 @Transactional
 public class SettlementAccountCommandServiceImpl implements SettlementAccountCommandService {
     private final MemberRepository memberRepository;
-    private final PhoneVerificationService phoneVerificationService;
 
     @Override
     public Member update(Long memberId, UpdateSettlementAccountRequest request) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-        // 계좌 변경은 민감 정보 변경 — auth 의 휴대폰 재인증 토큰을 소비한다 (기능 명세 "변경 시 휴대전화 재인증")
-        phoneVerificationService.consumeVerificationToken(
-                request.getPhoneVerificationToken(), PhoneVerificationPurpose.CHANGE_SENSITIVE, member.getPhoneNumber());
+        // 가입 단계에서 이미 휴대폰 본인인증을 거치므로 정산 계좌 등록·변경에서는 재인증을 받지 않는다
         member.setBankName(request.getBankName().trim());
         member.setAccountNumber(request.getAccountNumber().replace("-", "").trim());
         member.setAccountHolder(request.getAccountHolder().trim());
