@@ -47,6 +47,9 @@ dependencies {
     // AWS S3
     implementation(platform("software.amazon.awssdk:bom:2.34.5"))
     implementation("software.amazon.awssdk:s3")
+    // IRSA(web identity) 자격증명에 필요하다. 이게 없으면 기본 자격증명 체인이 web identity
+    // 단계를 말없이 건너뛰고 EC2 노드 역할로 넘어가, 배포 환경에서 S3 업로드가 403 으로 죽는다
+    implementation("software.amazon.awssdk:sts")
 
 
     // Actuator — K8s probe 계약 (/actuator/health). 없으면 배포 시 Pod가 안 뜬다
