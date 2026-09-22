@@ -2,6 +2,7 @@ package com.b101.dib.bid.command.service;
 
 import com.b101.dib.bid.command.dto.BidPlacedDto;
 import com.b101.dib.common.lock.AuctionLock;
+import com.b101.dib.common.validation.TradeInputValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ public class BidCommandServiceImpl implements BidCommandService {
 
     @Override
     public BidPlacedDto place(Long auctionId, Long memberId, Long amount) {
+        TradeInputValidator.validatePrice(amount);
         return auctionLock.run(auctionId, () -> bidTxService.place(auctionId, memberId, amount));
     }
 }

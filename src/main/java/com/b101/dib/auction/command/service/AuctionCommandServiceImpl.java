@@ -5,6 +5,7 @@ import com.b101.dib.auction.domain.Auction;
 import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.common.exception.*;
+import com.b101.dib.common.validation.TradeInputValidator;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.product.repository.ProductRepository;
@@ -25,6 +26,7 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 
 	@Override
 	public Auction create(Long myId, CreateAuctionRequest request) {
+		TradeInputValidator.validatePrice(request.getStartPrice());
 		Long productId = request.getProductId();
 		Product product = checkProduct(myId, productId);
 		
@@ -53,6 +55,9 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 
 	@Override
 	public Auction update(Long myId, Long auctionId, UpdateAuctionRequest request) {
+		if (request.getStartPrice() != null) {
+			TradeInputValidator.validatePrice(request.getStartPrice());
+		}
 		Auction auction = checkAuction(myId, auctionId);
 		
 		boolean updated = false;

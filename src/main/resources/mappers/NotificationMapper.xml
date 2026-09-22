@@ -13,6 +13,7 @@
         <result property="productId" column="product_id"/>
         <result property="liveBroadcastId" column="live_broadcast_id"/>
         <result property="bidId" column="bid_id"/>
+        <result property="orderId" column="order_id"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
@@ -28,6 +29,7 @@
             n.product_id,
             n.live_broadcast_id,
             n.bid_id,
+            n.order_id,
             n.created_at
         FROM notification n
         WHERE n.member_id = #{memberId}

@@ -9,11 +9,9 @@ import com.b101.dib.paymentMethod.domain.PaymentMethod;
 import com.b101.dib.paymentMethod.repository.PaymentMethodRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final MemberRepository memberRepository;
@@ -28,6 +26,10 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
             throw new BusinessException(ErrorCode.PAYMENT_METHOD_ALREADY_EXISTS);
         }
         TossBillingKeyResponse res = tossPaymentsClient.issueBillingKey(authKey, customerKey);
+        if (res == null || res.billingKey() == null || res.billingKey().isBlank()
+                || res.customerKey() == null || !res.customerKey().equals(customerKey)) {
+            throw new BusinessException(ErrorCode.BILLING_KEY_ISSUE_FAILED);
+        }
         return paymentMethodRepository.save(PaymentMethod.of(memberId, customerKey, res));
     }
 

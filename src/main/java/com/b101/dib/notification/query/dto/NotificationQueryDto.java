@@ -22,5 +22,6 @@ public class NotificationQueryDto {
     private Long productId;
     private Long liveBroadcastId;
     private Long bidId;
+    private Long orderId;
     private LocalDateTime createdAt;
 }

@@ -24,6 +24,7 @@ public enum ErrorCode {
     INVALID_FILTER(HttpStatus.BAD_REQUEST, "필터 값이 올바르지 않습니다"),
     INVALID_CURSOR(HttpStatus.BAD_REQUEST, "커서 값이 올바르지 않습니다"),
     TOO_MUCH_IMAGES(HttpStatus.BAD_REQUEST, "이미지는 10장까지만 등록할 수 있습니다."),
+    INVALID_RELEASE_YEAR(HttpStatus.BAD_REQUEST, "출시년도는 1900년 이상이어야 합니다."),
     
     // 검색
     INVALID_SEARCH(HttpStatus.BAD_REQUEST, "검색 조건과 키워드가 유효하지 않습니다"),
@@ -47,6 +48,7 @@ public enum ErrorCode {
     VERSION_CONFLICT(HttpStatus.CONFLICT, "경매 정보가 변경되었습니다. 최신 정보를 다시 조회해 주세요"),
     PRODUCT_NOT_OWNED(HttpStatus.FORBIDDEN, "본인 소유의 상품만 경매에 등록할 수 있습니다"),
     INVALID_AUCTION(HttpStatus.BAD_REQUEST, "일반 경매 요청이 올바르지 않습니다"),
+    INVALID_PRICE_UNIT(HttpStatus.BAD_REQUEST, "경매 시작가와 입찰가는 10원 단위의 양수여야 합니다"),
     
     // 라이브 방송
     LIVE_BROADCAST_NO_TITLE(HttpStatus.BAD_REQUEST, "라이브 방송 제목은 필수입니다"),

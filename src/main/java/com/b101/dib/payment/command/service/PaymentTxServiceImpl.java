@@ -49,7 +49,7 @@ public class PaymentTxServiceImpl implements PaymentTxService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
         payment.markRefunded(transactionKey != null ? transactionKey : "REFUNDED");
         order.refund();
-        notificationRepository.save(Notification.system(order.getBuyerId(), "환불 완료",
+        notificationRepository.save(Notification.order(order.getBuyerId(), order.getOrderId(), "환불 완료",
                 "주문 #" + order.getOrderId() + " 결제가 취소·환불되었습니다."));
         return payment;
     }
