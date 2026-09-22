@@ -73,6 +73,23 @@ class AuctionCommandServiceImplTest {
                 eq(KafkaTopics.AUCTION_STARTED), any());
     }
 
+    // 유찰로 끝난 경매는 재등록 API 를 따로 거치지 않아도 다시 시작할 수 있어야 한다 (등록 상품 관리에서 눌러서 시작하는 경로)
+    @Test
+    void restartsUnsoldEndedAuctionWithoutSeparateRelist() {
+        Product product = approvedProduct();
+        Auction auction = scheduledAuction();
+        auction.setStatus(AuctionStatus.ENDED);
+        when(auctionRepository.findById(21L)).thenReturn(Optional.of(auction));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(product));
+
+        Auction started = auctionCommandService.startAuction(17L, 21L, 20_000L, 600);
+
+        assertThat(started.getStatus()).isEqualTo(AuctionStatus.ACTIVE);
+        assertThat(started.getStartPrice()).isEqualTo(20_000L);
+        assertThat(started.getCurrentPrice()).isEqualTo(20_000L);
+        assertThat(started.getBidCount()).isZero();
+    }
+
     // 라이브 편성 상품은 방송 시작 때 LIVE_STARTED 로 이미 알렸다. 물건마다 또 보내면 도배가 된다
     @Test
     void doesNotAnnounceStartForLiveScheduledAuction() {
