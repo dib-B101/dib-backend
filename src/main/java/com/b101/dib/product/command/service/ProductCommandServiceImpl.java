@@ -12,6 +12,7 @@ import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
+import com.b101.dib.common.validation.TradeInputValidator;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,8 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     
     @Override
     public Product create(Long myId, ProductCreateRequest request, List<MultipartFile> images) {
+	    TradeInputValidator.validateReleaseYear(request.getReleaseYear());
+	    TradeInputValidator.validatePrice(request.getStartPrice());
     	if(images != null && images.size() > 10) {
     		throw new BusinessException(ErrorCode.TOO_MUCH_IMAGES);
     	}
@@ -44,7 +47,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         		.description(request.getDescription())
         		.condition(request.getCondition())
         		.modelName(request.getModelName())
-        		.releaseYear(request.getAuctionTime())
+				.releaseYear(request.getReleaseYear())
         		.marketPrice(request.getMarketPrice())
         		.thumbnailUrl(thumbnailUrl)
         		.status(ProductStatus.PENDING)
@@ -92,7 +95,11 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 
     @Override
     public Product update(Long myId, Long productId, ProductUpdateRequest request) {
-    	
+	    TradeInputValidator.validateReleaseYear(request.getReleaseYear());
+	    if (request.getStartPrice() != null) {
+	        TradeInputValidator.validatePrice(request.getStartPrice());
+	    }
+
         Product product = checkProduct(myId, productId);
         
         boolean updated = false;

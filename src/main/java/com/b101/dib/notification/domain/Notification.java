@@ -30,6 +30,7 @@ public class Notification {
     private Long liveBroadcastId;
     private Long productId;
     private Long bidId;
+    private Long orderId;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
@@ -48,6 +49,18 @@ public class Notification {
     public static Notification system(Long memberId, String title, String content) {
         return Notification.builder()
                 .memberId(memberId)
+                .type(NotificationType.SYSTEM)
+                .title(title)
+                .content(cut(content))
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static Notification order(Long memberId, Long orderId, String title, String content) {
+        return Notification.builder()
+                .memberId(memberId)
+                .orderId(orderId)
                 .type(NotificationType.SYSTEM)
                 .title(title)
                 .content(cut(content))
@@ -110,6 +123,9 @@ public class Notification {
         if (productId != null) {
             return "PRODUCT";
         }
+        if (orderId != null) {
+            return "ORDER";
+        }
         return "SYSTEM";
     }
 
@@ -122,6 +138,9 @@ public class Notification {
         }
         if (productId != null) {
             return productId;
+        }
+        if (orderId != null) {
+            return orderId;
         }
         return notificationId;
     }

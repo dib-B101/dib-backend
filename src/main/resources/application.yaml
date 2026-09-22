@@ -52,7 +52,7 @@ springdoc:
 
 jwt:
   refresh-token-inactivity: 30d
-  refresh-token-absolute: 90d
+  refresh-token-absolute: 30d
 
 auth:
   phone-verification:
@@ -78,6 +78,8 @@ auth:
 toss:
   secret-key: ${TOSS_SECRET_KEY:}
   base-url: https://api.tosspayments.com
+  connect-timeout: 5s
+  read-timeout: 65s
 
 # 정산 수수료율 (판매가 대비). 팀 합의 값
 dib:
