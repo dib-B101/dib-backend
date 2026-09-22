@@ -52,7 +52,11 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     @Override
     public Product create(Long myId, ProductCreateRequest request, List<MultipartFile> images) {
 		TradeInputValidator.validateReleaseYear(request.getReleaseYear());
-		TradeInputValidator.validatePrice(request.getStartPrice());
+		// 시작가는 등록 시점에 없을 수 있다. 라이브로 올리는 상품은 시작가·경매 시간을
+		// 편성 단계에서 정하므로 등록 요청에 시작가가 비어 온다. update() 와 같은 규칙이다
+		if (request.getStartPrice() != null) {
+			TradeInputValidator.validatePrice(request.getStartPrice());
+		}
 		validateImages(images);
 		List<String> imageUrls = productImageStorage.storeAll(images);
 		String thumbnailUrl = imageUrls.get(0);
