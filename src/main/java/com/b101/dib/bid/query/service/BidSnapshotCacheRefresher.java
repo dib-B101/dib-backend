@@ -1,6 +1,7 @@
 package com.b101.dib.bid.query.service;
 
 import com.b101.dib.auction.command.service.AuctionEndedEvent;
+import com.b101.dib.auction.command.service.AuctionStateChangedEvent;
 import com.b101.dib.bid.command.service.BidPlacedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,12 @@ public class BidSnapshotCacheRefresher {
     @EventListener
     public void onAuctionEnded(AuctionEndedEvent event) {
         refresh(event.getResult().getAuctionId());
+    }
+
+    // 시작·조건 수정·재등록·취소. DB 를 다시 시드해 auctionId 가 재사용돼도 예전 경매 스냅샷이 남지 않게 커밋 뒤 덮어쓴다
+    @TransactionalEventListener
+    public void onAuctionStateChanged(AuctionStateChangedEvent event) {
+        refresh(event.getAuctionId());
     }
 
     private void refresh(Long auctionId) {

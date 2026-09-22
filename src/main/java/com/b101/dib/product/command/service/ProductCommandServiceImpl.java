@@ -8,6 +8,7 @@ import com.b101.dib.product.repository.ProductRepository;
 import com.b101.dib.productImage.domain.ProductImage;
 import com.b101.dib.productImage.repository.ProductImageRepository;
 import com.b101.dib.productImage.storage.ProductImageStorage;
+import com.b101.dib.auction.command.service.AuctionStateChangedEvent;
 import com.b101.dib.auction.domain.Auction;
 import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.auction.repository.AuctionRepository;
@@ -300,6 +301,8 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 		auction.start(now);
 		product.setStatus(ProductStatus.ON_AUCTION);
 		product.setUpdatedAt(now);
+		// 경매 커맨드 서비스의 startAuction 과 같은 이유 — 스냅샷 캐시를 새 경매 값으로 덮어쓴다
+		eventPublisher.publishEvent(new AuctionStateChangedEvent(auction.getAuctionId()));
 		
 		return product;
 	}
