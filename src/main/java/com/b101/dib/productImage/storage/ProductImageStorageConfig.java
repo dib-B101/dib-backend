@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
@@ -22,11 +23,17 @@ public class ProductImageStorageConfig {
         return new LocalProductImageStorage(imageDirectory, internalBaseUrl);
     }
 
-    // 자격증명은 Secret 이 아니라 IRSA(ServiceAccount dib-backend) 로 받는다 — 기본 제공자 체인이 집어간다
+    // 자격증명은 Secret 이 아니라 IRSA(ServiceAccount dib-backend) 로만 받는다.
+    // 기본 제공자 체인에 맡기면 web identity 초기화가 실패했을 때 EC2 노드 역할로 조용히
+    // fallback 하므로, 권한 오류가 실제 요청 시점까지 숨겨진다. 배포는 전용 역할을 명시해
+    // 잘못된 노드 역할로 S3 를 호출하지 않도록 한다.
     @Bean
     @ConditionalOnProperty(name = "dib.storage.provider", havingValue = "s3")
     public S3Client productImageS3Client(@Value("${dib.storage.s3.region:ap-northeast-2}") String region) {
-        return S3Client.builder().region(Region.of(region)).build();
+        return S3Client.builder()
+                .region(Region.of(region))
+                .credentialsProvider(WebIdentityTokenFileCredentialsProvider.create())
+                .build();
     }
 
     @Bean
