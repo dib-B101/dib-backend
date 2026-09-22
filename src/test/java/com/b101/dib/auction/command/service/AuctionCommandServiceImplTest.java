@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -33,6 +34,7 @@ class AuctionCommandServiceImplTest {
     @Mock AuctionRepository auctionRepository;
     @Mock ProductRepository productRepository;
     @Mock OutboxEventRecorder outboxEventRecorder;
+    @Mock ApplicationEventPublisher eventPublisher;
     @InjectMocks AuctionCommandServiceImpl auctionCommandService;
 
     @Test
