@@ -68,6 +68,7 @@ auth:
     rate-window: 1h
     max-requests-per-window: 5
     max-attempts: 5
+    fixed-code: ${PHONE_VERIFICATION_FIXED_CODE:}
     hmac-secret: ${PHONE_VERIFICATION_HMAC_SECRET}
   password-reset:
     token-ttl: 30m

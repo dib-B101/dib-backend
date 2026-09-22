@@ -46,7 +46,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
     public PhoneVerificationResponse request(PhoneVerificationRequest request) {
         String phoneNumber = PhoneNumber.from(request == null ? null : request.phoneNumber()).value();
         PhoneVerificationPurpose purpose = requirePurpose(request == null ? null : request.purpose());
-        String code = "%06d".formatted(secureRandom.nextInt(1_000_000));
+        String code = createVerificationCode();
         String phoneHash = hmac("phone:" + phoneNumber);
         String verificationId = createVerificationId(purpose, phoneHash);
         String codeHash = hmac("otp:" + verificationId + ":" + code);
@@ -120,6 +120,17 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
             throw new BusinessException(ErrorCode.INVALID_INPUT);
         }
         return purpose;
+    }
+
+    private String createVerificationCode() {
+        String fixedCode = properties.fixedCode();
+        if (fixedCode == null || fixedCode.isBlank()) {
+            return "%06d".formatted(secureRandom.nextInt(1_000_000));
+        }
+        if (!fixedCode.matches("\\d{6}")) {
+            throw new IllegalStateException("고정 휴대전화 인증번호는 숫자 6자리여야 합니다.");
+        }
+        return fixedCode;
     }
 
     // 휴대전화 인증 요청 ID 생성 

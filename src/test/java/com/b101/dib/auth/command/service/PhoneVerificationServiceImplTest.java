@@ -52,7 +52,7 @@ class PhoneVerificationServiceImplTest {
     void setUp() {
         PhoneVerificationProperties properties = new PhoneVerificationProperties(
                 Duration.ofMinutes(3), Duration.ofMinutes(10), Duration.ofSeconds(60),
-                Duration.ofHours(1), 5, 5, "test-hmac-secret"
+                Duration.ofHours(1), 5, 5, "", "test-hmac-secret"
         );
         phoneVerificationService = new PhoneVerificationServiceImpl(
                 phoneVerificationStore,
@@ -77,6 +77,30 @@ class PhoneVerificationServiceImplTest {
         assertThat(response.expiresAt()).isEqualTo(OffsetDateTime.parse("2026-09-08T18:03:00+09:00"));
         assertThat(response.retryAfterSeconds()).isEqualTo(60);
         assertThat(response.verificationId()).contains(".");
+    }
+
+    @Test
+    void usesConfiguredFixedCodeForQa() {
+        PhoneVerificationProperties fixedProperties = new PhoneVerificationProperties(
+                Duration.ofMinutes(3), Duration.ofMinutes(10), Duration.ofSeconds(60),
+                Duration.ofHours(1), 5, 5, "111111", "test-hmac-secret"
+        );
+        PhoneVerificationServiceImpl fixedCodeService = new PhoneVerificationServiceImpl(
+                phoneVerificationStore,
+                smsSender,
+                fixedProperties,
+                secureRandom,
+                Clock.fixed(NOW, ZoneOffset.UTC)
+        );
+        given(phoneVerificationStore.reserve(anyString(), any(), anyString(), anyString(), any()))
+                .willReturn(new PhoneVerificationReservation(NOW.plusSeconds(180)));
+
+        fixedCodeService.request(
+                new PhoneVerificationRequest("01012345678", PhoneVerificationPurpose.SIGN_UP)
+        );
+
+        verify(smsSender).send("01012345678", "[DIB] 인증번호는 111111입니다. 3분 이내에 입력해주세요.");
+        verifyNoInteractions(secureRandom);
     }
 
     @Test

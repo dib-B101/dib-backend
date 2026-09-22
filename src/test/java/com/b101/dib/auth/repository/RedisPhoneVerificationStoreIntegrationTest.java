@@ -66,7 +66,7 @@ class RedisPhoneVerificationStoreIntegrationTest {
 
         PhoneVerificationProperties properties = new PhoneVerificationProperties(
                 Duration.ofMinutes(3), Duration.ofMinutes(10), Duration.ofSeconds(60),
-                Duration.ofHours(1), 5, 5, "secret"
+                Duration.ofHours(1), 5, 5, "", "secret"
         );
         DefaultRedisScript<Long> consumeScript = new DefaultRedisScript<>();
         consumeScript.setLocation(new ClassPathResource("redis/consume-phone-verification.lua"));
