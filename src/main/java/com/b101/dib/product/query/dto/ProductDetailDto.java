@@ -7,6 +7,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.product.domain.ProductCondition;
 import com.b101.dib.product.domain.ProductStatus;
 
@@ -14,7 +15,11 @@ import com.b101.dib.product.domain.ProductStatus;
 @Setter                
 @NoArgsConstructor
 public class ProductDetailDto {
-    private Long productId;
+	private Long productId;
+    private Long memberId;
+    private String nickname;
+    private Long categoryId;
+    private String categoryName;
     private String title;
     private String description;
     private ProductCondition condition;
@@ -22,14 +27,29 @@ public class ProductDetailDto {
     private Integer releaseYear;
     private Long marketPrice;
     private String thumbnailUrl;
-    private ProductStatus status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    
-    private Long categoryId;
-    private String categoryName;
-    
-    private Long memberId;
-    private String nickname;
+    private ProductStatus productStatus;
+//    private String embedding;
+    private LocalDateTime productCreatedAt;
+    private LocalDateTime productUpdatedAt;
+    private LocalDateTime productDeletedAt;
+	
+    private Long auctionId;
+//    private Long productId;
+    private Long startPrice;
+    private Long currentPrice;
+    private Integer auctionTime;
+    private LocalDateTime startedAt;
+    private LocalDateTime endedAt;
+    private AuctionStatus auctionStatus;
+    private Integer bidCount;
+    private Integer bidderCount;
+    private Integer viewCount;
+    private Integer bookmarkCount;
+    private Long topBidId;
+    private Integer extensionCount;
+    private LocalDateTime auctionCreatedAt;
+    private LocalDateTime auctionUpdatedAt;
+    private LocalDateTime auctionDeletedAt;
+    private Long liveBroadcastId;
 
 }
