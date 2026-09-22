@@ -7,19 +7,22 @@
         <id property="bidId" column="bid_id"/>
         <result property="auctionId" column="auction_id"/>
         <result property="bidderId" column="member_id"/>
+        <result property="bidderNickname" column="bidder_nickname"/>
         <result property="amount" column="amount"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
-    <!-- 경매 입찰 내역 (최신순, 커서 = bid_id) -->
+    <!-- 경매 입찰 내역 (최신순, 커서 = bid_id). 탈퇴 회원의 입찰도 남아야 하므로 member 는 LEFT JOIN -->
     <select id="findByAuctionId" resultMap="BidHistoryQueryMap">
         SELECT
             b.bid_id,
             b.auction_id,
             b.member_id,
+            m.nickname AS bidder_nickname,
             b.amount,
             b.created_at
         FROM bid b
+        LEFT JOIN member m ON m.member_id = b.member_id
         WHERE b.auction_id = #{auctionId}
         <if test="cursor != null">
             AND b.bid_id &lt; #{cursor}
@@ -33,17 +36,28 @@
         <result property="auctionId" column="auction_id"/>
         <result property="amount" column="amount"/>
         <result property="createdAt" column="created_at"/>
+        <result property="productId" column="product_id"/>
+        <result property="productTitle" column="product_title"/>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="auctionStatus" column="auction_status"/>
+        <result property="currentPrice" column="current_price"/>
     </resultMap>
 
-    <!-- 내 입찰 내역 (최신순) -->
+    <!-- 내 입찰 내역 (최신순). 앱이 카드에 상품명·썸네일을 그려야 해서 product 까지 조인한다 -->
     <select id="findByMemberId" resultMap="MyBidQueryMap">
         SELECT
             b.bid_id,
             b.auction_id,
             b.amount,
-            b.created_at
+            b.created_at,
+            a.product_id,
+            p.title AS product_title,
+            p.thumbnail_url,
+            a.status AS auction_status,
+            a.current_price
         FROM bid b
         JOIN auction a ON a.auction_id = b.auction_id
+        JOIN product p ON p.product_id = a.product_id
         WHERE b.member_id = #{memberId}
         <if test="status != null">
             AND a.status = #{status}::auction_status
