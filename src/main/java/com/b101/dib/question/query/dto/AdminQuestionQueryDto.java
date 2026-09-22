@@ -14,6 +14,8 @@ public class AdminQuestionQueryDto {
     private Long memberId;
     private String memberNickname;
     private String title;
+    private String content;
     private LocalDateTime createdAt;
+    private String answer;
     private LocalDateTime answeredAt;
 }

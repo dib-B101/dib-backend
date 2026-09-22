@@ -56,7 +56,7 @@ public class AuthCommandController {
 
     @PostMapping("/phone-verifications/{verificationId}/confirm")
     public ResponseEntity<PhoneVerificationConfirmResponse> confirmPhoneVerification(
-            @PathVariable String verificationId,
+            @PathVariable("verificationId") String verificationId,
             @RequestBody PhoneVerificationConfirmRequest request
     ) {
         return ResponseEntity.ok(phoneVerificationService.confirm(verificationId, request));

@@ -23,7 +23,7 @@ public class ShipmentTxServiceImpl implements ShipmentTxService {
             return;
         }
         order.deliver();
-        notificationRepository.save(Notification.system(order.getBuyerId(), "배송 완료",
+        notificationRepository.save(Notification.order(orderId, order.getBuyerId(), "배송 완료",
                 "주문 #" + orderId + " 상품이 도착했습니다. 확인 후 구매 확정을 눌러 주세요."));
     }
 }

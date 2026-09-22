@@ -9,6 +9,7 @@
 		<id property="liveChattingId" column="live_chatting_id" />
 		<result property="liveBroadcastId" column="live_broadcast_id" />
 		<result property="memberId" column="member_id" />
+		<result property="nickname" column="nickname" />
 		<result property="content" column="content" />
 		<result property="time" column="time" />
 
@@ -19,9 +20,11 @@
 			lc.live_chatting_id,
 			lc.live_broadcast_id,
 			lc.member_id,
+			m.nickname,
 			lc.content,
 			lc.time
 		FROM live_chatting lc
+		LEFT JOIN member m ON m.member_id = lc.member_id
 		WHERE lc.live_broadcast_id = #{liveBroadcastId}
 		ORDER BY lc.time DESC
 	</select>

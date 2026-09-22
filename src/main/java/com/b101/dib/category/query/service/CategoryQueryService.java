@@ -1,11 +1,9 @@
 package com.b101.dib.category.query.service;
 
-import java.util.List;
-
 import com.b101.dib.category.query.dto.CategoryQueryDto;
 
+import java.util.List;
+
 public interface CategoryQueryService {
-
-	List<CategoryQueryDto> findAll();
-
+    List<CategoryQueryDto> findAll();
 }

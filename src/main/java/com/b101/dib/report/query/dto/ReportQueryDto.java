@@ -18,6 +18,7 @@ public class ReportQueryDto {
     private Long auctionId;
     private Long orderId;
     private Long reportTargetId;
+    private String reportTargetNickname;
     private ReportStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime processedAt;

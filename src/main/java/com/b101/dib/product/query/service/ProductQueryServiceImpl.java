@@ -1,10 +1,12 @@
 package com.b101.dib.product.query.service;
 
+import com.b101.dib.common.dto.CursorPageDto;
 import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.product.query.dto.AdminProductQueryDto;
 import com.b101.dib.product.query.dto.ProductDetailDto;
 import com.b101.dib.product.query.dto.ProductListDto;
 import com.b101.dib.product.query.dto.ProductQueryDto;
+import com.b101.dib.product.query.dto.ProductSearchFilter;
 import com.b101.dib.product.repository.ProductMapper;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +29,10 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     private final ProductMapper productQueryMapper;
 
     @Override
-    public List<ProductQueryDto> findAll() {
-        List<ProductQueryDto> dtoList = productQueryMapper.findAll();
-        return dtoList;
+    public CursorPageDto<ProductQueryDto> findAll(String cursor, int size) {
+        int limit = CursorPageDto.limit(size);
+        List<ProductQueryDto> rows = productQueryMapper.findAll(CursorPageDto.parseCursor(cursor), limit + 1);
+        return CursorPageDto.of(rows, limit, ProductQueryDto::getProductId);
     }
 
     @Override
@@ -42,8 +45,10 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     }
     
     @Override
-	public List<ProductListDto> findMyProducts(Long myId) {
-		return productQueryMapper.findMyProducts(myId);
+	public CursorPageDto<ProductListDto> findMyProducts(Long myId, String cursor, int size) {
+		int limit = CursorPageDto.limit(size);
+		List<ProductListDto> rows = productQueryMapper.findMyProducts(myId, CursorPageDto.parseCursor(cursor), limit + 1);
+		return CursorPageDto.of(rows, limit, ProductListDto::getProductId);
 	}
     
     @Override
@@ -58,8 +63,11 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     }
 
 	@Override
-	public List<ProductListDto> search(String keyword) {
-		return productQueryMapper.search(keyword);			
+	public CursorPageDto<ProductListDto> search(ProductSearchFilter filter, String cursor, int size) {
+		int limit = CursorPageDto.limit(size);
+		List<ProductListDto> rows = productQueryMapper.search(
+				filter.normalized(), CursorPageDto.parseCursor(cursor), limit + 1);
+		return CursorPageDto.of(rows, limit, ProductListDto::getProductId);
 	}
 	
 }

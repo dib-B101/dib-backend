@@ -3,6 +3,7 @@ package com.b101.dib.websocket.service;
 import com.b101.dib.auction.command.dto.AuctionEndResultDto;
 import com.b101.dib.auction.command.service.AuctionEndedEvent;
 import com.b101.dib.auction.domain.Auction;
+import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.bid.command.dto.BidPlacedDto;
 import com.b101.dib.bid.command.service.BidPlacedEvent;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuctionRealtimeEventListener {
     private final AuctionWebSocketService auctionWebSocketService;
+    private final AuctionRepository auctionRepository;
+    private final LiveWebSocketService liveWebSocketService;
 
     @TransactionalEventListener
     public void onBidPlaced(BidPlacedEvent event) {
@@ -53,5 +56,18 @@ public class AuctionRealtimeEventListener {
         payload.put("winnerId", r.getWinnerId() == null ? null : String.valueOf(r.getWinnerId()));
         payload.put("endedAt", r.getEndedAt());
         auctionWebSocketService.broadcast(r.getAuctionId(), "AUCTION_ENDED", payload);
+
+        // 라이브에 편성된 경매면 방송 화면도 같은 종료를 봐야 한다
+        Long liveBroadcastId = auctionRepository.findById(r.getAuctionId())
+                .map(Auction::getLiveBroadcastId)
+                .orElse(null);
+        if (liveBroadcastId != null) {
+            Map<String, Object> live = new HashMap<>();
+            live.put("liveBroadcastId", String.valueOf(liveBroadcastId));
+            live.put("auctionId", String.valueOf(r.getAuctionId()));
+            live.put("finalPrice", r.getFinalPrice());
+            live.put("result", r.getResult());
+            liveWebSocketService.broadcast(liveBroadcastId, "LIVE_AUCTION_CLOSED", live);
+        }
     }
 }

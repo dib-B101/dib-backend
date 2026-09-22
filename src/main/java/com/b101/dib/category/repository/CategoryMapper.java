@@ -1,14 +1,11 @@
 package com.b101.dib.category.repository;
 
-import java.util.List;
-
+import com.b101.dib.category.query.dto.CategoryQueryDto;
 import org.apache.ibatis.annotations.Mapper;
 
-import com.b101.dib.category.query.dto.CategoryQueryDto;
+import java.util.List;
 
 @Mapper
 public interface CategoryMapper {
-
-	List<CategoryQueryDto> findAll();
-
+    List<CategoryQueryDto> findAll();
 }

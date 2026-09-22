@@ -65,7 +65,8 @@ public class SignupServiceImpl implements SignupService {
                 .phoneNumber(phoneNumber)
                 .status(MemberStatus.ACTIVE)
                 .role(MemberRole.USER)
-                .score(50.0)
+                .score(null)          // 후기를 받기 전까지는 평점이 없다. 예전엔 50 을 박아 두고 갱신을 안 했다
+                .reviewCount(0)
                 .createdAt(now)
                 .updatedAt(now)
                 .warningCount(0)

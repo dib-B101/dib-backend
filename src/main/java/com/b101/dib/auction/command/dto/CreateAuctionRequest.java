@@ -13,10 +13,11 @@ public class CreateAuctionRequest {
     private Long productId;
     
     @NotNull
-    @PositiveOrZero
+    @Min(1000)
     private Long startPrice;
     
+    // 일반 경매 생성 경로라 하한 5분. 라이브 편성 후에는 편성 API 가 30초~5분으로 덮어쓴다
     @NotNull
-    @PositiveOrZero
+    @Min(300)
     private Integer auctionTime;
 }

@@ -17,6 +17,8 @@ public class OrderDetailViewDto {
     private OrderDetailPaymentDto payment;
     private OrderDetailSettlementDto settlement;
     private boolean chattingReadOnly;
+    // 구매자가 이 거래에 남긴 별점(0~5). null 이면 아직 평가 전 → 앱이 "평가하기" 를 띄운다
+    private Integer myRating;
 
     public static OrderDetailViewDto from(OrderDetailDto row) {
         OrderDetailViewDto view = new OrderDetailViewDto();
@@ -38,6 +40,8 @@ public class OrderDetailViewDto {
         order.setChattingSessionId(row.getChattingSessionId());
         order.setCreatedAt(row.getCreatedAt());
         order.setUpdatedAt(row.getUpdatedAt());
+        order.setHeldAt(row.getHeldAt());
+        order.setHoldReportId(row.getHoldReportId());
         view.setOrder(order);
 
         OrderDetailAuctionDto auction = new OrderDetailAuctionDto();

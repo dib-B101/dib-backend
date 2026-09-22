@@ -44,6 +44,10 @@ public class Order {
     private LocalDateTime updatedAt;
     private String chattingSessionId;
 
+    // 신고 보류. status를 건드리지 않으므로 해제하면 원래 흐름이 그대로 이어진다
+    private LocalDateTime heldAt;
+    private Long holdReportId;
+
     public static Order create(Long auctionId, Long sellerId, Long buyerId, Long finalPrice, LocalDateTime endedAt) {
         return Order.builder()
                 .auctionId(auctionId)
@@ -82,6 +86,29 @@ public class Order {
         return status == OrderStatus.CONFIRMED || status == OrderStatus.CANCELED || status == OrderStatus.REFUNDED;
     }
 
+    public boolean isOnHold() {
+        return heldAt != null;
+    }
+
+    public void hold(Long reportId) {
+        // 이미 끝난 거래는 막을 것도, 되돌릴 것도 없다 (정산/환불 경로가 이미 확정됐거나 닫혔다)
+        if (isClosed() || isOnHold()) {
+            return;
+        }
+        this.heldAt = LocalDateTime.now();
+        this.holdReportId = reportId;
+        touch();
+    }
+
+    public void releaseHold() {
+        if (!isOnHold()) {
+            return;
+        }
+        this.heldAt = null;
+        this.holdReportId = null;
+        touch();
+    }
+
     public void pay() {
         if (status == OrderStatus.PAID) {
             throw new BusinessException(ErrorCode.DUPLICATE_PAYMENT);
@@ -118,6 +145,10 @@ public class Order {
     }
 
     public void ship(String carrier, String trackingNumber) {
+        // 조사 중에 물건이 실제로 발송되면 되돌릴 수 없어 환불·반환 처리가 꼬인다. 배송지 수정은 거래를 진행시키지 않으므로 막지 않는다
+        if (isOnHold()) {
+            throw new BusinessException(ErrorCode.ORDER_ON_HOLD);
+        }
         if (status == OrderStatus.SHIPPED || status == OrderStatus.DELIEVERED) {
             throw new BusinessException(ErrorCode.SHIPMENT_ALREADY_EXISTS);
         }
@@ -142,6 +173,10 @@ public class Order {
     }
 
     public void confirm() {
+        // 확정되면 환불 경로(PAID/SHIPPED/DELIEVERED만 허용)가 닫히고 정산이 생긴다 — 신고 조사 중에는 확정 불가
+        if (isOnHold()) {
+            throw new BusinessException(ErrorCode.ORDER_ON_HOLD);
+        }
         if (status == OrderStatus.CONFIRMED) {
             throw new BusinessException(ErrorCode.ALREADY_CONFIRMED);
         }

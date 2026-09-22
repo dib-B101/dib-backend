@@ -17,14 +17,14 @@ public class LiveChattingServiceImpl implements LiveChattingService {
 	private final LiveChattingRepository liveChattingRepository;
 	
 	@Override
-	public void create(Long myId, Long liveBroadcastId,LiveChattingCommandDto dto) {
+	public LiveChatting create(Long myId, Long liveBroadcastId,LiveChattingCommandDto dto) {
 		LiveChatting liveChatting = LiveChatting.builder()
 				.liveBroadcastId(liveBroadcastId)
 				.memberId(myId)
 				.content(dto.getContent())
 				.time(dto.getTime())
 				.build();
-		liveChattingRepository.save(liveChatting);
+		return liveChattingRepository.save(liveChatting);
 	}
 
 }

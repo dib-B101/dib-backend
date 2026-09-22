@@ -42,14 +42,15 @@ public class ShipmentCommandServiceImpl implements ShipmentCommandService {
         if (!order.isSeller(memberId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
-        String tracking = request.getTrackingNumber().replace("-", "").trim();
         Carrier carrier = Carrier.from(request.getCarrier());
+        String rawTracking = request.getTrackingNumber().trim();
+        String tracking = carrier.isTestOnly() ? rawTracking : rawTracking.replace("-", "");
         Pattern format = carrier.isTestOnly() ? DUMMY_TRACKING : TRACKING;
         if (!format.matcher(tracking).matches()) {
             throw new BusinessException(ErrorCode.INVALID_TRACKING);
         }
         order.ship(carrier.name(), tracking);
-        notificationRepository.save(Notification.system(order.getBuyerId(), "배송 시작",
+        notificationRepository.save(Notification.order(orderId, order.getBuyerId(), "배송 시작",
                 "주문 #" + orderId + " 상품이 발송되었습니다. " + carrier.getDisplayName() + " " + tracking));
         return order;
     }

@@ -5,7 +5,7 @@
 
     <resultMap id="BookmarkQueryMap"
         type="com.b101.dib.bookmark.query.dto.BookmarkQueryDto">
-        <id property="bookmarkId" column="report_id" />
+        <id property="bookmarkId" column="bookmark_id" />
         <result property="memberId" column="member_id" />
         <result property="productId" column="product_id" />
         <result property="createdAt" column="created_at" />

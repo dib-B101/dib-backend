@@ -11,6 +11,7 @@ import com.b101.dib.order.domain.Order;
 import com.b101.dib.order.domain.OrderStatus;
 import com.b101.dib.order.repository.OrderMapper;
 import com.b101.dib.order.repository.OrderRepository;
+import com.b101.dib.review.command.service.ReviewRequestNotifier;
 import com.b101.dib.settlement.command.service.SettlementCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ public class OrderExpiryTxServiceImpl implements OrderExpiryTxService {
     private final NotificationRepository notificationRepository;
     private final AuctionRepository auctionRepository;
     private final SettlementCommandService settlementCommandService;
+    private final ReviewRequestNotifier reviewRequestNotifier;
 
     @Override
     public void expireOne(Long orderId) {
@@ -40,7 +42,7 @@ public class OrderExpiryTxServiceImpl implements OrderExpiryTxService {
         }
         order.expire();
         memberRepository.findById(order.getBuyerId()).ifPresent(this::addWarning);
-        notificationRepository.save(Notification.system(order.getBuyerId(), "주문 취소",
+        notificationRepository.save(Notification.order(orderId, order.getBuyerId(), "주문 취소",
                 "주문 #" + orderId + "의 결제 기한이 지나 주문이 취소되었습니다. 경고 1회가 부여됩니다."));
         offerNext(order.getAuctionId());
     }
@@ -48,14 +50,16 @@ public class OrderExpiryTxServiceImpl implements OrderExpiryTxService {
     @Override
     public void confirmOne(Long orderId, LocalDateTime deliveredBefore) {
         Order order = orderRepository.findById(orderId).orElse(null);
-        if (order == null || order.getStatus() != OrderStatus.DELIEVERED
+        // 보류 건은 조용히 건너뛴다. order.confirm()이 던지는 예외에 맡기면 매분 에러 로그만 쌓인다
+        if (order == null || order.isOnHold() || order.getStatus() != OrderStatus.DELIEVERED
                 || order.getUpdatedAt() == null || !order.getUpdatedAt().isBefore(deliveredBefore)) {
             return;
         }
         order.confirm();
         settlementCommandService.createFor(order);
-        notificationRepository.save(Notification.system(order.getBuyerId(), "자동 구매 확정",
+        notificationRepository.save(Notification.order(orderId, order.getBuyerId(), "자동 구매 확정",
                 "주문 #" + orderId + " 배송 완료 후 기간이 지나 자동으로 구매가 확정되었습니다."));
+        reviewRequestNotifier.requestFor(order);
         log.info("자동 구매 확정 orderId={}", orderId);
     }
 

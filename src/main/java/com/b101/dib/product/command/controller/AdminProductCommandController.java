@@ -1,5 +1,6 @@
 package com.b101.dib.product.command.controller;
 
+import com.b101.dib.common.util.Times;
 import com.b101.dib.product.command.dto.ModerateProductRequest;
 import com.b101.dib.product.command.service.ProductCommandService;
 import com.b101.dib.product.domain.Product;
@@ -28,6 +29,8 @@ public class AdminProductCommandController {
         data.put("productId", product.getProductId());
         data.put("status", product.getStatus());
         data.put("updatedAt", product.getUpdatedAt());
+        data.put("moderationReason", product.getModerationReason());
+        data.put("moderatedAt", Times.iso(product.getModeratedAt()));
         map.put("data", data);
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }

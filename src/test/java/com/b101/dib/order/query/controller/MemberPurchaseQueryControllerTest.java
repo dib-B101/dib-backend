@@ -58,14 +58,14 @@ class MemberPurchaseQueryControllerTest {
                         .param("cursor", "31")
                         .param("size", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[0].order.orderId").value(30))
-                .andExpect(jsonPath("$.items[0].order.status").value("PAID"))
-                .andExpect(jsonPath("$.items[0].auction.auctionId").value(20))
-                .andExpect(jsonPath("$.items[0].product.productId").value(10))
-                .andExpect(jsonPath("$.items[0].product.title").value("구매 상품"))
-                .andExpect(jsonPath("$.items[0].payment").doesNotExist())
-                .andExpect(jsonPath("$.nextCursor").value("30"))
-                .andExpect(jsonPath("$.hasNext").value(true));
+                .andExpect(jsonPath("$.data.items[0].order.orderId").value(30))
+                .andExpect(jsonPath("$.data.items[0].order.status").value("PAID"))
+                .andExpect(jsonPath("$.data.items[0].auction.auctionId").value(20))
+                .andExpect(jsonPath("$.data.items[0].product.productId").value(10))
+                .andExpect(jsonPath("$.data.items[0].product.title").value("구매 상품"))
+                .andExpect(jsonPath("$.data.items[0].payment").doesNotExist())
+                .andExpect(jsonPath("$.data.nextCursor").value("30"))
+                .andExpect(jsonPath("$.data.hasNext").value(true));
 
         verify(memberPurchaseQueryService).findMine(1L, OrderStatus.PAID, "31", 1);
     }

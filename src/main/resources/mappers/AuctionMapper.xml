@@ -33,6 +33,7 @@
 		<result property="startPrice" column="start_price" />
 		<result property="currentPrice" column="current_price" />
 		<result property="auctionStatus" column="auction_status" />
+		<result property="auctionTime" column="auction_time" />
 		<result property="bidCount" column="bid_count" />
 		<result property="bidderCount" column="bidder_count" />
 		<result property="startedAt" column="started_at" />
@@ -154,6 +155,7 @@
 			a.start_price,
 			a.current_price,
 			a.status AS auction_status,
+			a.auction_time,
 			a.bid_count,
 			a.bidder_count,
 			a.started_at,

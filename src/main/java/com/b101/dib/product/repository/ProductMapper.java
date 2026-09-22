@@ -5,6 +5,7 @@ import com.b101.dib.product.query.dto.AdminProductQueryDto;
 import com.b101.dib.product.query.dto.ProductDetailDto;
 import com.b101.dib.product.query.dto.ProductListDto;
 import com.b101.dib.product.query.dto.ProductQueryDto;
+import com.b101.dib.product.query.dto.ProductSearchFilter;
 
 import org.apache.ibatis.annotations.Param;
 
@@ -14,10 +15,14 @@ import java.util.List;
 
 @Mapper
 public interface ProductMapper {
-	List<ProductQueryDto> findAll();
+	List<ProductQueryDto> findAll(@Param("cursor") Long cursor, @Param("limit") int limit);
 	ProductDetailDto findById(@Param("productId") Long productId);
 	List<AdminProductQueryDto> findForModeration(@Param("status") ProductStatus status);
-	List<ProductListDto> findMyProducts(Long myId);
-	List<ProductListDto> findByMemberId(Long memberId);
-	List<ProductListDto> search(String keyword);
+	List<ProductListDto> findMyProducts(@Param("myId") Long myId,
+										@Param("cursor") Long cursor,
+										@Param("limit") int limit);
+	List<ProductListDto> findByMemberId(@Param("memberId") Long memberId);
+	List<ProductListDto> search(@Param("filter") ProductSearchFilter filter,
+								@Param("cursor") Long cursor,
+								@Param("limit") int limit);
 }

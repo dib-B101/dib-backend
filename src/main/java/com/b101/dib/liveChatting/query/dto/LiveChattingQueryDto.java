@@ -11,6 +11,7 @@ public class LiveChattingQueryDto {
 	private Long liveChattingId;
 	private Long liveBroadcastId;
 	private Long memberId;
+	private String nickname;
 	private String content;
 	private LocalDateTime time; 
 

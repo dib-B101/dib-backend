@@ -178,7 +178,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 .phoneNumber(phoneNumber)
                 .status(MemberStatus.ACTIVE)
                 .role(MemberRole.USER)
-                .score(50.0)
+                .score(null)          // score 는 받은 별점 평균(0~5). 후기가 없으면 null — SignupServiceImpl 과 같은 규칙
                 .createdAt(now)
                 .updatedAt(now)
                 .warningCount(0)

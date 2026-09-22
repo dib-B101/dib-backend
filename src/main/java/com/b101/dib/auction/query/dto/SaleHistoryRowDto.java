@@ -25,6 +25,9 @@ public class SaleHistoryRowDto {
     /** 경매 상태 */
     private AuctionStatus auctionStatus;
 
+    /** 경매 진행 시간(초) */
+    private Integer auctionTime;
+
     /** 누적 입찰 횟수 */
     private Integer bidCount;
 

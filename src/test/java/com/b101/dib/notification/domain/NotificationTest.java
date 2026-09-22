@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class NotificationTest {
     @Test
     void refundNotificationTargetsOrder() {
-        Notification notification = Notification.order(7L, 31L, "환불 완료", "환불되었습니다.");
+        Notification notification = Notification.order(31L, 7L, "환불 완료", "환불되었습니다.");
 
         assertThat(notification.resourceType()).isEqualTo("ORDER");
         assertThat(notification.resourceId()).isEqualTo(31L);

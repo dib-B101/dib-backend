@@ -18,4 +18,9 @@ public class AdminProductQueryDto {
     private ProductStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // 관리자가 AI 판정 근거를 보고 승인·거절을 결정한다
+    private String moderationReason;
+    private String moderationStage;
+    private LocalDateTime moderatedAt;
 }

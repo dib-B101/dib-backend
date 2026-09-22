@@ -32,4 +32,9 @@ public class ProductDetailDto {
     private Long memberId;
     private String nickname;
 
+    // 판매자가 거절·보류 사유를 볼 수 있어야 한다
+    private String moderationReason;
+    private String moderationStage;
+    private LocalDateTime moderatedAt;
+
 }

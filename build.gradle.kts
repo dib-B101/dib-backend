@@ -51,6 +51,8 @@ dependencies {
 
     // Actuator — K8s probe 계약 (/actuator/health). 없으면 배포 시 Pod가 안 뜬다
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    // Prometheus 노출 — Kafka consumer lag, outbox 적체, DLT 건수를 밖에서 볼 수단
+    implementation("io.micrometer:micrometer-registry-prometheus")
 
     // Validation
     implementation("org.springframework.boot:spring-boot-starter-validation")

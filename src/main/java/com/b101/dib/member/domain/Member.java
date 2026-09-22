@@ -70,8 +70,14 @@ public class Member {
     @Column(nullable = false)
     private MemberRole role;
 
-    @Column(nullable = false)
+    // 받은 별점 평균(0~5). 후기가 한 건도 없으면 null — "아직 평가 없음" 과 "0점" 은 다르다
+    @Column(nullable = true)
     private Double score;
+
+    // @Builder.Default 가 없으면 빌더로 만든 Member 의 이 값이 null 이 되어 INSERT 가 NOT NULL 로 깨진다
+    @Builder.Default
+    @Column(name = "review_count", nullable = false)
+    private Integer reviewCount = 0;
 
     @Column(name = "last_login_at", nullable = true)
     private LocalDateTime lastLoginAt;

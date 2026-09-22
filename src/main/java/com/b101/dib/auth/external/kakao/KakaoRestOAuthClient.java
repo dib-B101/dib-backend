@@ -5,6 +5,7 @@ import com.b101.dib.common.exception.BusinessException;
 import com.b101.dib.common.exception.ErrorCode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,8 @@ public class KakaoRestOAuthClient implements KakaoOAuthClient {
     private final KakaoProperties properties;
     private final RestClient restClient;
 
+    // 생성자가 둘이면 Spring 은 기본 생성자를 찾다 실패해 컨텍스트가 아예 안 뜬다. 빈이 쓸 쪽을 명시한다
+    @Autowired
     public KakaoRestOAuthClient(KakaoProperties properties) {
         this(properties, RestClient.create());
     }

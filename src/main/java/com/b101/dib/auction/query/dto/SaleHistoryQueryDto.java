@@ -1,5 +1,6 @@
 package com.b101.dib.auction.query.dto;
 
+import com.b101.dib.common.util.Times;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,10 +26,12 @@ public class SaleHistoryQueryDto {
         auction.setStartPrice(row.getStartPrice());
         auction.setCurrentPrice(row.getCurrentPrice());
         auction.setStatus(row.getAuctionStatus());
+        auction.setAuctionTime(row.getAuctionTime());
         auction.setBidCount(row.getBidCount());
         auction.setBidderCount(row.getBidderCount());
-        auction.setStartedAt(row.getStartedAt());
-        auction.setEndedAt(row.getEndedAt());
+        auction.setStartedAt(Times.iso(row.getStartedAt()));
+        auction.setEndedAt(Times.iso(row.getEndedAt()));
+        auction.setServerTime(Times.now());
         result.setAuction(auction);
 
         SaleHistoryProductDto product = new SaleHistoryProductDto();
