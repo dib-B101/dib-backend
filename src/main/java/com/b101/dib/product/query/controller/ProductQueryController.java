@@ -4,6 +4,7 @@ import com.b101.dib.auth.token.AccessTokenClaims;
 import com.b101.dib.common.dto.CursorPageDto;
 import com.b101.dib.product.query.dto.ProductQueryDto;
 import com.b101.dib.product.query.service.ProductQueryService;
+import com.b101.dib.product.query.service.SearchKeywordStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,8 @@ import com.b101.dib.product.query.dto.ProductSearchFilter;
 public class ProductQueryController {
 
     private final ProductQueryService productQueryService;
+
+    private final SearchKeywordStore searchKeywordStore;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> findAll(
@@ -101,9 +104,21 @@ public class ProductQueryController {
                 .onAuctionOnly(onAuctionOnly)
                 .build();
         CursorPageDto<ProductListDto> page = productQueryService.search(filter, cursor, size);
+        // 키워드가 있는 검색만 인기 검색어에 누적한다. 필터만 건 둘러보기·비슷한 상품 조회(키워드 없음)는 세지 않는다
+        searchKeywordStore.record(keyword);
         HashMap<String, Object> map = new HashMap<>();
         map.put("message", "상품 목록 검색 성공");
         map.put("data", page);
+        return ResponseEntity.status(HttpStatus.OK).body(map);
+    }
+
+    // 인기 검색어 상위 N개(기본 10, 최대 20). 검색 화면 첫 진입에 보여준다. data: ["검색어", ...]
+    @GetMapping("/search/popular-keywords")
+    public ResponseEntity<Map<String, Object>> popularKeywords(
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("message", "인기 검색어 조회 성공");
+        map.put("data", searchKeywordStore.top(Math.min(Math.max(size, 1), 20)));
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 

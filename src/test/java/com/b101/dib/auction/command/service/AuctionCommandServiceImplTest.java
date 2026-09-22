@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -33,6 +34,7 @@ class AuctionCommandServiceImplTest {
     @Mock AuctionRepository auctionRepository;
     @Mock ProductRepository productRepository;
     @Mock OutboxEventRecorder outboxEventRecorder;
+    @Mock ApplicationEventPublisher eventPublisher;
     @InjectMocks AuctionCommandServiceImpl auctionCommandService;
 
     @Test
@@ -69,6 +71,23 @@ class AuctionCommandServiceImplTest {
         // 찜한 사람에게 "시작했다" 를 알리는 경로. 이 이벤트가 빠지면 찜 알림이 통째로 안 간다
         verify(outboxEventRecorder).record(eq("AUCTION"), eq(21L), eq("AUCTION_STARTED"),
                 eq(KafkaTopics.AUCTION_STARTED), any());
+    }
+
+    // 유찰로 끝난 경매는 재등록 API 를 따로 거치지 않아도 다시 시작할 수 있어야 한다 (등록 상품 관리에서 눌러서 시작하는 경로)
+    @Test
+    void restartsUnsoldEndedAuctionWithoutSeparateRelist() {
+        Product product = approvedProduct();
+        Auction auction = scheduledAuction();
+        auction.setStatus(AuctionStatus.ENDED);
+        when(auctionRepository.findById(21L)).thenReturn(Optional.of(auction));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(product));
+
+        Auction started = auctionCommandService.startAuction(17L, 21L, 20_000L, 600);
+
+        assertThat(started.getStatus()).isEqualTo(AuctionStatus.ACTIVE);
+        assertThat(started.getStartPrice()).isEqualTo(20_000L);
+        assertThat(started.getCurrentPrice()).isEqualTo(20_000L);
+        assertThat(started.getBidCount()).isZero();
     }
 
     // 라이브 편성 상품은 방송 시작 때 LIVE_STARTED 로 이미 알렸다. 물건마다 또 보내면 도배가 된다

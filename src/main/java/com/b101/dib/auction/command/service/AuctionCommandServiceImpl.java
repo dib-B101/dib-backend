@@ -14,6 +14,7 @@ import com.b101.dib.product.repository.ProductRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,8 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 	private final AuctionRepository auctionRepository;
 	private final ProductRepository productRepository;
 	private final OutboxEventRecorder outboxEventRecorder;
+	// 시작·수정·재등록·취소 뒤 입찰 스냅샷 캐시를 DB 기준으로 덮어쓰게 하는 이벤트 발행용
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Override
 	public Auction create(Long myId, CreateAuctionRequest request) {
@@ -87,12 +90,19 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 		}
 		// 자동으로 갱신됨
 		
+		eventPublisher.publishEvent(new AuctionStateChangedEvent(auction.getAuctionId()));
 		return auction;
 	}
 	
 	
 	@Override
 	public Auction startAuction(Long myId, Long auctionId, Long startPrice, Integer auctionTime) {
+		// 유찰(입찰 0건)로 끝난 경매는 먼저 재등록(초기화)하고 이어서 시작한다.
+		// 예전엔 SCHEDULED 만 받아서 등록 상품 관리에서 다시 시작하면 "시작된 경매는 변경할 수 없어요" 로 막혔고,
+		// 다시 올리기 버튼은 판매 탭에만 있어 유찰 상품을 다시 못 올린다고 느꼈다. 소유자 확인은 뒤의 checkAuction 이 한다
+		auctionRepository.findById(auctionId)
+				.filter(ended -> ended.getDeletedAt() == null && ended.getStatus() == AuctionStatus.ENDED && ended.getTopBidId() == null)
+				.ifPresent(ended -> ended.relist(LocalDateTime.now()));
 		Auction auction = checkAuction(myId, auctionId);
 		Long productId = auction.getProductId();
 		Product product = checkProduct(myId, productId);
@@ -132,6 +142,8 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 			outboxEventRecorder.record("AUCTION", auction.getAuctionId(), "AUCTION_STARTED",
 					KafkaTopics.AUCTION_STARTED, payload);
 		}
+		// 커밋 뒤 스냅샷 캐시를 새 시작가·마감으로 덮어쓴다 (BidSnapshotCacheRefresher)
+		eventPublisher.publishEvent(new AuctionStateChangedEvent(auction.getAuctionId()));
 
 		return auction;
 	}
@@ -150,6 +162,7 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 		}
 		auction.relist(LocalDateTime.now());
 		product.setStatus(ProductStatus.REGISTERED);
+		eventPublisher.publishEvent(new AuctionStateChangedEvent(auction.getAuctionId()));
 		return auction;
 	}
 
@@ -158,6 +171,7 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 		Auction auction = checkAuction(myId, auctionId);
 		auction.setDeletedAt(LocalDateTime.now());
 		auction.setStatus(AuctionStatus.CANCELED);
+		eventPublisher.publishEvent(new AuctionStateChangedEvent(auction.getAuctionId()));
 		
 		return auction;
 	}
