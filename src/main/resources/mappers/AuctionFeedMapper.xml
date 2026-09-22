@@ -77,6 +77,13 @@
 		SELECT <include refid="cardColumns" />
 		<include refid="cardFrom" />
 		WHERE a.deleted_at IS NULL
+		<!-- 검수 중·거절 상품은 등록 시점에 경매 초안(SCHEDULED)이 이미 있어 status=SCHEDULED 조회에 섞여 나왔다.
+		     라이브 편성 후보가 이 쿼리를 쓰므로 검수 안 끝난 상품이 편성되는 통로였다. 공개 목록 어디서도 보일 이유가 없다 -->
+		  AND p.status NOT IN ('PENDING', 'REJECTED')
+		<if test="sellerId != null">
+			<!-- mine=true — 라이브 편성 후보처럼 내 상품만 필요할 때. 남의 경매가 후보로 뜨고 저장 때 NOT_OWNED 로 튕기던 것을 막는다 -->
+			AND p.member_id = #{sellerId}
+		</if>
 		<if test="status != null and status != '' and status != 'ALL'">
 			AND a.status = CAST(#{status} AS AUCTION_STATUS)
 		</if>

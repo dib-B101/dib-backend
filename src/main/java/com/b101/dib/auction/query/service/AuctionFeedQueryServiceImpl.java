@@ -39,7 +39,7 @@ public class AuctionFeedQueryServiceImpl implements AuctionFeedQueryService {
 
     // LATEST 는 auction_id 커서, 다른 정렬은 offset 커서 (숫자 문자열 하나로 프론트 계약 유지)
     @Override
-    public CursorPageDto<AuctionCardDto> findCards(Long memberId, String scope, String status, Long categoryId,
+    public CursorPageDto<AuctionCardDto> findCards(Long memberId, boolean mine, String scope, String status, Long categoryId,
                                                    Long minPrice, Long maxPrice, String sort, String cursor, int size) {
         int limit = CursorPageDto.limit(size);
         AuctionFeedSort feedSort = AuctionFeedSort.from(sort);
@@ -47,7 +47,8 @@ public class AuctionFeedQueryServiceImpl implements AuctionFeedQueryService {
         Long cursorId = feedSort == AuctionFeedSort.LATEST ? cursorValue : null;
         int offset = feedSort == AuctionFeedSort.LATEST || cursorValue == null ? 0 : cursorValue.intValue();
 
-        List<AuctionCardRowDto> rows = auctionFeedMapper.findCards(memberId, normalizeScope(scope), normalizeStatus(status),
+        Long sellerId = mine ? memberId : null;
+        List<AuctionCardRowDto> rows = auctionFeedMapper.findCards(memberId, sellerId, normalizeScope(scope), normalizeStatus(status),
                 categoryId, minPrice, maxPrice, feedSort.name(), cursorId, offset, limit + 1);
         List<AuctionCardDto> cards = rows.stream().map(r -> AuctionCardDto.from(r, memberId)).toList();
         CursorPageDto<AuctionCardDto> page = CursorPageDto.of(cards, limit, AuctionCardDto::getAuctionId);
@@ -119,7 +120,7 @@ public class AuctionFeedQueryServiceImpl implements AuctionFeedQueryService {
         }
 
         if (ordered.size() < targetSize) {
-            List<AuctionCardRowDto> fallback = auctionFeedMapper.findCards(memberId, "GENERAL", "ACTIVE", null, null, null,
+            List<AuctionCardRowDto> fallback = auctionFeedMapper.findCards(memberId, null, "GENERAL", "ACTIVE", null, null, null,
                     AuctionFeedSort.ENDING_SOON.name(), null, 0, targetSize);
             for (AuctionCardRowDto row : fallback) {
                 if (seen.add(row.getAuctionId())) {
