@@ -26,6 +26,7 @@ import com.b101.dib.liveBroadcast.domain.LiveBroadcast;
 import com.b101.dib.liveBroadcast.domain.LiveBroadcastRole;
 import com.b101.dib.liveBroadcast.domain.LiveBroadcastStatus;
 import com.b101.dib.common.util.Times;
+import com.b101.dib.common.validation.TradeInputValidator;
 import com.b101.dib.liveBroadcast.repository.LiveBroadcastRepository;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
@@ -262,6 +263,8 @@ public class LiveBroadcastCommandServiceImpl implements LiveBroadcastCommandServ
 					if(item.getStartPrice() < 1000L) {
 						throw new BusinessException(ErrorCode.AUCTION_PRICE_INVALID);
 					}
+					// 경매 시작과 같은 10원 단위 규칙. 편성에서 1001원을 받아두면 방송 중 입찰이 전부 INVALID_PRICE_UNIT 으로 튕긴다
+					TradeInputValidator.validatePrice(item.getStartPrice());
 					auction.setStartPrice(item.getStartPrice());
 					// 아직 입찰이 없으므로 현재가는 시작가와 같아야 한다
 					auction.setCurrentPrice(item.getStartPrice());

@@ -84,9 +84,15 @@
 			<!-- mine=true — 라이브 편성 후보처럼 내 상품만 필요할 때. 남의 경매가 후보로 뜨고 저장 때 NOT_OWNED 로 튕기던 것을 막는다 -->
 			AND p.member_id = #{sellerId}
 		</if>
-		<if test="status != null and status != '' and status != 'ALL'">
-			AND a.status = CAST(#{status} AS AUCTION_STATUS)
-		</if>
+		<choose>
+			<!-- OPEN = 진행 중 + 예정. 검색·카테고리는 예정 경매도 보여주기로 했고(추천만 제외) 종료·취소는 섞이면 안 된다 -->
+			<when test="status == 'OPEN'">
+				AND a.status IN ('ACTIVE', 'SCHEDULED')
+			</when>
+			<when test="status != null and status != '' and status != 'ALL'">
+				AND a.status = CAST(#{status} AS AUCTION_STATUS)
+			</when>
+		</choose>
 		<if test="scope == 'LIVE'">
 			AND a.live_broadcast_id IS NOT NULL
 		</if>

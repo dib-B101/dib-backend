@@ -18,7 +18,7 @@ public class AuctionQueryController {
     private final AuctionQueryService auctionQueryService;
     private final AuctionFeedQueryService auctionFeedQueryService;
 
-    // 목록 (프론트 getAuctions / getGeneralAuctions). scope=ALL|LIVE|GENERAL, status=ACTIVE(기본)|SCHEDULED|ENDED|ALL,
+    // 목록 (프론트 getAuctions / getGeneralAuctions). scope=ALL|LIVE|GENERAL, status=ACTIVE(기본)|SCHEDULED|ENDED|OPEN(진행+예정)|ALL,
     // sort=LATEST(기본)|ENDING_SOON|POPULAR|PRICE_ASC|PRICE_DESC|BID_COUNT. 응답 data: {items, nextCursor, hasNext}
     @GetMapping
     public ResponseEntity<Map<String, Object>> findAll(
