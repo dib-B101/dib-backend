@@ -102,6 +102,8 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 			if (startPrice < 1000L) {
 				throw new BusinessException(ErrorCode.AUCTION_PRICE_INVALID);
 			}
+			// 생성·수정과 같은 10원 단위 규칙. 1001원이 들어오면 첫 입찰 최소 금액 자체가 입찰 규칙(10원 단위)에 걸려 아무도 입찰할 수 없었다
+			TradeInputValidator.validatePrice(startPrice);
 			auction.setStartPrice(startPrice);
 			// 아직 입찰이 없으므로 현재가는 시작가와 같아야 한다
 			auction.setCurrentPrice(startPrice);

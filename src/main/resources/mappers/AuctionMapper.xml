@@ -24,6 +24,8 @@
 		<result property="updatedAt" column="updated_at" />
 		<result property="deletedAt" column="deleted_at" />
 		<result property="liveBroadcastId" column="live_broadcast_id" />
+		<result property="productTitle" column="product_title" />
+		<result property="thumbnailUrl" column="thumbnail_url" />
 
 	</resultMap>
 
@@ -117,7 +119,9 @@
 			a.created_at,
 			a.updated_at,
 			a.deleted_at,
-			a.live_broadcast_id
+			a.live_broadcast_id,
+			p.title AS product_title,
+			p.thumbnail_url
 		FROM auction a
 		JOIN product p ON p.product_id = a.product_id
 		WHERE p.member_id = #{sellerId}
