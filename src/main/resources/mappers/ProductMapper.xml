@@ -67,6 +67,10 @@
 		<result property="productCreatedAt" column="product_created_at" />
 		<result property="productUpdatedAt" column="product_updated_at" />
 		<result property="productDeletedAt" column="product_deleted_at" />
+		<!-- PENDING 이 "AI 검수 중" 인지 "관리자 검토 대기" 인지는 이 둘로 가른다. moderated_at 이 null 이면 AI 결과 대기,
+		     값이 있으면 AI 가 PENDING 판정을 냈거나 실패(stage=fallback)해 사람이 볼 차례. findMyProducts 만 채우고 나머지 조회는 null -->
+		<result property="moderationStage" column="moderation_stage" />
+		<result property="moderatedAt" column="moderated_at" />
 		
 		<result property="auctionId" column="auction_id" />
 		<result property="startPrice" column="start_price" />
@@ -104,6 +108,8 @@
 			p.created_at as product_created_at,
 			p.updated_at as product_updated_at,
 			p.deleted_at as product_deleted_at,
+			p.moderation_stage,
+			p.moderated_at,
 			
 			a.auction_id,
 			a.start_price,

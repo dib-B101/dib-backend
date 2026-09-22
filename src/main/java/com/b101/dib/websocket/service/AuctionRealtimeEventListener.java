@@ -67,6 +67,9 @@ public class AuctionRealtimeEventListener {
             live.put("auctionId", String.valueOf(r.getAuctionId()));
             live.put("finalPrice", r.getFinalPrice());
             live.put("result", r.getResult());
+            // 시청 화면은 이 이벤트만 듣는다. AUCTION_ENDED 에는 있던 낙찰자가 여기엔 없어서 "내가 낙찰자인지" 를 알 수 없었다.
+            // 직렬화는 AUCTION_ENDED 와 같게(문자열, 유찰이면 null). 닉네임은 종료 결과 DTO 에 없어 추가 조회 없이 id 만 싣는다
+            live.put("winnerId", r.getWinnerId() == null ? null : String.valueOf(r.getWinnerId()));
             liveWebSocketService.broadcast(liveBroadcastId, "LIVE_AUCTION_CLOSED", live);
         }
     }

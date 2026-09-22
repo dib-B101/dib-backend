@@ -28,6 +28,7 @@ import com.b101.dib.liveBroadcast.domain.LiveBroadcastStatus;
 import com.b101.dib.common.util.Times;
 import com.b101.dib.liveBroadcast.repository.LiveBroadcastRepository;
 import com.b101.dib.product.domain.Product;
+import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.product.repository.ProductRepository;
 import com.b101.dib.websocket.service.LiveViewerCounter;
 import com.b101.dib.websocket.service.LiveWebSocketService;
@@ -242,6 +243,12 @@ public class LiveBroadcastCommandServiceImpl implements LiveBroadcastCommandServ
 			if(auction.getStatus() == AuctionStatus.ENDED || auction.getStatus() == AuctionStatus.CANCELED) {
 				throw new BusinessException(ErrorCode.LIVE_AUCTION_NOT_MATCHED);
 			}
+			// 검수 중(PENDING) 상품도 등록 시점에 경매 초안이 생겨 후보로 잡힐 수 있다. 예전엔 여기서 통과시키고
+			// 방송 중 "시작" 버튼(startAuction → checkProduct)에서야 PRODUCT_PENDING 으로 터졌다.
+			// 편성 저장 시점에 같은 기준으로 막아 실패를 앞당긴다. 이미 진행 중(ACTIVE)인 경매는 상품이 ON_AUCTION 이라 제외
+			if(auction.getStatus() != AuctionStatus.ACTIVE) {
+				checkProductRegistered(product);
+			}
 			// 다른 방송에 편성돼 있으면 가져오지 않는다
 			if(auction.getLiveBroadcastId() != null && !liveBroadcastId.equals(auction.getLiveBroadcastId())) {
 				throw new BusinessException(ErrorCode.LIVE_AUCTION_NOT_MATCHED);
@@ -273,6 +280,25 @@ public class LiveBroadcastCommandServiceImpl implements LiveBroadcastCommandServ
 			result.add(auction);
 		}
 		return result;
+	}
+
+	// AuctionCommandServiceImpl.checkProduct 와 같은 판정·에러코드. 편성 저장과 경매 시작이 다른 메시지를 내면 앱이 헷갈린다
+	private void checkProductRegistered(Product product) {
+		if(product.getDeletedAt() != null) {
+			throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
+		}
+		if(product.getStatus() == ProductStatus.PENDING) {
+			throw new BusinessException(ErrorCode.PRODUCT_PENDING);
+		}
+		if(product.getStatus() == ProductStatus.ON_AUCTION) {
+			throw new BusinessException(ErrorCode.PRODUCT_ON_AUCTION);
+		}
+		if(product.getStatus() == ProductStatus.SOLD) {
+			throw new BusinessException(ErrorCode.PRODUCT_ALREADY_SOLD);
+		}
+		if(product.getStatus() != ProductStatus.REGISTERED) {
+			throw new BusinessException(ErrorCode.PRODUCT_NOT_APPROVED);
+		}
 	}
 
 	// checkLiveBroadcast 는 "아직 시작 전" 을 요구한다. 시작·종료는 조건이 반대라 소유자만 확인한다

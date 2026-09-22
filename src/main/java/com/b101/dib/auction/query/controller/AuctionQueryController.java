@@ -25,6 +25,8 @@ public class AuctionQueryController {
             @RequestHeader(value = "X-Member-Id", required = false) Long memberId,
             @RequestParam(value = "scope", required = false) String scope,
             @RequestParam(value = "status", required = false) String status,
+            // mine=true — 내가 판매자인 경매만. 라이브 편성 후보(scope=GENERAL&status=SCHEDULED&mine=true)가 쓴다
+            @RequestParam(value = "mine", required = false, defaultValue = "false") boolean mine,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "minPrice", required = false) Long minPrice,
             @RequestParam(value = "maxPrice", required = false) Long maxPrice,
@@ -32,7 +34,7 @@ public class AuctionQueryController {
             @RequestParam(value = "cursor", required = false) String cursor,
             @RequestParam(value = "size", defaultValue = "20") int size) {
         return ok("경매 목록 조회 성공",
-                auctionFeedQueryService.findCards(memberId, scope, status, categoryId, minPrice, maxPrice, sort, cursor, size));
+                auctionFeedQueryService.findCards(memberId, mine, scope, status, categoryId, minPrice, maxPrice, sort, cursor, size));
     }
     
     // 상세 (프론트 AuctionDto: product, sellerSummary, myBid, bookmarked, scheduledEndAt, serverTime 포함)

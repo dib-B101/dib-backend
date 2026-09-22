@@ -10,6 +10,7 @@ import java.util.List;
 @Mapper
 public interface AuctionFeedMapper {
     List<AuctionCardRowDto> findCards(@Param("memberId") Long memberId,
+                                      @Param("sellerId") Long sellerId,
                                       @Param("scope") String scope,
                                       @Param("status") String status,
                                       @Param("categoryId") Long categoryId,

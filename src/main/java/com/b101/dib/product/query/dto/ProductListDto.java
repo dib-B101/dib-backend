@@ -33,6 +33,9 @@ public class ProductListDto {
     private LocalDateTime productCreatedAt;
     private LocalDateTime productUpdatedAt;
     private LocalDateTime productDeletedAt;
+    // 검수 단계. PENDING 일 때 moderatedAt 이 null 이면 AI 검수 중, 있으면 관리자 검토 대기 (stage: rule | ai | fallback)
+    private String moderationStage;
+    private LocalDateTime moderatedAt;
 	
     private Long auctionId;
 //    private Long productId;
