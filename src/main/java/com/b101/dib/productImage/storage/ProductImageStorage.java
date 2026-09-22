@@ -1,104 +1,26 @@
 package com.b101.dib.productImage.storage;
 
-import com.b101.dib.common.exception.BusinessException;
-import com.b101.dib.common.exception.ErrorCode;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
 
-@Component
-public class ProductImageStorage {
+// 상품 이미지 저장소. 구현은 두 가지다.
+//   local — 컨테이너 로컬 디스크. 단일 인스턴스(IDE·compose) 전용
+//   s3    — 공용 버킷. Pod 가 2대 이상이면 반드시 이쪽 (dib.storage.provider=s3)
+// 저장 위치가 바뀌어도 공개 URL 은 PUBLIC_PATH 로 같다. 프론트·AI 검수 계약이 안 바뀐다.
+public interface ProductImageStorage {
 
-    public static final String PUBLIC_PATH = "/api/v1/product-images/files/";
+    String PUBLIC_PATH = "/api/v1/product-images/files/";
 
-    private final Path root;
-    private final String internalBaseUrl;
+    // 전부 저장하고 공개 URL 목록을 반환. 중간에 실패하면 이미 올린 것을 지우고 던진다
+    List<String> storeAll(List<MultipartFile> images);
 
-    public ProductImageStorage(
-            @Value("${dib.storage.product-image-dir:./data/product-images}") String imageDirectory,
-            @Value("${dib.storage.internal-base-url:${dib.ai.callback-base-url:http://localhost:8080}}")
-            String internalBaseUrl
-    ) {
-        this.root = Path.of(imageDirectory).toAbsolutePath().normalize();
-        this.internalBaseUrl = internalBaseUrl.replaceAll("/+$", "");
-        try {
-            Files.createDirectories(root);
-        } catch (IOException exception) {
-            throw new IllegalStateException("상품 이미지 저장 디렉터리를 만들 수 없습니다: " + root, exception);
-        }
-    }
+    void deleteAll(Collection<String> imageUrls);
 
-    public List<String> storeAll(List<MultipartFile> images) {
-        List<String> stored = new ArrayList<>();
-        try {
-            for (MultipartFile image : images) {
-                stored.add(store(image));
-            }
-            return List.copyOf(stored);
-        } catch (RuntimeException exception) {
-            deleteAll(stored);
-            throw exception;
-        }
-    }
+    // AI 검수 서버가 받아갈 수 있는 절대 URL. 이미 절대 URL 이면 그대로 둔다
+    String internalUrl(String imageUrl);
 
-    public void deleteAll(Collection<String> imageUrls) {
-        for (String imageUrl : imageUrls) {
-            Path path = storedPath(imageUrl);
-            if (path == null) continue;
-            try {
-                Files.deleteIfExists(path);
-            } catch (IOException ignored) {
-                // DB 삭제를 막지 않는다. 운영 저장소에서는 별도 정리 작업으로 재시도한다.
-            }
-        }
-    }
-
-    public String internalUrl(String imageUrl) {
-        if (imageUrl == null || imageUrl.isBlank() || imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-            return imageUrl;
-        }
-        return internalBaseUrl + (imageUrl.startsWith("/") ? imageUrl : "/" + imageUrl);
-    }
-
-    Path root() {
-        return root;
-    }
-
-    private String store(MultipartFile image) {
-        String extension = switch (image.getContentType().toLowerCase(Locale.ROOT)) {
-            case "image/jpeg", "image/jpg" -> ".jpg";
-            case "image/png" -> ".png";
-            case "image/webp" -> ".webp";
-            default -> throw new BusinessException(ErrorCode.INVALID_CONTENT_TYPE);
-        };
-        String fileName = UUID.randomUUID() + extension;
-        Path target = root.resolve(fileName).normalize();
-        if (!target.getParent().equals(root)) {
-            throw new BusinessException(ErrorCode.IMAGE_STORAGE_FAILED);
-        }
-        try (InputStream input = image.getInputStream()) {
-            Files.copy(input, target, StandardCopyOption.REPLACE_EXISTING);
-            return PUBLIC_PATH + fileName;
-        } catch (IOException exception) {
-            throw new BusinessException(ErrorCode.IMAGE_STORAGE_FAILED);
-        }
-    }
-
-    private Path storedPath(String imageUrl) {
-        if (imageUrl == null || !imageUrl.startsWith(PUBLIC_PATH)) return null;
-        String fileName = imageUrl.substring(PUBLIC_PATH.length());
-        Path path = root.resolve(fileName).normalize();
-        return path.getParent().equals(root) ? path : null;
-    }
+    // 저장된 파일. 없으면 null
+    StoredImage load(String fileName);
 }

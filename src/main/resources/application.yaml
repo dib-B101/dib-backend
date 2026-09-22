@@ -45,7 +45,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        # health/info 만 공개다. metrics·prometheus 는 SecurityConfig 에서 ADMIN 으로 막혀 있다 —
+        # ALB 가 인터넷에 붙어 있어서 열어 두면 엔드포인트 목록·요청량·JVM 내부가 그대로 새어 나간다
+        include: health,info,metrics,prometheus
 
 springdoc:
   swagger-ui:
@@ -94,6 +96,11 @@ dib:
   outbox:
     poll-ms: 500           # outbox_event → Kafka 발행 주기
     batch-size: 100
+    max-attempts: 10       # 이 횟수를 넘기면 재시도를 멈춘다. 상한이 없으면 영구 실패 행이
+                           # 제일 오래된 행이라 매 폴링마다 먼저 집혀 뒤의 정상 이벤트를 막는다
+    abandoned-check-ms: 300000   # 포기한 행이 있는지 확인해 로그·게이지로 알리는 주기
+    retention-days: 7      # 발행 완료 행 보관 기간. 안 지우면 테이블이 무한히 커진다
+    purge-cron: "0 20 4 * * *"   # 정리 시각 (Pod 한 대만 — ShedLock)
   realtime:
     redis-enabled: true    # 소켓 브로드캐스트를 Redis Pub/Sub 으로 모든 Pod 에 전파. false 면 이 Pod 에만 직접 전송
   lock:
@@ -101,8 +108,17 @@ dib:
   cache:
     snapshot-enabled: true # 입찰 스냅샷 Redis Hot State auction:{id}:snapshot
   storage:
-    product-image-dir: ${DIB_PRODUCT_IMAGE_DIR:./data/product-images}
+    # local = 컨테이너 로컬 디스크 (IDE·compose 처럼 인스턴스가 1대일 때만).
+    # s3    = 공용 버킷. Pod 가 2대 이상이면 반드시 이쪽 — 로컬 디스크는 업로드한 Pod 에만 남아서
+    #         다른 Pod 로 간 조회가 404 가 되고 Pod 재시작 시 통째로 사라진다
+    provider: ${DIB_STORAGE_PROVIDER:local}
+    product-image-dir: ${DIB_PRODUCT_IMAGE_DIR:./data/product-images}   # provider=local 일 때만 사용
     internal-base-url: ${DIB_STORAGE_INTERNAL_BASE_URL:${DIB_AI_CALLBACK_BASE_URL:http://localhost:8080}}
+    s3:
+      bucket: ${DIB_S3_BUCKET:}          # provider=s3 면 필수
+      region: ${AWS_REGION:ap-northeast-2}
+      key-prefix: products/
+      # 자격증명은 IRSA(ServiceAccount dib-backend)로 받는다. 액세스 키를 Secret 에 넣지 않는다
   ai:
     enabled: ${DIB_AI_ENABLED:false}                 # true 면 이상입찰 분석 + 상품 등록·수정 시 AI 검수 요청. false 면 등록 즉시 REGISTERED + 경매 생성(기존 동작)
     moderation-enabled: ${DIB_AI_MODERATION_ENABLED:false} # 검수 모델 운영 전에는 false: 상품은 즉시 승인하되 추천·이상입찰 AI는 유지
