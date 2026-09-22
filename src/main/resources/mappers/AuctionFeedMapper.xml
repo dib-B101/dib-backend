@@ -24,6 +24,7 @@
 		<result property="sellerId" column="seller_id" />
 		<result property="sellerNickname" column="seller_nickname" />
 		<result property="sellerScore" column="seller_score" />
+		<result property="sellerReviewCount" column="seller_review_count" />
 		<result property="sellerTradeCount" column="seller_trade_count" />
 		<result property="sellerCompletedTradeCount" column="seller_completed_trade_count" />
 		<result property="categoryId" column="category_id" />
@@ -45,6 +46,7 @@
 		a.status, a.bid_count, a.bidder_count, a.view_count, a.bookmark_count, a.top_bid_id, tb.member_id AS top_bidder_id,
 		a.extension_count, a.live_broadcast_id, a.created_at,
 		p.member_id AS seller_id, m.nickname AS seller_nickname, m.score AS seller_score,
+		m.review_count AS seller_review_count,
 		(SELECT COUNT(*) FROM "order" o WHERE o.seller_id = p.member_id) AS seller_trade_count,
 		(SELECT COUNT(*) FROM "order" o WHERE o.seller_id = p.member_id AND o.status = 'CONFIRMED') AS seller_completed_trade_count,
 		p.category_id, c.name AS category_name,

@@ -53,7 +53,14 @@
         FROM member m
         <where>
             <if test="q != null and q != ''">
-                AND (m.nickname ILIKE '%' || #{q} || '%' OR m.email ILIKE '%' || #{q} || '%')
+                AND (
+                    m.nickname ILIKE '%' || #{q} || '%'
+                    OR m.email ILIKE '%' || #{q} || '%'
+                    OR m.member_id = CASE
+                        WHEN #{q} ~ '^[0-9]+$' THEN CAST(#{q} AS BIGINT)
+                        ELSE -1
+                    END
+                )
             </if>
             <if test="status != null">
                 AND m.status = #{status}::member_status

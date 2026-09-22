@@ -30,6 +30,7 @@ public class Notification {
     private Long liveBroadcastId;
     private Long productId;
     private Long bidId;
+    private Long orderId;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
@@ -41,13 +42,27 @@ public class Notification {
     private LocalDateTime createdAt;
 
     public static Notification paymentFailed(Long buyerId, Long orderId, String reason) {
-        return system(buyerId, "결제 실패",
+        return order(orderId, buyerId, "결제 실패",
                 "주문 #" + orderId + " 결제에 실패했습니다: " + reason + ". 결제 기한 안에 카드를 확인해 주세요.");
     }
 
     public static Notification system(Long memberId, String title, String content) {
         return Notification.builder()
                 .memberId(memberId)
+                .type(NotificationType.SYSTEM)
+                .title(title)
+                .content(cut(content))
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    // 주문에 딸린 안내(결제·배송·취소 등). orderId 를 실어야 앱이 탭했을 때 그 거래 화면을 연다.
+    // 앱은 이 알림을 구매자 화면으로 열므로 구매자에게 가는 알림에만 쓴다. 판매자용(정산·보류)은 system() 그대로
+    public static Notification order(Long orderId, Long memberId, String title, String content) {
+        return Notification.builder()
+                .memberId(memberId)
+                .orderId(orderId)
                 .type(NotificationType.SYSTEM)
                 .title(title)
                 .content(cut(content))
@@ -95,12 +110,56 @@ public class Notification {
                 .build();
     }
 
+    // 찜한 상품의 경매가 시작됐을 때. 찜을 누르는 이유가 "시작하면 알려줘" 인데 그동안 이 알림이 없었다
+    public static Notification bookmarkStarted(Long auctionId, Long productId, Long memberId, String productTitle) {
+        return Notification.builder()
+                .auctionId(auctionId)
+                .productId(productId)
+                .memberId(memberId)
+                .type(NotificationType.BOOKMARK_STARTED)
+                .title("찜한 상품 경매 시작")
+                .content(cut("‘" + productTitle + "’ 경매가 시작됐습니다. 지금 입찰할 수 있어요."))
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    // 찜한 상품이 편성된 라이브 방송이 켜졌을 때. 판매자 팔로우가 없어서 "찜" 을 관심 신호로 쓴다
+    public static Notification liveStarted(Long liveBroadcastId, Long productId, Long memberId, String productTitle) {
+        return Notification.builder()
+                .liveBroadcastId(liveBroadcastId)
+                .productId(productId)
+                .memberId(memberId)
+                .type(NotificationType.LIVE_STARTED)
+                .title("찜한 상품 라이브 시작")
+                .content(cut("‘" + productTitle + "’ 이(가) 나온 라이브 방송이 시작됐습니다."))
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    // 구매확정 직후 구매자에게. 여기서 받은 별점이 판매자 평점이 된다
+    public static Notification reviewRequest(Long orderId, Long memberId, String productTitle) {
+        return Notification.builder()
+                .memberId(memberId)
+                .orderId(orderId)
+                .type(NotificationType.REVIEW_REQUEST)
+                .title("판매자는 어떠셨나요?")
+                .content(cut("‘" + productTitle + "’ 거래가 끝났습니다. 별점으로 평가해 주세요. (주문 #" + orderId + ")"))
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
     public void markRead() {
         isRead = true;
     }
 
     // 프론트 DomainNotification 의 resourceType / resourceId
     public String resourceType() {
+        if (orderId != null) {
+            return "ORDER";
+        }
         if (liveBroadcastId != null) {
             return "LIVE";
         }
@@ -114,6 +173,9 @@ public class Notification {
     }
 
     public Long resourceId() {
+        if (orderId != null) {
+            return orderId;
+        }
         if (liveBroadcastId != null) {
             return liveBroadcastId;
         }

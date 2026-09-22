@@ -10,6 +10,7 @@ import com.b101.dib.order.repository.OrderMapper;
 import com.b101.dib.order.repository.OrderRepository;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.repository.ProductRepository;
+import com.b101.dib.review.command.service.ReviewRequestNotifier;
 import com.b101.dib.settlement.command.service.SettlementCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class OrderCommandServiceImpl implements OrderCommandService {
     private final AuctionRepository auctionRepository;
     private final ProductRepository productRepository;
     private final SettlementCommandService settlementCommandService;
+    private final ReviewRequestNotifier reviewRequestNotifier;
 
     @Override
     public Order create(Long auctionId) {
@@ -68,6 +70,7 @@ public class OrderCommandServiceImpl implements OrderCommandService {
         }
         order.confirm();
         settlementCommandService.createFor(order);
+        reviewRequestNotifier.requestFor(order);   // 거래가 끝난 지금이 별점을 물어볼 유일한 타이밍이다
         return order;
     }
 }

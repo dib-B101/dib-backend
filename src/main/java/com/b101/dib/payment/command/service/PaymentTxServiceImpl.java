@@ -36,7 +36,7 @@ public class PaymentTxServiceImpl implements PaymentTxService {
             throw e;
         }
         Payment payment = paymentRepository.save(Payment.approved(order, res));
-        notificationRepository.save(Notification.system(order.getBuyerId(), "결제 완료",
+        notificationRepository.save(Notification.order(orderId, order.getBuyerId(), "결제 완료",
                 "주문 #" + orderId + " 결제가 완료되었습니다. 배송지를 입력해 주세요."));
         return payment;
     }
@@ -49,7 +49,7 @@ public class PaymentTxServiceImpl implements PaymentTxService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
         payment.markRefunded(transactionKey != null ? transactionKey : "REFUNDED");
         order.refund();
-        notificationRepository.save(Notification.system(order.getBuyerId(), "환불 완료",
+        notificationRepository.save(Notification.order(order.getOrderId(), order.getBuyerId(), "환불 완료",
                 "주문 #" + order.getOrderId() + " 결제가 취소·환불되었습니다."));
         return payment;
     }

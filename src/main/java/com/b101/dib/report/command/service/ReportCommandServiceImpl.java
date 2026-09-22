@@ -103,7 +103,7 @@ public class ReportCommandServiceImpl implements ReportCommandService {
         if (order.isOnHold()) {
             notificationRepository.save(Notification.system(order.getSellerId(), "거래 보류",
                     "주문 #" + orderId + " 거래가 신고 접수로 보류되었습니다. 관리자 확인 후 안내드립니다."));
-            notificationRepository.save(Notification.system(order.getBuyerId(), "거래 보류",
+            notificationRepository.save(Notification.order(orderId, order.getBuyerId(), "거래 보류",
                     "주문 #" + orderId + " 거래가 신고 접수로 보류되었습니다. 관리자 확인 후 안내드립니다."));
         }
         return reportId;

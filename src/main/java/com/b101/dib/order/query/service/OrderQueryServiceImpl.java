@@ -20,6 +20,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class OrderQueryServiceImpl implements OrderQueryService {
     private final OrderMapper orderMapper;
+    private final com.b101.dib.review.repository.ReviewRepository reviewRepository;
 
     @Override
     public CursorPageDto<OrderQueryDto> findMine(Long memberId, OrderRole role, OrderStatus status, String cursor, int size) {
@@ -37,6 +38,10 @@ public class OrderQueryServiceImpl implements OrderQueryService {
         if (!row.getBuyerId().equals(memberId) && !row.getSellerId().equals(memberId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
-        return OrderDetailViewDto.from(row);
+        OrderDetailViewDto view = OrderDetailViewDto.from(row);
+        // 별점은 구매자만 남긴다. 판매자 화면에는 "받은 평가" 로 보여 줄 값이라 양쪽 다 내려준다
+        reviewRepository.findByOrderId(orderId)
+                .ifPresent(review -> view.setMyRating(review.getRating() == null ? null : review.getRating().intValue()));
+        return view;
     }
 }
