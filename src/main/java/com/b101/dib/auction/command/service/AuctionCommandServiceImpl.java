@@ -97,6 +97,12 @@ public class AuctionCommandServiceImpl implements AuctionCommandService {
 	
 	@Override
 	public Auction startAuction(Long myId, Long auctionId, Long startPrice, Integer auctionTime) {
+		// 유찰(입찰 0건)로 끝난 경매는 먼저 재등록(초기화)하고 이어서 시작한다.
+		// 예전엔 SCHEDULED 만 받아서 등록 상품 관리에서 다시 시작하면 "시작된 경매는 변경할 수 없어요" 로 막혔고,
+		// 다시 올리기 버튼은 판매 탭에만 있어 유찰 상품을 다시 못 올린다고 느꼈다. 소유자 확인은 뒤의 checkAuction 이 한다
+		auctionRepository.findById(auctionId)
+				.filter(ended -> ended.getDeletedAt() == null && ended.getStatus() == AuctionStatus.ENDED && ended.getTopBidId() == null)
+				.ifPresent(ended -> ended.relist(LocalDateTime.now()));
 		Auction auction = checkAuction(myId, auctionId);
 		Long productId = auction.getProductId();
 		Product product = checkProduct(myId, productId);

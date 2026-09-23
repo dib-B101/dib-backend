@@ -148,6 +148,7 @@
         <id property="orderId" column="order_id" />
         <result property="sellerId" column="seller_id" />
         <result property="sellerNickname" column="seller_nickname" />
+        <result property="sellerProfileImageUrl" column="seller_profile_image_url" />
         <result property="buyerId" column="buyer_id" />
         <result property="buyerNickname" column="buyer_nickname" />
         <result property="finalPrice" column="final_price" />
@@ -185,6 +186,7 @@
             o.order_id,
             o.seller_id,
             s.nickname AS seller_nickname,
+            s.profile_image_url AS seller_profile_image_url,
             o.buyer_id,
             b.nickname AS buyer_nickname,
             o.final_price,

@@ -16,6 +16,9 @@
         <result property="viewCount" column="view_count" />
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
+        <result property="itemCount" column="item_count" />
+        <result property="firstItemTitle" column="first_item_title" />
+        <result property="firstItemThumbnailUrl" column="first_item_thumbnail_url" />
     </resultMap>
 
     <select id="findAll" resultMap="LiveBroadcastQueryMap">
@@ -30,7 +33,12 @@
         	lb.ended_at,
         	lb.view_count,
         	lb.created_at,
-        	lb.updated_at
+        	lb.updated_at,
+        	(SELECT COUNT(*) FROM auction a WHERE a.live_broadcast_id = lb.live_broadcast_id AND a.deleted_at IS NULL) AS item_count,
+        	(SELECT p.title FROM auction a JOIN product p ON p.product_id = a.product_id
+        	 WHERE a.live_broadcast_id = lb.live_broadcast_id AND a.deleted_at IS NULL ORDER BY a.auction_id LIMIT 1) AS first_item_title,
+        	(SELECT p.thumbnail_url FROM auction a JOIN product p ON p.product_id = a.product_id
+        	 WHERE a.live_broadcast_id = lb.live_broadcast_id AND a.deleted_at IS NULL ORDER BY a.auction_id LIMIT 1) AS first_item_thumbnail_url
     	FROM live_broadcast lb
     	ORDER BY lb.created_at DESC
     </select>
@@ -47,7 +55,12 @@
         	lb.ended_at,
         	lb.view_count,
         	lb.created_at,
-        	lb.updated_at
+        	lb.updated_at,
+        	(SELECT COUNT(*) FROM auction a WHERE a.live_broadcast_id = lb.live_broadcast_id AND a.deleted_at IS NULL) AS item_count,
+        	(SELECT p.title FROM auction a JOIN product p ON p.product_id = a.product_id
+        	 WHERE a.live_broadcast_id = lb.live_broadcast_id AND a.deleted_at IS NULL ORDER BY a.auction_id LIMIT 1) AS first_item_title,
+        	(SELECT p.thumbnail_url FROM auction a JOIN product p ON p.product_id = a.product_id
+        	 WHERE a.live_broadcast_id = lb.live_broadcast_id AND a.deleted_at IS NULL ORDER BY a.auction_id LIMIT 1) AS first_item_thumbnail_url
     	FROM live_broadcast lb
     	WHERE lb.live_broadcast_id = #{liveBroadcastId}
     	ORDER BY lb.created_at DESC
@@ -65,7 +78,12 @@
         	lb.ended_at,
         	lb.view_count,
         	lb.created_at,
-        	lb.updated_at
+        	lb.updated_at,
+        	(SELECT COUNT(*) FROM auction a WHERE a.live_broadcast_id = lb.live_broadcast_id AND a.deleted_at IS NULL) AS item_count,
+        	(SELECT p.title FROM auction a JOIN product p ON p.product_id = a.product_id
+        	 WHERE a.live_broadcast_id = lb.live_broadcast_id AND a.deleted_at IS NULL ORDER BY a.auction_id LIMIT 1) AS first_item_title,
+        	(SELECT p.thumbnail_url FROM auction a JOIN product p ON p.product_id = a.product_id
+        	 WHERE a.live_broadcast_id = lb.live_broadcast_id AND a.deleted_at IS NULL ORDER BY a.auction_id LIMIT 1) AS first_item_thumbnail_url
     	FROM live_broadcast lb
     	WHERE lb.member_id = #{memberId}
     	ORDER BY lb.created_at DESC

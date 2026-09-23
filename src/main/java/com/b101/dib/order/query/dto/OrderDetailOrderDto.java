@@ -16,6 +16,8 @@ public class OrderDetailOrderDto {
     private Long productId;
     private Long sellerId;
     private String sellerNickname;
+    // 구매 거래 상세의 판매자 줄에 아바타를 그린다
+    private String sellerProfileImageUrl;
     private Long buyerId;
     private String buyerNickname;
     private Long finalPrice;

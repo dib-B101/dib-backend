@@ -23,6 +23,7 @@
 		<result property="bookmarkId" column="bookmark_id" />
 		<result property="sellerId" column="seller_id" />
 		<result property="sellerNickname" column="seller_nickname" />
+		<result property="sellerProfileImageUrl" column="seller_profile_image_url" />
 		<result property="sellerScore" column="seller_score" />
 		<result property="sellerReviewCount" column="seller_review_count" />
 		<result property="sellerTradeCount" column="seller_trade_count" />
@@ -45,7 +46,7 @@
 		a.auction_id, a.product_id, a.start_price, a.current_price, a.auction_time, a.started_at, a.ended_at,
 		a.status, a.bid_count, a.bidder_count, a.view_count, a.bookmark_count, a.top_bid_id, tb.member_id AS top_bidder_id,
 		a.extension_count, a.live_broadcast_id, a.created_at,
-		p.member_id AS seller_id, m.nickname AS seller_nickname, m.score AS seller_score,
+		p.member_id AS seller_id, m.nickname AS seller_nickname, m.profile_image_url AS seller_profile_image_url, m.score AS seller_score,
 		m.review_count AS seller_review_count,
 		(SELECT COUNT(*) FROM "order" o WHERE o.seller_id = p.member_id) AS seller_trade_count,
 		(SELECT COUNT(*) FROM "order" o WHERE o.seller_id = p.member_id AND o.status = 'CONFIRMED') AS seller_completed_trade_count,
@@ -85,6 +86,28 @@
 			AND p.member_id = #{sellerId}
 		</if>
 		<choose>
+			<!-- Live 편성 전용 후보. 새 경매뿐 아니라 입찰 없이 끝난 경매도 다시 쓸 수 있다.
+			     단, 다른 진행/예약 방송에 묶인 경매를 가져오거나 낙찰 상품을 재판매하면 안 된다. -->
+			<when test="status == 'LIVE_AVAILABLE'">
+				AND p.status = 'REGISTERED'
+				AND (
+					(a.status = 'SCHEDULED' AND a.live_broadcast_id IS NULL)
+					OR (
+						a.status = 'ENDED'
+						AND a.top_bid_id IS NULL
+						AND a.bid_count = 0
+						AND (
+							a.live_broadcast_id IS NULL
+							OR EXISTS (
+								SELECT 1
+								FROM live_broadcast lb
+								WHERE lb.live_broadcast_id = a.live_broadcast_id
+								  AND lb.status = 'ENDED'
+							)
+						)
+					)
+				)
+			</when>
 			<!-- OPEN = 진행 중 + 예정. 검색·카테고리는 예정 경매도 보여주기로 했고(추천만 제외) 종료·취소는 섞이면 안 된다 -->
 			<when test="status == 'OPEN'">
 				AND a.status IN ('ACTIVE', 'SCHEDULED')

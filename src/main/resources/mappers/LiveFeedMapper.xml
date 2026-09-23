@@ -14,11 +14,20 @@
 		<result property="viewCount" column="view_count" />
 		<result property="createdAt" column="created_at" />
 		<result property="updatedAt" column="updated_at" />
+		<result property="itemCount" column="item_count" />
+		<result property="firstItemTitle" column="first_item_title" />
+		<result property="firstItemThumbnailUrl" column="first_item_thumbnail_url" />
 	</resultMap>
 
 	<sql id="liveColumns">
 		l.live_broadcast_id, l.member_id, l.title, l.description, l.status, l.livekit_room_name,
-		l.started_at, l.ended_at, l.view_count, l.created_at, l.updated_at
+		l.started_at, l.ended_at, l.view_count, l.created_at, l.updated_at,
+		<!-- 홈 LIVE 카드 대표 상품: 편성 상품 중 첫 번째의 제목·썸네일과 개수 -->
+		(SELECT COUNT(*) FROM auction a WHERE a.live_broadcast_id = l.live_broadcast_id AND a.deleted_at IS NULL) AS item_count,
+		(SELECT p.title FROM auction a JOIN product p ON p.product_id = a.product_id
+		 WHERE a.live_broadcast_id = l.live_broadcast_id AND a.deleted_at IS NULL ORDER BY a.auction_id LIMIT 1) AS first_item_title,
+		(SELECT p.thumbnail_url FROM auction a JOIN product p ON p.product_id = a.product_id
+		 WHERE a.live_broadcast_id = l.live_broadcast_id AND a.deleted_at IS NULL ORDER BY a.auction_id LIMIT 1) AS first_item_thumbnail_url
 	</sql>
 
 	<select id="findFeed" resultMap="LiveFeedRowMap">

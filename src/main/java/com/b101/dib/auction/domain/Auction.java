@@ -177,6 +177,9 @@ public class Auction {
         bidCount = 0;
         bidderCount = 0;
         extensionCount = 0;
+        // 종료된 Live에 묶인 채로 두면 GENERAL/LIVE 편성 후보 조회에서 영구히 빠진다.
+        // 재등록은 이전 편성을 끝내고 새 경매 용도로 되돌리는 동작이다.
+        liveBroadcastId = null;
         updatedAt = now;
     }
 
