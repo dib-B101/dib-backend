@@ -10,8 +10,10 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.b101.dib.auction.command.service.AuctionCommandService;
+import com.b101.dib.auction.command.service.AuctionStateChangedEvent;
 import com.b101.dib.auction.domain.Auction;
 import com.b101.dib.auction.domain.AuctionStatus;
 import com.b101.dib.auction.repository.AuctionRepository;
@@ -51,6 +53,7 @@ public class LiveBroadcastCommandServiceImpl implements LiveBroadcastCommandServ
 	private final ProductRepository productRepository;
 	private final LiveWebSocketService liveWebSocketService;
 	private final LiveViewerCounter liveViewerCounter;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Override
 	public LiveBroadcast create(Long myId, CreateRequest request) {
@@ -241,8 +244,24 @@ public class LiveBroadcastCommandServiceImpl implements LiveBroadcastCommandServ
 			if(!myId.equals(product.getMemberId())) {
 				throw new BusinessException(ErrorCode.LIVE_BROADCAST_NOT_OWNED);
 			}
-			if(auction.getStatus() == AuctionStatus.ENDED || auction.getStatus() == AuctionStatus.CANCELED) {
+			if(auction.getStatus() == AuctionStatus.CANCELED) {
 				throw new BusinessException(ErrorCode.LIVE_AUCTION_NOT_MATCHED);
+			}
+			boolean relisted = false;
+			if(auction.getStatus() == AuctionStatus.ENDED) {
+				// 낙찰 없는 종료 경매만 새 Live에서 재사용한다. 이전 편성이 아직 예약/진행 중이면
+				// 다른 방송의 상품을 가져오는 셈이므로 허용하지 않는다.
+				Long previousLiveId = auction.getLiveBroadcastId();
+				if(previousLiveId != null && !liveBroadcastId.equals(previousLiveId)) {
+					LiveBroadcast previousLive = liveBroadcastRepository.findById(previousLiveId)
+							.orElseThrow(() -> new BusinessException(ErrorCode.LIVE_AUCTION_NOT_MATCHED));
+					if(previousLive.getStatus() != LiveBroadcastStatus.ENDED) {
+						throw new BusinessException(ErrorCode.LIVE_AUCTION_NOT_MATCHED);
+					}
+				}
+				checkProductRegistered(product);
+				auction.relist(LocalDateTime.now());
+				relisted = true;
 			}
 			// 검수 중(PENDING) 상품도 등록 시점에 경매 초안이 생겨 후보로 잡힐 수 있다. 예전엔 여기서 통과시키고
 			// 방송 중 "시작" 버튼(startAuction → checkProduct)에서야 PRODUCT_PENDING 으로 터졌다.
@@ -279,6 +298,9 @@ public class LiveBroadcastCommandServiceImpl implements LiveBroadcastCommandServ
 				if(updated) {
 					auction.setUpdatedAt(LocalDateTime.now());
 				}
+			}
+			if(relisted) {
+				eventPublisher.publishEvent(new AuctionStateChangedEvent(auction.getAuctionId()));
 			}
 			result.add(auction);
 		}

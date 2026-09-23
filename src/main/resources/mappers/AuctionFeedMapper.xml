@@ -86,6 +86,28 @@
 			AND p.member_id = #{sellerId}
 		</if>
 		<choose>
+			<!-- Live 편성 전용 후보. 새 경매뿐 아니라 입찰 없이 끝난 경매도 다시 쓸 수 있다.
+			     단, 다른 진행/예약 방송에 묶인 경매를 가져오거나 낙찰 상품을 재판매하면 안 된다. -->
+			<when test="status == 'LIVE_AVAILABLE'">
+				AND p.status = 'REGISTERED'
+				AND (
+					(a.status = 'SCHEDULED' AND a.live_broadcast_id IS NULL)
+					OR (
+						a.status = 'ENDED'
+						AND a.top_bid_id IS NULL
+						AND a.bid_count = 0
+						AND (
+							a.live_broadcast_id IS NULL
+							OR EXISTS (
+								SELECT 1
+								FROM live_broadcast lb
+								WHERE lb.live_broadcast_id = a.live_broadcast_id
+								  AND lb.status = 'ENDED'
+							)
+						)
+					)
+				)
+			</when>
 			<!-- OPEN = 진행 중 + 예정. 검색·카테고리는 예정 경매도 보여주기로 했고(추천만 제외) 종료·취소는 섞이면 안 된다 -->
 			<when test="status == 'OPEN'">
 				AND a.status IN ('ACTIVE', 'SCHEDULED')
