@@ -1,6 +1,7 @@
 package com.b101.dib.notification.domain;
 
 import jakarta.persistence.*;
+import com.b101.dib.product.domain.ProductStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,6 +53,21 @@ public class Notification {
                 .type(NotificationType.SYSTEM)
                 .title(title)
                 .content(cut(content))
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static Notification productModerated(Long productId, Long memberId, String productTitle, ProductStatus status) {
+        boolean approved = status == ProductStatus.REGISTERED;
+        return Notification.builder()
+                .productId(productId)
+                .memberId(memberId)
+                .type(NotificationType.SYSTEM)
+                .title(approved ? "상품 검수 승인" : "상품 등록 거절")
+                .content(cut("‘" + productTitle + "’ " + (approved
+                        ? "상품의 검수가 완료됐습니다. 등록 상품 관리에서 경매를 시작할 수 있어요."
+                        : "상품 등록이 거절됐습니다. 등록 상품 관리에서 사유를 확인하고 수정해주세요.")))
                 .isRead(false)
                 .createdAt(LocalDateTime.now())
                 .build();
