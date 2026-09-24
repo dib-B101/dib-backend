@@ -2,6 +2,8 @@ package com.b101.dib.product.command.service;
 
 import com.b101.dib.auction.domain.Auction;
 import com.b101.dib.auction.repository.AuctionRepository;
+import com.b101.dib.notification.domain.Notification;
+import com.b101.dib.notification.repository.NotificationRepository;
 import com.b101.dib.product.command.dto.ProductModerationResponse;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
@@ -22,6 +24,7 @@ public class ProductModerationTxServiceImpl implements ProductModerationTxServic
 
     private final ProductRepository productRepository;
     private final AuctionRepository auctionRepository;
+    private final NotificationRepository notificationRepository;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -48,6 +51,10 @@ public class ProductModerationTxServiceImpl implements ProductModerationTxServic
 
         if (verdict == ProductStatus.REGISTERED) {
             createScheduledAuctionIfAbsent(productId, now);
+        }
+        if (verdict == ProductStatus.REGISTERED || verdict == ProductStatus.REJECTED) {
+            notificationRepository.save(Notification.productModerated(
+                    productId, product.getMemberId(), product.getTitle(), verdict));
         }
         log.info("상품 검수 반영 productId={} status={} stage={}", productId, verdict, response.getStage());
     }
