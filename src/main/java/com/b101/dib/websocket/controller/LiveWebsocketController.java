@@ -67,11 +67,14 @@ public class LiveWebsocketController {
                     .time(LocalDateTime.now())
                     .build();
             LiveChatting saved = liveChattingService.create(memberId, liveBroadcastId, dto);
+            String authorNickname = nickname(memberId);
 
             Map<String, Object> accepted = new HashMap<>();
             accepted.put("commandId", command.getCommandId());
             accepted.put("liveBroadcastId", String.valueOf(liveBroadcastId));
             accepted.put("liveChattingId", String.valueOf(saved.getLiveChattingId()));
+            accepted.put("memberId", String.valueOf(memberId));
+            accepted.put("nickname", authorNickname);
             accepted.put("time", Times.iso(saved.getTime()));
             liveWebSocketService.sendToMember(memberId, "CHAT_ACCEPTED", command.getCommandId(), accepted);
 
@@ -79,7 +82,7 @@ public class LiveWebsocketController {
             created.put("liveChattingId", String.valueOf(saved.getLiveChattingId()));
             created.put("liveBroadcastId", String.valueOf(liveBroadcastId));
             created.put("memberId", String.valueOf(memberId));
-            created.put("nickname", nickname(memberId));
+            created.put("nickname", authorNickname);
             created.put("content", saved.getContent());
             created.put("time", Times.iso(saved.getTime()));
             liveWebSocketService.broadcast(liveBroadcastId, "LIVE_CHAT_MESSAGE_CREATED", created);
