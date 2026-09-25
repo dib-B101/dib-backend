@@ -13,6 +13,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "payment")
@@ -21,6 +23,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Payment {
+    private static final ZoneId PAYMENT_ZONE = ZoneId.of("Asia/Seoul");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,6 +45,9 @@ public class Payment {
     private LocalDateTime paidAt;
 
     public static Payment approved(Order order, TossPaymentResponse res) {
+        LocalDateTime paidAt = res.approvedAt() == null || res.approvedAt().isBlank()
+                ? LocalDateTime.now(PAYMENT_ZONE)
+                : OffsetDateTime.parse(res.approvedAt()).atZoneSameInstant(PAYMENT_ZONE).toLocalDateTime();
         return Payment.builder()
                 .orderId(order.getOrderId())
                 .buyerId(order.getBuyerId())
@@ -49,7 +55,7 @@ public class Payment {
                 .type(PaymentType.CARD)
                 .paymentKey(res.paymentKey())
                 .receiptUrl(res.receipt() != null ? res.receipt().url() : null)
-                .paidAt(LocalDateTime.now())
+                .paidAt(paidAt)
                 .build();
     }
 
