@@ -23,4 +23,7 @@ public class AddressQueryDto {
 
     /** 외부 주소 검색 API의 주소 식별자 */
     private String apiAddressId;
+    private String detailAddress;
+    private String receiverName;
+    private String receiverPhone;
 }
