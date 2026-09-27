@@ -8,6 +8,7 @@ import com.b101.dib.common.config.SecurityConfig;
 import com.b101.dib.member.command.dto.UpdateProfileRequest;
 import com.b101.dib.member.command.dto.UpdateProfileResponse;
 import com.b101.dib.member.command.service.MemberCommandService;
+import com.b101.dib.member.command.service.MemberProfileImageService;
 import com.b101.dib.member.domain.MemberRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +16,17 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -35,7 +41,27 @@ class MemberCommandControllerTest {
     private MemberCommandService memberCommandService;
 
     @MockitoBean
+    private MemberProfileImageService memberProfileImageService;
+
+    @MockitoBean
     private AccessTokenVerifier accessTokenVerifier;
+
+    @Test
+    void uploadsProfileImageForAuthenticatedMember() throws Exception {
+        AccessTokenClaims claims = new AccessTokenClaims(1L, MemberRole.USER);
+        var image = new MockMultipartFile("image", "profile.jpg", "image/jpeg",
+                new byte[] {(byte) 0xff, (byte) 0xd8, (byte) 0xff, 0x00});
+        var response = new UpdateProfileResponse(1L, "기존닉네임", "/api/v1/product-images/files/new.jpg",
+                LocalDateTime.of(2026, 9, 15, 3, 0));
+        given(accessTokenVerifier.verifyBearer("Bearer access-token")).willReturn(claims);
+        given(memberProfileImageService.updateImage(eq(1L), eq(null), any(MultipartFile.class))).willReturn(response);
+
+        mockMvc.perform(multipart("/api/v1/members/me/profile/image")
+                        .file(image).with(request -> { request.setMethod("PATCH"); return request; })
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.profileImageUrl").value("/api/v1/product-images/files/new.jpg"));
+    }
 
     @Test
     void updatesAuthenticatedMemberProfile() throws Exception {

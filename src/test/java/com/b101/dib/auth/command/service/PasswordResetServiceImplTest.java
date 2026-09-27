@@ -122,16 +122,17 @@ class PasswordResetServiceImplTest {
     }
 
     @Test
-    void hidesMemberMismatchWithoutIssuingResetToken() {
+    void rejectsMemberMismatchWithoutIssuingResetToken() {
         given(memberRepository.findByEmailAndPhoneNumber(
                 "unknown@example.com", "01012345678"
         )).willReturn(Optional.empty());
 
-        service.requestResetLink(new PasswordResetLinkRequest(
+        assertThatThrownBy(() -> service.requestResetLink(new PasswordResetLinkRequest(
                 "unknown@example.com",
                 "01012345678",
                 "verification-token"
-        ));
+        ))).isInstanceOf(BusinessException.class)
+                .extracting("errorCode").isEqualTo(ErrorCode.PASSWORD_RESET_ACCOUNT_MISMATCH);
 
         verify(phoneVerificationService).consumeVerificationToken(
                 "verification-token",
