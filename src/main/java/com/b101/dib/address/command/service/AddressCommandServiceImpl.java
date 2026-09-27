@@ -30,6 +30,9 @@ public class AddressCommandServiceImpl implements AddressCommandService {
                 .memberId(memberId)
                 .number(trimToNull(request.number()))
                 .address(trimToNull(request.address()))
+                .detailAddress(request.detailAddress() == null ? null : request.detailAddress().trim())
+                .receiverName(trimToNull(request.receiverName()))
+                .receiverPhone(normalizePhone(request.receiverPhone()))
                 .name(request.name().trim())
                 .apiAddressId(request.apiAddressId().trim())
                 .build();
@@ -52,7 +55,10 @@ public class AddressCommandServiceImpl implements AddressCommandService {
                 request.name() == null ? address.getName() : request.name().trim(),
                 request.apiAddressId() == null
                         ? address.getApiAddressId()
-                        : request.apiAddressId().trim()
+                        : request.apiAddressId().trim(),
+                request.detailAddress() == null ? address.getDetailAddress() : request.detailAddress().trim(),
+                request.receiverName() == null ? address.getReceiverName() : request.receiverName().trim(),
+                request.receiverPhone() == null ? address.getReceiverPhone() : normalizePhone(request.receiverPhone())
         );
 
         return toResponse(address);
@@ -76,7 +82,10 @@ public class AddressCommandServiceImpl implements AddressCommandService {
                 address.getNumber(),
                 address.getAddress(),
                 address.getName(),
-                address.getApiAddressId()
+                address.getApiAddressId(),
+                address.getDetailAddress(),
+                address.getReceiverName(),
+                address.getReceiverPhone()
         );
     }
 
@@ -86,5 +95,9 @@ public class AddressCommandServiceImpl implements AddressCommandService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String normalizePhone(String value) {
+        return value == null ? null : value.replaceAll("[\\s-]", "");
     }
 }

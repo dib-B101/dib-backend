@@ -86,6 +86,22 @@ class AddressCommandServiceImplTest {
     }
 
     @Test
+    void storesStructuredAddressAndRecipientForOrderPrefill() {
+        given(memberRepository.existsById(1L)).willReturn(true);
+        given(addressRepository.save(any(Address.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        AddressResponse result = addressCommandService.create(1L,
+                new CreateAddressRequest("06236", "서울 강남구 테헤란로 123", "집", "building-1",
+                        "101동 1001호", " 김구매 ", "010-1234-5678"));
+
+        assertThat(result.detailAddress()).isEqualTo("101동 1001호");
+        assertThat(result.receiverName()).isEqualTo("김구매");
+        assertThat(result.receiverPhone()).isEqualTo("01012345678");
+        assertThat(result.address()).isEqualTo("서울 강남구 테헤란로 123");
+    }
+
+    @Test
     void rejectsWhenAuthenticatedMemberNoLongerExists() {
         given(memberRepository.existsById(1L)).willReturn(false);
 
@@ -118,6 +134,21 @@ class AddressCommandServiceImplTest {
                 "새 회사",
                 "new-address-api-id"
         ));
+    }
+
+    @Test
+    void updatesSavedRecipientWithoutChangingRoadAddress() {
+        Address address = address(10L, 1L);
+        given(addressRepository.findById(10L)).willReturn(Optional.of(address));
+
+        AddressResponse result = addressCommandService.update(1L, 10L,
+                new UpdateAddressRequest(null, null, null, null,
+                        "101동 1001호", "새 수령인", "010-8765-4321"));
+
+        assertThat(result.address()).isEqualTo("서울특별시 강남구 테헤란로");
+        assertThat(result.detailAddress()).isEqualTo("101동 1001호");
+        assertThat(result.receiverName()).isEqualTo("새 수령인");
+        assertThat(result.receiverPhone()).isEqualTo("01087654321");
     }
 
     @Test

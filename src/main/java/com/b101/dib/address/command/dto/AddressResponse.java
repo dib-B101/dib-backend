@@ -14,6 +14,12 @@ public record AddressResponse(
         String name,
 
         /** 외부 주소 검색 API의 주소 식별자 */
-        String apiAddressId
+        String apiAddressId,
+        String detailAddress,
+        String receiverName,
+        String receiverPhone
 ) {
+    public AddressResponse(Long addressId, String number, String address, String name, String apiAddressId) {
+        this(addressId, number, address, name, apiAddressId, null, null, null);
+    }
 }
