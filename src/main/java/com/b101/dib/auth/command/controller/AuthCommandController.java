@@ -8,10 +8,7 @@ import com.b101.dib.auth.command.dto.KakaoSignupRequest;
 import com.b101.dib.auth.command.dto.LogoutRequest;
 import com.b101.dib.auth.command.dto.PasswordResetLinkRequest;
 import com.b101.dib.auth.command.dto.PasswordResetRequest;
-import com.b101.dib.auth.command.dto.PhoneVerificationConfirmRequest;
 import com.b101.dib.auth.command.dto.PhoneVerificationConfirmResponse;
-import com.b101.dib.auth.command.dto.PhoneVerificationRequest;
-import com.b101.dib.auth.command.dto.PhoneVerificationResponse;
 import com.b101.dib.auth.command.dto.SignupRequest;
 import com.b101.dib.auth.command.dto.SignupResponse;
 import com.b101.dib.auth.command.dto.TokenRefreshRequest;
@@ -19,7 +16,8 @@ import com.b101.dib.auth.command.dto.TokenRefreshResponse;
 import com.b101.dib.auth.command.service.LoginService;
 import com.b101.dib.auth.command.service.KakaoAuthService;
 import com.b101.dib.auth.command.service.PasswordResetService;
-import com.b101.dib.auth.command.service.PhoneVerificationService;
+import com.b101.dib.auth.command.service.FirebasePhoneVerificationService;
+import com.b101.dib.auth.command.dto.FirebasePhoneVerificationRequest;
 import com.b101.dib.auth.command.service.SignupService;
 import com.b101.dib.auth.command.service.TokenSessionService;
 import jakarta.validation.Valid;
@@ -27,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -39,27 +36,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthCommandController {
 
-    private final PhoneVerificationService phoneVerificationService;
+    private final FirebasePhoneVerificationService firebasePhoneVerificationService;
     private final SignupService signupService;
     private final LoginService loginService;
     private final KakaoAuthService kakaoAuthService;
     private final TokenSessionService tokenSessionService;
     private final PasswordResetService passwordResetService;
 
-    @PostMapping("/phone-verifications")
-    public ResponseEntity<PhoneVerificationResponse> requestPhoneVerification(
-            @RequestBody PhoneVerificationRequest request
+    @PostMapping("/phone-verifications/firebase")
+    public ResponseEntity<PhoneVerificationConfirmResponse> verifyFirebasePhone(
+            @Valid @RequestBody FirebasePhoneVerificationRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.ACCEPTED)
-                .body(phoneVerificationService.request(request));
-    }
-
-    @PostMapping("/phone-verifications/{verificationId}/confirm")
-    public ResponseEntity<PhoneVerificationConfirmResponse> confirmPhoneVerification(
-            @PathVariable("verificationId") String verificationId,
-            @RequestBody PhoneVerificationConfirmRequest request
-    ) {
-        return ResponseEntity.ok(phoneVerificationService.confirm(verificationId, request));
+        return ResponseEntity.ok(firebasePhoneVerificationService.verify(request));
     }
 
     @PostMapping("/signup")

@@ -81,6 +81,9 @@ auth:
     signup-token-ttl: 10m
     redirect-uris: ${KAKAO_REDIRECT_URIS:}
 
+firebase:
+  project-id: ${FIREBASE_PROJECT_ID:ssafy-dib}
+
 # TossPayments 자동결제(빌링). 키는 프로필/환경변수에서 — 없으면 결제 호출 시점에만 실패
 toss:
   secret-key: ${TOSS_SECRET_KEY:}
