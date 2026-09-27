@@ -4,6 +4,8 @@ import com.b101.dib.product.command.dto.ModerateProductRequest;
 import com.b101.dib.product.command.dto.ProductUpdateRequest;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
+import com.b101.dib.product.domain.ProductAttributeCatalog;
+import com.b101.dib.category.repository.CategoryMapper;
 import com.b101.dib.product.repository.ProductRepository;
 import com.b101.dib.productImage.domain.ProductImage;
 import com.b101.dib.productImage.repository.ProductImageRepository;
@@ -29,9 +31,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.time.Year;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +45,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     private static final long MAX_IMAGE_BYTES = 10L * 1024L * 1024L;
 
     private final ProductRepository productRepository;
+    private final CategoryMapper categoryMapper;
     private final ProductImageRepository productImageRepository;
     private final AuctionRepository auctionRepository;
     private final AiServerClient aiServerClient;
@@ -53,6 +58,9 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     @Override
     public Product create(Long myId, ProductCreateRequest request, List<MultipartFile> images) {
 		TradeInputValidator.validateReleaseYear(request.getReleaseYear());
+		validatePurchaseYear(request.getPurchaseYear());
+		String categoryName = categoryName(request.getCategoryId());
+		var attributes = ProductAttributeCatalog.validate(categoryName, request.getAttributes());
 		// 시작가는 등록 시점에 없을 수 있다. 라이브로 올리는 상품은 시작가·경매 시간을
 		// 편성 단계에서 정하므로 등록 요청에 시작가가 비어 온다. update() 와 같은 규칙이다
 		if (request.getStartPrice() != null) {
@@ -72,6 +80,8 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         		.condition(request.getCondition())
         		.modelName(request.getModelName())
 				.releaseYear(request.getReleaseYear())
+				.purchaseYear(request.getPurchaseYear())
+				.attributes(attributes)
         		.marketPrice(request.getMarketPrice())
         		.thumbnailUrl(thumbnailUrl)
 				.status(requestModeration ? ProductStatus.PENDING : ProductStatus.REGISTERED)
@@ -172,15 +182,36 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     @Override
     public Product update(Long myId, Long productId, ProductUpdateRequest request) {
 	    TradeInputValidator.validateReleaseYear(request.getReleaseYear());
+	    if (request.getPurchaseYear() != null && request.getPurchaseYear() != 0) validatePurchaseYear(request.getPurchaseYear());
 	    if (request.getStartPrice() != null) {
 	        TradeInputValidator.validatePrice(request.getStartPrice());
 	    }
 
         Product product = checkProduct(myId, productId);
+		Long targetCategoryId = request.getCategoryId() == null ? product.getCategoryId() : request.getCategoryId();
+		boolean categoryChanged = !targetCategoryId.equals(product.getCategoryId());
+		String targetCategoryName = categoryName(targetCategoryId);
+		boolean attributesChanged = false;
+		if (request.getAttributes() != null) {
+			var validatedAttributes = ProductAttributeCatalog.validate(targetCategoryName, request.getAttributes());
+			attributesChanged = !Objects.equals(product.getAttributes(), validatedAttributes);
+			product.setAttributes(validatedAttributes);
+			// 디지털 항목만 기존 고정 필드를 대체한다. 다른 카테고리의 옛 데이터는 보존한다.
+			if (categoryChanged || ProductAttributeCatalog.forCategory(targetCategoryName).stream()
+					.anyMatch(spec -> "model".equals(spec.key()))) {
+				product.setModelName(null);
+				product.setReleaseYear(null);
+			}
+		} else if (categoryChanged) {
+			product.setAttributes(ProductAttributeCatalog.validate(targetCategoryName, java.util.Map.of()));
+			product.setModelName(null);
+			product.setReleaseYear(null);
+			attributesChanged = true;
+		}
         
         boolean updated = false;
         // 검수 대상(카테고리·제목·설명)이 실제로 달라졌는지만 본다. 가격·경매시간만 바뀐 수정에 AI 를 부르지 않기 위해서다
-        boolean reviewedContentChanged = false;
+        boolean reviewedContentChanged = attributesChanged;
         if(request.getCategoryId() != null) {
             reviewedContentChanged |= !request.getCategoryId().equals(product.getCategoryId());
             product.setCategoryId(request.getCategoryId());
@@ -208,6 +239,11 @@ public class ProductCommandServiceImpl implements ProductCommandService {
             product.setReleaseYear(request.getReleaseYear());
             updated = true;
         }
+		if (request.getPurchaseYear() != null) {
+			product.setPurchaseYear(request.getPurchaseYear() == 0 ? null : request.getPurchaseYear());
+			updated = true;
+		}
+		if (attributesChanged) updated = true;
         if(request.getMarketPrice() != null){
             product.setMarketPrice(request.getMarketPrice());
             updated = true;
@@ -325,6 +361,18 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         
         return product;
     }
+
+	private String categoryName(Long categoryId) {
+		String name = categoryMapper.findNameById(categoryId);
+		if (name == null) throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+		return name;
+	}
+
+	private void validatePurchaseYear(Integer year) {
+		if (year != null && (year < 1900 || year > Year.now().getValue())) {
+			throw new BusinessException(ErrorCode.INVALID_PRODUCT_ATTRIBUTES);
+		}
+	}
     
     // 경매 행이 없는 것은 검수 대기 상품의 정상 상태다. 있으면 수정 가능한지까지 검증한다
     private Auction findEditableAuction(Long productId) {

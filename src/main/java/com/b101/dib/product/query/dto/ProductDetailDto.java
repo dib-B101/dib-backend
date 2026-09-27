@@ -6,9 +6,13 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.b101.dib.product.domain.ProductCondition;
 import com.b101.dib.product.domain.ProductStatus;
+import com.b101.dib.product.domain.ProductAttributeCatalog;
+import com.b101.dib.product.domain.ProductAttributeSpec;
 
 @Getter
 @Setter                
@@ -20,6 +24,10 @@ public class ProductDetailDto {
     private ProductCondition condition;
     private String modelName;
     private Integer releaseYear;
+    private Integer purchaseYear;
+    private Map<String, String> attributes;
+    @JsonIgnore
+    private String attributesJson;
     private Long marketPrice;
     private String thumbnailUrl;
     private ProductStatus status;
@@ -28,6 +36,10 @@ public class ProductDetailDto {
     
     private Long categoryId;
     private String categoryName;
+
+    public List<ProductAttributeSpec> getAttributeSpecs() {
+        return ProductAttributeCatalog.forCategory(categoryName);
+    }
     
     private Long memberId;
     private String nickname;

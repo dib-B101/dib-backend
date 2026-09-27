@@ -53,6 +53,7 @@ import com.b101.dib.product.command.service.ProductModerationTxService;
 import com.b101.dib.product.domain.ProductCondition;
 import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.product.repository.ProductRepository;
+import com.b101.dib.product.query.service.ProductQueryService;
 import com.b101.dib.report.command.dto.CreateOrderReportRequest;
 import com.b101.dib.report.command.dto.CreateReportRequest;
 import com.b101.dib.report.command.dto.ProcessReportRequest;
@@ -84,6 +85,7 @@ import org.testcontainers.utility.DockerImageName;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -138,6 +140,7 @@ class TradeCycleIntegrationTest {
     @Autowired OrderCommandService orderCommandService;
     @Autowired SettlementCommandService settlementCommandService;
     @Autowired ProductCommandService productCommandService;
+    @Autowired ProductQueryService productQueryService;
     @Autowired ProductModerationTxService productModerationTxService;
     @Autowired ReportCommandService reportCommandService;
     @Autowired QuestionCommandService questionCommandService;
@@ -159,6 +162,23 @@ class TradeCycleIntegrationTest {
     @MockitoBean TossPaymentsClient tossPaymentsClient;
     @MockitoBean OutboxEventRecorder outboxEventRecorder;
     @MockitoBean AiServerClient aiServerClient;
+
+    @Test
+    void categoryAttributesPersistAndAppearInProductDetail() {
+        Actors actors = actors();
+        Product product = product(actors.seller().getId(), ProductStatus.REGISTERED);
+        Long digitalCategoryId = jdbcTemplate.queryForObject(
+                "INSERT INTO category (name) VALUES ('디지털') RETURNING category_id", Long.class);
+
+        productCommandService.update(actors.seller().getId(), product.getProductId(),
+                ProductUpdateRequest.builder().categoryId(digitalCategoryId).purchaseYear(2022)
+                        .attributes(Map.of("brand", "삼성", "model", "Galaxy S24")).build());
+
+        var detail = productQueryService.findById(product.getProductId());
+        assertThat(detail.getPurchaseYear()).isEqualTo(2022);
+        assertThat(detail.getAttributes()).containsEntry("brand", "삼성").containsEntry("model", "Galaxy S24");
+        assertThat(detail.getAttributeSpecs()).extracting("key").contains("brand", "model", "releaseYear");
+    }
 
     @Test
     void samePriceConcurrentBidAllowsExactlyOneWinner() throws Exception {

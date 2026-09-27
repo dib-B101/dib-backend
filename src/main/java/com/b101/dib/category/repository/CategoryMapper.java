@@ -8,4 +8,5 @@ import java.util.List;
 @Mapper
 public interface CategoryMapper {
     List<CategoryQueryDto> findAll();
+    String findNameById(Long categoryId);
 }

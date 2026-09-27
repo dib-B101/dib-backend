@@ -8,6 +8,8 @@ spring:
     # 운영 데이터 초기화 뒤에도 스키마와 최소 기준 데이터가 한 번에 복원되도록
     # 로컬 더미 시드(db/seed)와 분리한 배포 전용 시드만 추가로 읽는다.
     locations: classpath:db/migration,classpath:db/deploy-seed
+    # 배포 시드 V900/V901 이후 추가된 스키마 마이그레이션(V19 등)을 적용한다.
+    out-of-order: true
   data:
     redis:
       host: ${REDIS_HOST}

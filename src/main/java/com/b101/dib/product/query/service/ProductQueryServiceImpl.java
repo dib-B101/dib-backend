@@ -19,6 +19,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 
 
@@ -27,6 +30,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ProductQueryServiceImpl implements ProductQueryService {
     private final ProductMapper productQueryMapper;
+    private final ObjectMapper objectMapper;
 
     @Override
     public CursorPageDto<ProductQueryDto> findAll(String cursor, int size) {
@@ -40,6 +44,12 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         ProductDetailDto dto = productQueryMapper.findById(productId);
         if(dto == null) {
         	throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+        try {
+            dto.setAttributes(dto.getAttributesJson() == null ? Map.of() :
+                    objectMapper.readValue(dto.getAttributesJson(), new TypeReference<Map<String, String>>() {}));
+        } catch (Exception exception) {
+            throw new IllegalStateException("Invalid stored product attributes", exception);
         }
         return dto;
     }

@@ -5,6 +5,7 @@ import com.b101.dib.product.command.dto.ProductModerationRequest;
 import com.b101.dib.product.command.dto.ProductModerationResponse;
 import com.b101.dib.product.domain.Product;
 import com.b101.dib.product.domain.ProductStatus;
+import com.b101.dib.product.domain.ProductAttributeCatalog;
 import com.b101.dib.product.query.dto.ProductDetailDto;
 import com.b101.dib.product.repository.ProductMapper;
 import com.b101.dib.product.repository.ProductRepository;
@@ -54,7 +55,7 @@ public class ProductModerationServiceImpl implements ProductModerationService {
         ProductModerationRequest request = ProductModerationRequest.builder()
                 .productId(productId)
                 .title(product.getTitle())
-                .description(product.getDescription())
+                .description(moderationDescription(product, categoryName(productId)))
                 .imageUrls(imageUrls(productId))
                 .categoryName(categoryName(productId))
                 .build();
@@ -82,6 +83,20 @@ public class ProductModerationServiceImpl implements ProductModerationService {
                 .map(productImageStorage::internalUrl)
                 .limit(MAX_REVIEW_IMAGES)
                 .toList();
+    }
+
+    private String moderationDescription(Product product, String categoryName) {
+        StringBuilder description = new StringBuilder(product.getDescription() == null ? "" : product.getDescription());
+        if (product.getAttributes() != null) {
+            ProductAttributeCatalog.forCategory(categoryName).forEach(spec -> {
+                String value = product.getAttributes().get(spec.key());
+                if (value != null && !value.isBlank()) {
+                    description.append("\n").append(spec.label()).append(": ")
+                            .append("CONFIRM".equals(spec.type()) ? "확인" : value);
+                }
+            });
+        }
+        return description.toString();
     }
 
     // 판정 정확도를 높이는 참고 정보라 못 구하면 null 로 보낸다

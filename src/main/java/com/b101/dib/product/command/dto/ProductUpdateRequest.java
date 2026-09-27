@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import java.util.Map;
 
 @Getter
 @Builder
@@ -20,9 +21,10 @@ public class ProductUpdateRequest {
     private ProductCondition condition;
     private String modelName;
     private Integer releaseYear;
+    private Integer purchaseYear;
+    private Map<String, String> attributes;
     private Long marketPrice;
 
     private Long startPrice;
     private Integer auctionTime;
 }
-	
