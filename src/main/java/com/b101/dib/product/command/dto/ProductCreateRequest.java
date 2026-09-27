@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import java.util.Map;
 
 @Getter
 @Builder
@@ -28,6 +29,10 @@ public class ProductCreateRequest {
     @Min(1900)
     @Max(2100)
     private Integer releaseYear;
+    @Min(1900)
+    @Max(2100)
+    private Integer purchaseYear;
+    private Map<String, String> attributes;
     @PositiveOrZero
     private Long marketPrice;
 

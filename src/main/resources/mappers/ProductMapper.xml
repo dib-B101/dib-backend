@@ -262,6 +262,8 @@
 		<result property="condition" column="condition" />
 		<result property="modelName" column="model_name" />
 		<result property="releaseYear" column="release_year" />
+		<result property="purchaseYear" column="purchase_year" />
+		<result property="attributesJson" column="attributes_json" />
 		<result property="marketPrice" column="market_price" />
 		<result property="thumbnailUrl" column="thumbnail_url" />
 		<result property="status" column="status" />
@@ -287,6 +289,8 @@
 			p.condition,
 			p.model_name,
 			p.release_year,
+			p.purchase_year,
+			p.attributes::text AS attributes_json,
 			p.market_price,
 			p.thumbnail_url,
 			p.status,

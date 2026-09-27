@@ -12,4 +12,7 @@
 		FROM category
 		ORDER BY category_id
 	</select>
+	<select id="findNameById" resultType="java.lang.String">
+		SELECT name FROM category WHERE category_id = #{categoryId}
+	</select>
 </mapper>

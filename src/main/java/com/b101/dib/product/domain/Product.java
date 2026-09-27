@@ -16,6 +16,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Entity
 @Getter
@@ -40,6 +41,11 @@ public class Product {
     
     private String modelName;
     private Integer releaseYear;
+    private Integer purchaseYear;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb", nullable = false)
+    @Builder.Default
+    private Map<String, String> attributes = Map.of();
     private Long marketPrice;
     private String thumbnailUrl;
 
