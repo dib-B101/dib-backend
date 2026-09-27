@@ -32,17 +32,19 @@ public final class ProductAttributeCatalog {
 
     public static List<ProductAttributeSpec> forCategory(String categoryName) {
         return switch (categoryName) {
-            case "디지털", "생활가전" -> List.of(text("brand", "브랜드", "예: 삼성"), text("model", "모델명", "예: Galaxy S24"), year("releaseYear", "출시연도"));
-            case "가구/인테리어", "생활/주방" -> List.of(text("dimensions", "크기", "가로 × 세로 × 높이"), text("material", "소재", "예: 원목"));
+            case "디지털", "디지털기기", "생활가전" -> List.of(text("brand", "브랜드", "예: 삼성"), text("model", "모델명", "예: Galaxy S24"), year("releaseYear", "출시연도"));
+            case "가구/인테리어", "가구·인테리어", "생활/주방" -> List.of(text("dimensions", "크기", "가로 × 세로 × 높이"), text("material", "소재", "예: 원목"));
             case "유아동" -> List.of(text("brand", "브랜드", "예: 브랜드명"), text("size", "사이즈·권장 연령", "예: 100호 / 3~4세"));
             case "유아도서", "도서" -> List.of(text("author", "저자", "예: 저자명"), text("isbn", "ISBN", "책 뒷면의 13자리 번호"));
-            case "여성의류", "남성패션" -> List.of(text("brand", "브랜드", "예: 브랜드명"), text("size", "사이즈", "예: M / 95"));
+            case "여성의류", "남성패션", "패션·잡화" -> List.of(text("brand", "브랜드", "예: 브랜드명"), text("size", "사이즈·규격", "예: M / 95 / 240mm"));
             case "여성잡화", "남성잡화" -> List.of(text("brand", "브랜드", "예: 브랜드명"), text("size", "사이즈·규격", "예: 240mm"));
-            case "뷰티/미용" -> List.of(text("brand", "브랜드", "예: 브랜드명"), text("volume", "용량", "예: 50ml"),
+            case "뷰티/미용", "뷰티" -> List.of(text("brand", "브랜드", "예: 브랜드명"), text("volume", "용량", "예: 50ml"),
                     new ProductAttributeSpec("expiryDate", "사용기한", "DATE", false, "YYYY-MM-DD"));
-            case "스포츠/레저" -> List.of(text("brand", "브랜드", "예: 브랜드명"), text("size", "사이즈·규격", "예: 270mm"));
-            case "취미/게임/음반" -> List.of(text("productNumber", "제품 번호", "예: 레고 10326"),
+            case "스포츠/레저", "스포츠·레저" -> List.of(text("brand", "브랜드", "예: 브랜드명"), text("size", "사이즈·규격", "예: 270mm"));
+            case "취미/게임/음반", "취미·게임" -> List.of(text("productNumber", "제품 번호", "예: 레고 10326"),
                     text("platform", "기종·플랫폼", "예: Nintendo Switch"), text("artist", "아티스트", "음반이라면 입력"));
+            case "예술·창작" -> List.of(text("artist", "작가·제작자", "예: 작가명"),
+                    text("material", "재료·기법", "예: 캔버스에 유화"), text("dimensions", "크기", "예: 30 × 40cm"));
             case "티켓/교환권", "e쿠폰" -> List.of(expiry("유효기간"), confirmation("unused", "미사용 상품입니다"));
             case "가공식품", "건강기능식품" -> List.of(expiry("소비기한"), confirmation("unopened", "미개봉 상품입니다"));
             case "반려동물용품" -> List.of(text("brand", "브랜드", "예: 브랜드명"), text("size", "크기·용량", "예: 2kg"));
