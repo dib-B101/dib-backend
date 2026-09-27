@@ -2,6 +2,18 @@
 spring:
   application:
     name: dib
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_APP_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
   profiles:
     default: local            # 아무것도 지정 안 하면 로컬 개발 모드
   jpa:
@@ -72,7 +84,9 @@ auth:
     hmac-secret: ${PHONE_VERIFICATION_HMAC_SECRET}
   password-reset:
     token-ttl: 30m
-    reset-page-url: ${PASSWORD_RESET_PAGE_URL:http://localhost:5173/password/reset}
+    reset-page-url: ${PASSWORD_RESET_PAGE_URL:}
+  mail:
+    mode: ${DIB_MAIL_MODE:logging}
   kakao:
     client-id: ${KAKAO_CLIENT_ID:}
     client-secret: ${KAKAO_CLIENT_SECRET:}

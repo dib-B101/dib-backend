@@ -32,6 +32,12 @@ cp .env.example .env
 
 `.env`에는 로컬 포트와 개발용 외부 서비스 설정만 둡니다. 실제 운영 비밀값은 입력하거나 커밋하지 않습니다.
 
+비밀번호 재설정 메일을 실제로 보내려면 `DIB_MAIL_MODE=smtp`, `SMTP_USERNAME`,
+`SMTP_APP_PASSWORD`, `PASSWORD_RESET_PAGE_URL`을 설정합니다. Gmail 앱 비밀번호는
+공백 없이 환경 변수로 전달하고, 링크 URL은 Android 앱에 등록한 HTTPS App Link의
+`/password/reset` 경로로 지정합니다. SMTP를 켜지 않은 로컬 실행은 메일을 보내지 않으며
+재설정 링크나 토큰을 로그에 출력하지 않습니다. 배포 프로필은 SMTP 설정이 필수입니다.
+
 ## 로컬 인프라 실행
 
 PostgreSQL, Redis와 Kafka를 실행합니다.

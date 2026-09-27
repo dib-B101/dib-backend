@@ -51,6 +51,9 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
     @Override
     public void requestResetLink(PasswordResetLinkRequest request) {
+        if (properties.resetPageUrl() == null || properties.resetPageUrl().isBlank()) {
+            throw new IllegalStateException("PASSWORD_RESET_PAGE_URL을 설정해야 합니다.");
+        }
         String email = request.email().trim().toLowerCase(Locale.ROOT);
         String phoneNumber = PhoneNumber.from(request.phoneNumber()).value();
 
