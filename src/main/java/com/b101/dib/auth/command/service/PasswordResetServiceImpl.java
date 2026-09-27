@@ -62,7 +62,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
         Member member = memberRepository.findByEmailAndPhoneNumber(email, phoneNumber).orElse(null);
         if (!canResetPassword(member)) {
-            return;
+            throw new BusinessException(ErrorCode.PASSWORD_RESET_ACCOUNT_MISMATCH);
         }
 
         String resetToken = generateToken();

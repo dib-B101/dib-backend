@@ -60,4 +60,12 @@ public class PhoneVerificationConfig {
         script.setResultType(Long.class);
         return script;
     }
+
+    @Bean
+    public DefaultRedisScript<Long> issueFirebasePhoneVerificationScript() {
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setLocation(new ClassPathResource("redis/issue-firebase-phone-verification.lua"));
+        script.setResultType(Long.class);
+        return script;
+    }
 }
