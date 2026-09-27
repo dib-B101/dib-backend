@@ -2,6 +2,7 @@ package com.b101.dib.product.command.service;
 
 import com.b101.dib.auction.repository.AuctionRepository;
 import com.b101.dib.common.ai.AiServerClient;
+import com.b101.dib.category.repository.CategoryMapper;
 import com.b101.dib.product.command.event.ProductModerationRequestedEvent;
 import com.b101.dib.product.domain.ProductStatus;
 import com.b101.dib.auction.domain.Auction;
@@ -15,6 +16,7 @@ import com.b101.dib.product.repository.ProductRepository;
 import com.b101.dib.productImage.repository.ProductImageRepository;
 import com.b101.dib.productImage.storage.ProductImageStorage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.ArgumentCaptor;
@@ -37,12 +39,18 @@ import static org.mockito.Mockito.verify;
 class ProductCommandServiceImplTest {
 
     @Mock ProductRepository productRepository;
+    @Mock CategoryMapper categoryMapper;
     @Mock ProductImageRepository productImageRepository;
     @Mock AuctionRepository auctionRepository;
     @Mock AiServerClient aiServerClient;
     @Mock ApplicationEventPublisher eventPublisher;
     @Mock ProductImageStorage productImageStorage;
     @InjectMocks ProductCommandServiceImpl productCommandService;
+
+    @BeforeEach
+    void setUp() {
+        given(categoryMapper.findNameById(3L)).willReturn("디지털기기");
+    }
 
     @Test
     void createsProductWithReleaseYearInsteadOfAuctionTime() {
